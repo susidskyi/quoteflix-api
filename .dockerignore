@@ -5,5 +5,6 @@ __pycache__/
 .build/
 .env.example
 .gitignore
+.mypy_cache/
 Makefile
 README.md

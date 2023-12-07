@@ -1,18 +1,25 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
 [tool.poetry]
-name = "api"
-version = "0.1.0"
-description = "The API for Quoteflix platform"
 authors = ["Aleksandr Sosedskyi <sanya1sosedskiy@gmail.com>"]
+description = "The API for Quoteflix platform"
+name = "api"
 readme = "README.md"
+version = "0.1.0"
 
 [tool.poetry.dependencies]
-python = "^3.12"
 fastapi = "^0.104.1"
+python = "^3.12"
 uvicorn = "^0.24.0.post1"
 
 [tool.poetry.group.dev.dependencies]
+black = "^23.11.0"
+flake8 = "^6.1.0"
+isort = "^5.12.0"
+mypy = "^1.7.1"
+pre-commit = "^3.5.0"
 
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.3"
