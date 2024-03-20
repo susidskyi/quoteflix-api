@@ -2,13 +2,13 @@
 FROM python:3.12 as builder
 
 ENV PYTHONUNBUFFERED=1 \
-    POETRY_VERSION=1.7.1 \
+    POETRY_VERSION=1.8.2 \
     POETRY_VIRTUALENVS_CREATE=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     POETRY_NO_INTERACTION=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
 
-RUN pip install poetry==1.7.1
+RUN pip install poetry==${POETRY_VERSION}
 
 WORKDIR /code
 
