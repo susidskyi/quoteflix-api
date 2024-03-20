@@ -41,7 +41,7 @@ check:
 format:
 	$(RUN) black $(ALL_APPS)
 	$(RUN) isort --profile black $(ALL_APPS)
-	$(RUN) ruff $(ALL_APPS)
+	$(RUN) ruff format $(ALL_APPS)
 
 test-unit:
 	$(RUN) pytest
