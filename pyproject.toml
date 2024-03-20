@@ -5,26 +5,24 @@ requires = ["poetry-core"]
 [tool.poetry]
 authors = ["Aleksandr Sosedskyi <sanya1sosedskiy@gmail.com>"]
 description = "The API for Quoteflix platform"
-name = "api"
+name = "app"
 readme = "README.md"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
-alembic = "^1.13.1"
-asyncpg = "^0.29.0"
-fastapi = "^0.104.1"
-fastapi-users = {extras = ["sqlalchemy"], version = "^13.0.0"}
-pydantic-settings = "^2.1.0"
+alembic = "1.13.1"
+asyncpg = "0.29.0"
+fastapi = "0.110.0"
+fastapi-users = {extras = ["sqlalchemy"], version = "13.0.0"}
+pydantic-settings = "2.2.1"
 python = "^3.12"
-sqlalchemy = "^2.0.23"
-uvicorn = "^0.24.0.post1"
+sqlalchemy = "2.0.28"
+uvicorn = "0.29.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.11.0"
-flake8 = "^6.1.0"
-isort = "^5.13.2"
-mypy = "^1.7.1"
-pre-commit = "^3.5.0"
-
-[tool.poetry.group.test.dependencies]
-pytest = "^7.4.3"
+black = "24.3.0"
+flake8 = "7.0.0"
+isort = "5.13.2"
+mypy = "1.9.0"
+pre-commit = "3.6.2"
+pytest = "8.1.1"
