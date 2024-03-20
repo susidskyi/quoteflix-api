@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
-from typing import Sequence, Any
+from typing import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 from app.api.dependencies import get_db_session
-from app.api.users.models import User
 from app.api.users.schemas import UserRead
 
 router = APIRouter(

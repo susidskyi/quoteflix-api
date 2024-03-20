@@ -35,11 +35,13 @@ check:
 	$(RUN) flake8 $(ALL_APPS)
 	$(RUN) black --diff --check $(ALL_APPS)
 	$(RUN) isort --profile black --check $(ALL_APPS)
+	$(RUN) ruff check $(ALL_APPS)
 
 # Automatically format the code and sort imports
 format:
 	$(RUN) black $(ALL_APPS)
 	$(RUN) isort --profile black $(ALL_APPS)
+	$(RUN) ruff $(ALL_APPS)
 
 test-unit:
 	$(RUN) pytest
