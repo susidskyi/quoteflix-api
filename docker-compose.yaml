@@ -2,13 +2,47 @@ version: '3.8'
 
 
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: quoteflix-db
+    env_file: .env
+    environment:
+      POSTGRES_PASSWORD: quoteflix
+      POSTGRES_USER: quoteflix
+      POSTGRES_DB: quoteflix
+    volumes:
+    - db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  test-db:
+    image: postgres:16-alpine
+    container_name: quoteflix-test-db
+    env_file: .env
+    environment:
+      POSTGRES_PASSWORD: quoteflix
+      POSTGRES_USER: quoteflix-test
+      POSTGRES_DB: quoteflix-test
+    ports:
+    - 5433:5432
+    volumes:
+    - test-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   api:
     build:
       context: .
     container_name: quoteflix-api
     env_file: .env
-    command: uvicorn api.main:app --reload --host 0.0.0.0
+    command: uvicorn app.main:app --reload --host 0.0.0.0
     volumes:
-      - ./api:/app/api
+    - ./app:/code/app
+    - ./alembic.ini:/code/alembic.ini
     ports:
-      - "8000:8000"
+    - 8000:8000
+    restart: unless-stopped
+    depends_on:
+    - db
+
+volumes:
+  db-data:
+  test-db-data:

@@ -1,5 +1,5 @@
 # The builder image, used to build the virtual environment
-FROM python:3.12-bullseye as builder
+FROM python:3.12 as builder
 
 ENV PYTHONUNBUFFERED=1 \
     POETRY_VERSION=1.7.1 \
@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 RUN pip install poetry==1.7.1
 
-WORKDIR /app
+WORKDIR /code
 
 COPY pyproject.toml poetry.lock ./
 RUN touch README.md
@@ -19,13 +19,12 @@ RUN poetry install --without dev --no-root && rm -rf ${POETRY_CACHE_DIR}
 
 
 # The runtime image, used to just run the code provided its virtual environment
-FROM python:3.12-slim-bullseye as runtime
+FROM python:3.12 as runtime
 
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
+ENV VIRTUAL_ENV=/code/.venv \
+    PATH="/code/.venv/bin:$PATH" \
+    PYTHONPATH=/code
 
-WORKDIR /app
+WORKDIR /code
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-
-COPY ./api api
