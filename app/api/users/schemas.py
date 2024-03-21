@@ -1,10 +1,18 @@
-from pydantic import BaseModel
+import uuid
+
+from fastapi_users import schemas
 
 
-class UserRead(BaseModel):
-    id: int
-    username: str
-    email: str
+class UserRead(schemas.BaseUser[uuid.UUID]):
     first_name: str
     last_name: str
-    is_superuser: bool
+
+
+class UserCreate(schemas.BaseUserCreate):
+    first_name: str
+    last_name: str
+
+
+class UserUpdate(schemas.BaseUserUpdate):
+    first_name: str | None = None
+    last_name: str | None = None

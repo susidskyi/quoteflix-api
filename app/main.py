@@ -1,11 +1,12 @@
 import logging
 import sys
 from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
 from app.api.users.router import router as users_router
 from app.core.config import settings
 from app.core.database import sessionmanager
-from fastapi import FastAPI
-
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.DEBUG if settings.debug_logs else logging.INFO
@@ -25,11 +26,6 @@ async def lifespan(app: FastAPI):
 
 docs_url = "/docs" if settings.stage != "production" else None
 app = FastAPI(lifespan=lifespan, docs_url=docs_url)
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
 
 # Routers

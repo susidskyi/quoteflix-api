@@ -1,21 +1,33 @@
-from fastapi import APIRouter, Depends
-from typing import Sequence
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import text
-from app.api.dependencies import get_db_session
-from app.api.users.schemas import UserRead
+import uuid
 
-router = APIRouter(
-    prefix="/api/users",
-    tags=["users"],
-    responses={404: {"description": "Not found"}},
+from fastapi_users import FastAPIUsers
+from fastapi import APIRouter
+from app.api.users.models import User
+from app.api.users.schemas import UserRead, UserCreate, UserUpdate
+from app.api.users.manager import get_user_manager
+from app.api.users.backend import auth_backend
+
+router = APIRouter()
+
+fastapi_users = FastAPIUsers[User, uuid.UUID](
+    get_user_manager,
+    [auth_backend],
 )
 
 
-@router.get("/", response_model=Sequence[UserRead])
-async def user_details(
-    db: AsyncSession = Depends(get_db_session),
-) -> Sequence[UserRead]:
-    users = await db.execute(text("SELECT * FROM users"))
-
-    return [UserRead(**user.dict()) for user in users]
+router.include_router(
+    fastapi_users.get_auth_router(auth_backend), prefix="/auth", tags=["auth"]
+)
+router.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)
+router.include_router(
+    fastapi_users.get_verify_router(UserRead), prefix="/auth", tags=["auth"]
+)
+router.include_router(
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix="/users",
+    tags=["users"],
+)

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     database_url: PostgresDsn
     debug_logs: bool = False
     stage: str
+    secret: str
 
 
 @lru_cache
