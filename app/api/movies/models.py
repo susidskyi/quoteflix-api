@@ -1,12 +1,15 @@
 from sqlalchemy.orm import Mapped, mapped_column
+from pydantic import PositiveInt
+from fastapi import UploadFile
 from sqlalchemy import SmallInteger, String
 from app.core.models import BaseModel
+from pydantic import BaseModel as PydanticBaseModel
 from app.api.movies.constants import MovieStatus, Languages
 from fastapi_storages import FileSystemStorage
 from fastapi_storages.integrations.sqlalchemy import FileType
 
 
-class Movie(BaseModel):
+class MovieModel(BaseModel):
     __tablename__ = "movies"
 
     title: Mapped[str] = mapped_column(String(100))
@@ -20,3 +23,21 @@ class Movie(BaseModel):
         FileType(FileSystemStorage(path="subtitles/")), nullable=True
     )
     language: Mapped[Languages]
+
+    class Create(PydanticBaseModel):
+        title: str
+        year: PositiveInt
+        language: Languages
+        file: UploadFile | None
+        subtitles_file: UploadFile | None
+        is_active: bool = False
+        status: MovieStatus = MovieStatus.PENDING
+
+    class Update(PydanticBaseModel):
+        title: str | None
+        year: PositiveInt | None
+        language: Languages | None
+        file: UploadFile | None
+        subtitles_file: UploadFile | None
+        is_active: bool | None
+        status: MovieStatus | None

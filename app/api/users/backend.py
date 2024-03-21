@@ -1,8 +1,11 @@
 from fastapi_users.authentication import (
     AuthenticationBackend as BaseAuthenticationBackend,
+)
+from fastapi_users.authentication import (
     BearerTransport,
     JWTStrategy,
 )
+
 from app.core.config import settings
 
 
