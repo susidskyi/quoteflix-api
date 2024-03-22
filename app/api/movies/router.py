@@ -12,7 +12,7 @@ from app.api.movies.schemas import (
     MovieUpdateSchema,
 )
 from app.api.movies.service import MovieService
-from app.api.users.permissions import current_superuser, curret_active_verified_user
+from app.api.users.permissions import current_superuser
 
 router = APIRouter(
     prefix="/movies",

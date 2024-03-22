@@ -1,11 +1,12 @@
 import uuid
 
-from fastapi_users import FastAPIUsers
 from fastapi import APIRouter
-from app.api.users.models import UserModel
-from app.api.users.schemas import UserSchema, UserCreateSchema, UserUpdateSchema
-from app.api.users.manager import get_user_manager
+from fastapi_users import FastAPIUsers
+
 from app.api.users.backend import auth_backend
+from app.api.users.manager import get_user_manager
+from app.api.users.models import UserModel
+from app.api.users.schemas import UserCreateSchema, UserSchema, UserUpdateSchema
 
 router = APIRouter()
 

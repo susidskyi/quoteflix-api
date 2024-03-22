@@ -1,27 +1,28 @@
 repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: check-added-large-files
+  - id: check-toml
+  - id: check-yaml
+  - id: debug-statements
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.3.4
+  hooks:
+    - id: ruff-format
+      files: app/
+      exclude: ^app/alembic
+    - id: ruff
+      files: app/
+      exclude: ^app/alembic
+      args: [ --select, I, --fix ]
+
 - repo: local
   hooks:
-  - id: checking
-    name: Run all ci checks locally
-    description: Run check (flake8, black, isort, mypy)
-    entry: make ci
+  - id: test
+    name: Run Tests
+    entry: inv tests
     language: system
     always_run: true
     pass_filenames: false
     fail_fast: true
-- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.11.0
-  hooks:
-  - id: pretty-format-yaml
-    args: [--autofix]
-  - id: pretty-format-toml
-    args: [--autofix]
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
-  hooks:
-  - id: check-yaml
-  - id: check-toml
-  - id: end-of-file-fixer
-  - id: debug-statements
-  - id: check-added-large-files
-  - id: check-merge-conflict

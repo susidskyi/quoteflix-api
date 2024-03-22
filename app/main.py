@@ -4,10 +4,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.movies.router import router as movies_router
 from app.api.users.router import router as users_router
 from app.core.config import settings
 from app.core.database import sessionmanager
-from app.api.movies.router import router as movies_router
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.DEBUG if settings.debug_logs else logging.INFO

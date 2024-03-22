@@ -1,6 +1,8 @@
+import uuid
+
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-import uuid
+
 from app.api.dependencies import get_db_session
 from app.api.movies.repository import MoviesRepository
 from app.api.movies.service import MovieService
