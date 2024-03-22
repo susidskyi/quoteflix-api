@@ -1,13 +1,13 @@
 import uuid
 from typing import Sequence
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, exists
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.movies.models import MovieModel
 
 
-class MovieRepository:
+class MoviesRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session: AsyncSession = session
 
@@ -42,3 +42,7 @@ class MovieRepository:
         query = delete(MovieModel).where(MovieModel.id == movie_id)
         await self.session.execute(query)
         await self.session.commit()
+
+    async def exists(self, movie_id: uuid.UUID) -> bool:
+        query = select(exists().where(MovieModel.id == movie_id))
+        return await self.session.scalar(query)

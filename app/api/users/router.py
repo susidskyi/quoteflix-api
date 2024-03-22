@@ -14,7 +14,6 @@ fastapi_users = FastAPIUsers[UserModel, uuid.UUID](
     [auth_backend],
 )
 
-
 router.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth", tags=["auth"]
 )

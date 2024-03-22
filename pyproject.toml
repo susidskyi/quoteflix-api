@@ -19,7 +19,7 @@ humanize = "4.9.0"
 pydantic-settings = "2.2.1"
 python = "^3.12"
 python-multipart = "0.0.9"
-ruff = "0.3.3"
+ruff = "0.3.4"
 sqlalchemy = "2.0.28"
 uvicorn = "0.29.0"
 

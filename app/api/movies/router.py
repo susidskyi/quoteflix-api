@@ -4,7 +4,7 @@ from typing import Sequence
 from fastapi import Depends
 from fastapi.routing import APIRouter
 
-from app.api.movies.dependencies import get_movie_service
+from app.api.movies.dependencies import get_movie_service, movie_exists
 from app.api.movies.models import MovieModel
 from app.api.movies.schemas import (
     MovieCreateSchema,
@@ -12,6 +12,7 @@ from app.api.movies.schemas import (
     MovieUpdateSchema,
 )
 from app.api.movies.service import MovieService
+from app.api.users.permissions import current_superuser, curret_active_verified_user
 
 router = APIRouter(
     prefix="/movies",
@@ -29,7 +30,12 @@ async def list(
     return [movie for movie in movies]
 
 
-@router.post("/", name="movies:create-movie", response_model=MovieSchema)
+@router.post(
+    "/",
+    name="movies:create-movie",
+    response_model=MovieSchema,
+    dependencies=[Depends(current_superuser)],
+)
 async def create(
     movie_payload: MovieCreateSchema = Depends(MovieCreateSchema.depends),
     movie_service: MovieService = Depends(get_movie_service),
@@ -40,7 +46,12 @@ async def create(
     return movie
 
 
-@router.put("/{movie_id}", name="movies:update-movie", response_model=MovieSchema)
+@router.put(
+    "/{movie_id}",
+    name="movies:update-movie",
+    response_model=MovieSchema,
+    dependencies=[Depends(current_superuser), Depends(movie_exists)],
+)
 async def update(
     movie_id: uuid.UUID,
     movie_payload: MovieUpdateSchema = Depends(MovieUpdateSchema.depends),
@@ -52,7 +63,12 @@ async def update(
     return movie
 
 
-@router.get("/{movie_id}", name="movies:get-movie-by-id", response_model=MovieSchema)
+@router.get(
+    "/{movie_id}",
+    name="movies:get-movie-by-id",
+    response_model=MovieSchema,
+    dependencies=[Depends(movie_exists)],
+)
 async def get_movie_by_id(
     movie_id: uuid.UUID, movie_service: MovieService = Depends(get_movie_service)
 ) -> MovieSchema:
@@ -61,7 +77,12 @@ async def get_movie_by_id(
     return movie
 
 
-@router.delete("/{movie_id}", name="movies:delete-movie", status_code=204)
+@router.delete(
+    "/{movie_id}",
+    name="movies:delete-movie",
+    status_code=204,
+    dependencies=[Depends(current_superuser), Depends(movie_exists)],
+)
 async def delete_movie(
     movie_id: uuid.UUID, movie_service: MovieService = Depends(get_movie_service)
 ):

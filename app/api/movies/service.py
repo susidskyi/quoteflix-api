@@ -2,11 +2,11 @@ import uuid
 from typing import Sequence
 
 from app.api.movies.models import MovieModel
-from app.api.movies.repository import MovieRepository
+from app.api.movies.repository import MoviesRepository
 
 
 class MovieService:
-    def __init__(self, movie_repository: MovieRepository) -> None:
+    def __init__(self, movie_repository: MoviesRepository) -> None:
         self.repository = movie_repository
 
     async def create(self, data: MovieModel.Create) -> MovieModel:
@@ -31,3 +31,6 @@ class MovieService:
 
     async def delete(self, movie_id: uuid.UUID) -> None:
         await self.repository.delete(movie_id)
+
+    async def exists(self, movie_id: uuid.UUID) -> bool:
+        return await self.repository.exists(movie_id)
