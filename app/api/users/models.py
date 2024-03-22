@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from app.core.database import Base
+from sqlalchemy import String
+from app.core.models import BaseModel
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID
 
 
-class User(SQLAlchemyBaseUserTableUUID, Base):
-    first_name: Mapped[str] = mapped_column(nullable=False)
-    last_name: Mapped[str] = mapped_column(nullable=False)
+class UserModel(SQLAlchemyBaseUserTableUUID, BaseModel):
+    first_name: Mapped[str] = mapped_column(String(50))
+    last_name: Mapped[str] = mapped_column(String(50))
