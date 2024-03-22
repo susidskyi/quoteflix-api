@@ -1,7 +1,8 @@
-from typing import Sequence
 import uuid
-from app.api.movies.repository import MovieRepository
+from typing import Sequence
+
 from app.api.movies.models import MovieModel
+from app.api.movies.repository import MovieRepository
 
 
 class MovieService:
@@ -22,3 +23,11 @@ class MovieService:
         movie = await self.repository.update(movie_id, data)
 
         return movie
+
+    async def get_by_id(self, movie_id: uuid.UUID) -> MovieModel:
+        movie = await self.repository.get_by_id(movie_id)
+
+        return movie
+
+    async def delete(self, movie_id: uuid.UUID) -> None:
+        await self.repository.delete(movie_id)

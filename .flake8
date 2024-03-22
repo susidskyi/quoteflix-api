@@ -2,3 +2,5 @@
 ignore =
     # line too long
     E501
+    # no line break before binary operator
+    W503
