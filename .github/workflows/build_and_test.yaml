@@ -23,9 +23,11 @@ jobs:
 
     - name: Install dependencies
       run: poetry install
+    - name: Setup environment
+      run: cp .env.test .env
 
     - name: Test docker build
       run: poetry run inv build
 
     - name: Run Tests
-      run: cp .env.test .env && poetry run pytest
+      run: poetry run pytest
