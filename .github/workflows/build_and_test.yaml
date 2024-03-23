@@ -23,6 +23,11 @@ jobs:
 
     - name: Install dependencies
       run: poetry install
+    - name: Setup environment
+      run: cp .env.test .env
 
-    - name: Make project checks (mypy, flake8, isort, tests etc.)
-      run: make check
+    - name: Test docker build
+      run: poetry run inv build
+
+    - name: Run Tests
+      run: poetry run pytest

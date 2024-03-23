@@ -1,7 +1,8 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String
-from app.core.models import BaseModel
 from fastapi_users.db import SQLAlchemyBaseUserTableUUID
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.models import BaseModel
 
 
 class UserModel(SQLAlchemyBaseUserTableUUID, BaseModel):

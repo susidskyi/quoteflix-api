@@ -28,6 +28,22 @@ services:
     - test-db-data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  api-ops:
+    build:
+      context: .
+    container_name: quoteflix-api-ops
+    env_file: .env
+    command: "echo 'done'"
+    volumes:
+    - ./app:/code/app
+    - ./alembic.ini:/code/alembic.ini
+    ports:
+    - 8001:8000
+    restart: "no"
+    depends_on:
+      - db
+      - test-db
+
   api:
     build:
       context: .
