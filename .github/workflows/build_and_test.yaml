@@ -15,7 +15,7 @@ jobs:
       run: cp .env.test .env
 
     - name: Test docker build
-      run: poetry run inv build
+      run: docker compose build
 
     - name: Run Tests
-      run: poetry run inv tests
+      run: docker compose run --rm api-ops pytest
