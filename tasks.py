@@ -7,7 +7,9 @@ WORKSPACE_MODE = os.environ.get("SOCIAL_WORKSPACE_MODE", "docker")
 
 @task
 def tests(ctx, path="app/"):
-    ctx.run(f"docker compose run api-ops pytest {path}", pty=True)
+    ctx.run(
+        f"docker compose run api-ops pytest --cov --cov-fail-under=85 {path}", pty=True
+    )
 
 
 @task
