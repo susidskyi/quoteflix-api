@@ -1,8 +1,5 @@
-from fastapi import UploadFile
 from fastapi_storages import FileSystemStorage
 from fastapi_storages.integrations.sqlalchemy import FileType
-from pydantic import BaseModel as PydanticBaseModel
-from pydantic import PositiveInt
 from sqlalchemy import SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,15 +21,3 @@ class MovieModel(BaseModel):
         FileType(FileSystemStorage(path="subtitles/")), nullable=True
     )
     language: Mapped[Languages]
-
-    class Create(PydanticBaseModel):
-        title: str
-        year: PositiveInt
-        language: Languages
-        file: UploadFile | None
-        subtitles_file: UploadFile | None
-        is_active: bool = False
-        status: MovieStatus = MovieStatus.PENDING
-
-    class Update(Create):
-        pass

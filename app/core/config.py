@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: PostgresDsn
+    test_database_url: PostgresDsn
     debug_logs: bool = False
     stage: str
     secret: str

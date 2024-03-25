@@ -28,7 +28,6 @@ async def lifespan(app: FastAPI):
 docs_url = "/docs" if settings.stage != "production" else None
 app = FastAPI(lifespan=lifespan, docs_url=docs_url)
 
-
 # Routers
 app.include_router(users_router)
 app.include_router(movies_router)

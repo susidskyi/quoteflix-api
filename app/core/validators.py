@@ -20,19 +20,15 @@ class FileValidator:
 
     @staticmethod
     def validate_file_type(file: UploadFile, supported_extensions: list) -> None:
-        if file.content_type is None or file.filename is None:
+        if file.filename is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File type is required",
+                detail="File name is required",
             )
 
         file_extension = file.filename.split(".")[-1]
-        file_content_type = file.content_type
 
-        if (
-            file_extension not in supported_extensions
-            or not file_content_type.startswith("video/")
-        ):
+        if file_extension not in supported_extensions:
             raise HTTPException(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                 detail="File type not supported. Supported types: "

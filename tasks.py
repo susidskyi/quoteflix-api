@@ -6,8 +6,8 @@ WORKSPACE_MODE = os.environ.get("SOCIAL_WORKSPACE_MODE", "docker")
 
 
 @task
-def tests(ctx):
-    ctx.run("docker compose run api-ops pytest app/tests")
+def tests(ctx, path="app/"):
+    ctx.run(f"docker compose run api-ops pytest {path}", pty=True)
 
 
 @task
@@ -28,7 +28,7 @@ def makemigrations(ctx, message):
 
 
 @task
-def run_migrations(ctx):
+def migrate(ctx):
     ctx.run("docker compose run api-ops alembic upgrade head")
 
 
@@ -36,9 +36,11 @@ def run_migrations(ctx):
 def setup(ctx):
     ctx.run("poetry install")
     ctx.run("poetry run pre-commit install")
+    ctx.run("cp .env.example .env")
     build(ctx)
 
 
 @task
-def format(ctx, path="app/api app/tests"):
-    ctx.run(f"ruff {path}")
+def format(ctx, path="app/"):
+    ctx.run(f"ruff format {path}")
+    ctx.run(f"ruff check --select I --fix {path}")
