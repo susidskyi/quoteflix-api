@@ -3,23 +3,24 @@ from typing import Sequence
 
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
+from app.api.movies.schemas import MovieCreateSchema, MovieUpdateSchema
 
 
-class MovieService:
+class MoviesService:
     def __init__(self, movie_repository: MoviesRepository) -> None:
         self.repository = movie_repository
 
-    async def create(self, data: MovieModel.Create) -> MovieModel:
+    async def create(self, data: MovieCreateSchema) -> MovieModel:
         movie = await self.repository.create(data)
 
         return movie
 
-    async def list(self) -> Sequence[MovieModel]:
-        movies = await self.repository.list()
+    async def get_all(self, *args, **kwargs) -> Sequence[MovieModel]:
+        movies = await self.repository.get_all()
 
         return movies
 
-    async def update(self, movie_id: uuid.UUID, data: MovieModel.Update) -> MovieModel:
+    async def update(self, movie_id: uuid.UUID, data: MovieUpdateSchema) -> MovieModel:
         movie = await self.repository.update(movie_id, data)
 
         return movie

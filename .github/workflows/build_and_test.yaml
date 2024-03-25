@@ -11,23 +11,11 @@ jobs:
     steps:
     - name: Check out the repo
       uses: actions/checkout@v4
-
-    - name: Install poetry
-      run: pipx install poetry
-
-    - name: Setup python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.12
-        cache: poetry
-
-    - name: Install dependencies
-      run: poetry install
     - name: Setup environment
       run: cp .env.test .env
 
     - name: Test docker build
-      run: poetry run inv build
+      run: docker compose build
 
     - name: Run Tests
-      run: poetry run pytest
+      run: docker compose run --rm api-ops pytest

@@ -34,36 +34,11 @@ class MovieSchema(BaseModel):
 
 
 class MovieCreateUpdateBase(BaseModel, abc.ABC):
-
-    @field_validator("subtitles_file", check_fields=False)
-    @classmethod
-    def validatate_subtitles_file(cls, value: UploadFile | None) -> UploadFile | None:
-        if value is None:
-            return None
-
-        FileValidator.validate_file_size(value, settings.max_subtitles_file_size)
-        FileValidator.validate_file_type(value, SUPPORTED_SUBTITLES_EXTENSIONS)
-
-        return value
-
-    @field_validator("file", check_fields=False)
-    @classmethod
-    def validatate_movie_file(cls, value: UploadFile | None) -> UploadFile | None:
-        if value is None:
-            return None
-
-        FileValidator.validate_file_size(value, settings.max_movie_file_size)
-        FileValidator.validate_file_type(value, SUPPORTED_VIDEO_EXTENSIONS)
-
-        return value
-
-
-class MovieCreateSchema(MovieCreateUpdateBase):
     title: str
     year: int
     language: Languages
-    file: UploadFile | None
-    subtitles_file: UploadFile | None
+    file: UploadFile | None = None
+    subtitles_file: UploadFile | None = None
     is_active: bool = False
     status: MovieStatus = MovieStatus.PENDING
 
@@ -96,6 +71,32 @@ class MovieCreateSchema(MovieCreateUpdateBase):
                 detail=e.errors(),
             )
 
+    @field_validator("subtitles_file", check_fields=False)
+    @classmethod
+    def validatate_subtitles_file(cls, value: UploadFile | None) -> UploadFile | None:
+        if value is None:
+            return None
 
-class MovieUpdateSchema(MovieCreateSchema):
+        FileValidator.validate_file_size(value, settings.max_subtitles_file_size)
+        FileValidator.validate_file_type(value, SUPPORTED_SUBTITLES_EXTENSIONS)
+
+        return value
+
+    @field_validator("file", check_fields=False)
+    @classmethod
+    def validatate_movie_file(cls, value: UploadFile | None) -> UploadFile | None:
+        if value is None:
+            return None
+
+        FileValidator.validate_file_size(value, settings.max_movie_file_size)
+        FileValidator.validate_file_type(value, SUPPORTED_VIDEO_EXTENSIONS)
+
+        return value
+
+
+class MovieCreateSchema(MovieCreateUpdateBase):
+    pass
+
+
+class MovieUpdateSchema(MovieCreateUpdateBase):
     pass
