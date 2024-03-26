@@ -1,5 +1,5 @@
 name: Run checks (flake8, mypy, black, isort) and tests
-run-name: ${{ github.actor }} runs checks and tests
+run-name: ${{ secrets.GITHUB_TOKEN }} runs checks and tests
 on:
   pull_request:
     branches: [main]
