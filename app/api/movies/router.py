@@ -4,7 +4,7 @@ from typing import Sequence
 from fastapi import Depends, status
 from fastapi.routing import APIRouter
 
-from app.api.movies.dependencies import get_movie_service, movie_exists
+from app.api.movies.dependencies import get_movies_service, movie_exists
 from app.api.movies.schemas import (
     MovieCreateSchema,
     MovieSchema,
@@ -22,9 +22,9 @@ router = APIRouter(
 
 @router.get("/", name="movies:get-all-movies", response_model=Sequence[MovieSchema])
 async def get_all(
-    movie_service: MoviesService = Depends(get_movie_service),
+    movies_service: MoviesService = Depends(get_movies_service),
 ) -> Sequence[MovieSchema]:
-    movies = await movie_service.get_all()
+    movies = await movies_service.get_all()
 
     return [movie for movie in movies]
 
@@ -37,10 +37,10 @@ async def get_all(
     status_code=status.HTTP_201_CREATED,
 )
 async def create(
-    payload: MovieCreateSchema = Depends(MovieCreateSchema.depends),
-    movie_service: MoviesService = Depends(get_movie_service),
+    payload: MovieCreateSchema,
+    movies_service: MoviesService = Depends(get_movies_service),
 ) -> MovieSchema:
-    movie = await movie_service.create(payload)
+    movie = await movies_service.create(payload)
 
     return movie
 
@@ -53,10 +53,10 @@ async def create(
 )
 async def update(
     movie_id: uuid.UUID,
-    payload: MovieUpdateSchema = Depends(MovieUpdateSchema.depends),
-    movie_service: MoviesService = Depends(get_movie_service),
+    payload: MovieUpdateSchema,
+    movies_service: MoviesService = Depends(get_movies_service),
 ):
-    movie = await movie_service.update(movie_id, payload)
+    movie = await movies_service.update(movie_id, payload)
 
     return movie
 
@@ -68,9 +68,9 @@ async def update(
     dependencies=[Depends(movie_exists)],
 )
 async def get_movie_by_id(
-    movie_id: uuid.UUID, movie_service: MoviesService = Depends(get_movie_service)
+    movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
 ) -> MovieSchema:
-    movie = await movie_service.get_by_id(movie_id)
+    movie = await movies_service.get_by_id(movie_id)
 
     return movie
 
@@ -82,8 +82,6 @@ async def get_movie_by_id(
     dependencies=[Depends(current_superuser), Depends(movie_exists)],
 )
 async def delete_movie(
-    movie_id: uuid.UUID, movie_service: MoviesService = Depends(get_movie_service)
-):
-    await movie_service.delete(movie_id)
-
-    return {"success": True}
+    movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
+) -> None:
+    await movies_service.delete(movie_id)

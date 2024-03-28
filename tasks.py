@@ -5,10 +5,21 @@ from invoke import task
 WORKSPACE_MODE = os.environ.get("SOCIAL_WORKSPACE_MODE", "docker")
 
 
-@task
-def tests(ctx, path="app/"):
+@task(incrementable=["verbose"], optional=["check_coverage", "path"])
+def tests(ctx, check_coverage=False, path="app/", verbose=0):
+    check_coverage_command = ""
+
+    if check_coverage:
+        check_coverage_command = "--cov  --cov-fail-under=85"
+
+    command = f"docker compose run api-ops pytest --color=yes {check_coverage_command} {path} "
+
+    if verbose > 0:
+        command += "-" + "v" * verbose
+
     ctx.run(
-        f"docker compose run api-ops pytest --cov --cov-fail-under=85 {path}", pty=True
+        command,
+        pty=True,
     )
 
 

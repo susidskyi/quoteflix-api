@@ -1,7 +1,7 @@
-from fastapi_storages import FileSystemStorage
-from fastapi_storages.integrations.sqlalchemy import FileType
+from typing import List
+
 from sqlalchemy import SmallInteger, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.api.movies.constants import Languages, MovieStatus
 from app.core.models import BaseModel
@@ -14,10 +14,8 @@ class MovieModel(BaseModel):
     year: Mapped[int] = mapped_column(SmallInteger)
     is_active: Mapped[bool] = mapped_column(default=False)
     status: Mapped[MovieStatus] = mapped_column(default=MovieStatus.PENDING)
-    file: Mapped[FileType] = mapped_column(
-        FileType(FileSystemStorage(path="movies/")), nullable=True
-    )
-    subtitles_file: Mapped[FileType] = mapped_column(
-        FileType(FileSystemStorage(path="subtitles/")), nullable=True
-    )
     language: Mapped[Languages]
+
+    phrases: Mapped[List["PhraseModel"]] = relationship(  # type: ignore # noqa: F821 # TODO: fix
+        back_populates="movie"
+    )

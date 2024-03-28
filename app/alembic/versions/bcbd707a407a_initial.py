@@ -1,19 +1,19 @@
 """Initial
 
-Revision ID: 64b2a799d0b4
+Revision ID: bcbd707a407a
 Revises: 
-Create Date: 2024-03-27 19:57:41.458647
+Create Date: 2024-03-28 21:01:53.864380
 
 """
 
 from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
 import fastapi_users_db_sqlalchemy
+import sqlalchemy as sa
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "64b2a799d0b4"
+revision: str = "bcbd707a407a"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -57,8 +57,8 @@ def upgrade() -> None:
         sa.Column("movie_id", sa.Uuid(), nullable=False),
         sa.Column("full_text", sa.String(), nullable=False),
         sa.Column("cleaned_text", sa.String(), nullable=False),
-        sa.Column("start_in_movie", sa.Time(), nullable=False),
-        sa.Column("end_in_movie", sa.Time(), nullable=False),
+        sa.Column("start_in_movie", sa.String(), nullable=False),
+        sa.Column("end_in_movie", sa.String(), nullable=False),
         sa.Column("file_s3_key", sa.String(length=100), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("id", sa.Uuid(), nullable=False),

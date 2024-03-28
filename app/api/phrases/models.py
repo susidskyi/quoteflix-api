@@ -1,9 +1,10 @@
 import uuid
-from app.core.models import BaseModel
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.api.movies.models import MovieModel
-import datetime
+from app.core.models import BaseModel
 
 
 class PhraseModel(BaseModel):
@@ -14,9 +15,11 @@ class PhraseModel(BaseModel):
     )
     full_text: Mapped[str]
     cleaned_text: Mapped[str]
-    start_in_movie: Mapped[datetime.time]
-    end_in_movie: Mapped[datetime.time]
+
+    # Time are formated as %H:%M:%S:.%f
+    start_in_movie: Mapped[str]
+    end_in_movie: Mapped[str]
     file_s3_key: Mapped[str] = mapped_column(String(100), nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)
 
-    movie: Mapped["MovieModel"] = relationship("movie_id")
+    movie: Mapped[MovieModel] = relationship(back_populates="phrases")

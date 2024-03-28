@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from typing import AsyncGenerator, AsyncIterator, Callable
 from unittest import mock
@@ -14,14 +15,26 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.api.movies.constants import Languages, MovieStatus
+from app.api.movies.dependencies import get_movies_service
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
-from app.api.movies.schemas import MovieCreateSchema
+from app.api.movies.schemas import MovieCreateSchema, MovieSchema, MovieUpdateSchema
 from app.api.movies.service import MoviesService
+from app.api.phrases.dependencies import get_phrases_service
+from app.api.phrases.models import PhraseModel
+from app.api.phrases.repository import PhrasesRepository
+from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseUpdateSchema
+from app.api.phrases.service import PhrasesService
 from app.api.users.models import UserModel
 from app.core.config import settings
 from app.core.models import BaseModel
 from app.main import app as main_app
+
+"""
+###############################################################################
+[START] Core fixtures 
+###############################################################################
+"""
 
 
 @pytest.fixture
@@ -54,29 +67,44 @@ async def db(
         await db.close()
 
 
-@pytest.fixture
-def movies_repository(db: AsyncSession) -> MoviesRepository:
-    return MoviesRepository(db)
-
-
-@pytest.fixture
-def mock_movies_repository() -> mock.AsyncMock:
-    return mock.AsyncMock()
-
-
-@pytest.fixture
-def movies_service(movies_repository: MoviesRepository) -> MoviesService:
-    return MoviesService(movies_repository)
-
-
-@pytest.fixture
-def mock_movies_service() -> mock.AsyncMock:
-    return mock.AsyncMock()
+@pytest_asyncio.fixture
+async def async_client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver.tst"
+    ) as ac:
+        yield ac
 
 
 @pytest.fixture(scope="session")
 def app() -> FastAPI:
     return main_app
+
+
+@pytest.fixture
+def app_with_dependency_overrides(
+    app: FastAPI,
+    mock_movies_service: mock.AsyncMock,
+    mock_phrases_service: mock.AsyncMock,
+) -> FastAPI:
+    app.dependency_overrides = {}
+    app.dependency_overrides[get_movies_service] = lambda: mock_movies_service
+    app.dependency_overrides[get_phrases_service] = lambda: mock_phrases_service
+
+    return app
+
+
+"""
+###############################################################################
+[END] Core fixtures
+###############################################################################
+"""
+
+
+"""
+###############################################################################
+[START] Users-app fixtures
+###############################################################################
+"""
 
 
 @pytest.fixture
@@ -130,31 +158,47 @@ def check_is_superuser():
     return _check_permissions
 
 
-@pytest.fixture()
-def current_superuser_fixture(user: UserModel):
-    def _current_superuser() -> UserModel:
-        if not user.is_superuser:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-            )
-        return user
+"""
+###############################################################################
+[END] Users-app fixtures
+###############################################################################
+"""
 
-    return _current_superuser
+"""
+###############################################################################
+[START] Movie-app fixtures
+###############################################################################
+"""
+
+
+@pytest.fixture
+def movies_repository(db: AsyncSession) -> MoviesRepository:
+    return MoviesRepository(db)
+
+
+@pytest.fixture
+def mock_movies_repository() -> mock.AsyncMock:
+    return mock.AsyncMock()
+
+
+@pytest.fixture
+def movies_service(movies_repository: MoviesRepository) -> MoviesService:
+    return MoviesService(movies_repository)
+
+
+@pytest.fixture
+def mock_movies_service() -> mock.AsyncMock:
+    return mock.AsyncMock()
+
+
+@pytest.fixture
+def random_movie_id() -> uuid.UUID:
+    return uuid.uuid4()
 
 
 @pytest_asyncio.fixture
-async def async_client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://testserver.tst"
-    ) as ac:
-        yield ac
-
-
-@pytest_asyncio.fixture
-async def create_movie(db: AsyncSession) -> Callable[[MovieCreateSchema], MovieModel]:
-    async def _create_movie(data: MovieCreateSchema) -> MovieModel:
-        movie = MovieModel(**data.model_dump())
-
+async def create_movie(db: AsyncSession) -> Callable[[MovieModel], MovieModel]:
+    async def _create_movie(movie: MovieModel) -> MovieModel:
         db.add(movie)
         await db.commit()
         await db.refresh(movie)
@@ -165,7 +209,7 @@ async def create_movie(db: AsyncSession) -> Callable[[MovieCreateSchema], MovieM
 
 
 @pytest.fixture
-def movie_active_without_files_data() -> MovieCreateSchema:
+def movie_create_schema_data() -> MovieCreateSchema:
     movie = MovieCreateSchema(
         title="Test",
         year=2000,
@@ -176,16 +220,178 @@ def movie_active_without_files_data() -> MovieCreateSchema:
     return movie
 
 
-@pytest_asyncio.fixture
-async def movie_active_without_files_fixture(
-    create_movie: Callable[[MovieCreateSchema], MovieModel],
-    movie_active_without_files_data: MovieCreateSchema,
-) -> MovieModel:
-    movie = await create_movie(movie_active_without_files_data)
+@pytest.fixture
+def movie_update_schema_data(
+    movie_create_schema_data: MovieCreateSchema,
+) -> MovieUpdateSchema:
+    movie = MovieUpdateSchema(**movie_create_schema_data.model_dump())
 
     return movie
 
 
 @pytest.fixture
-def random_movie_id() -> uuid.UUID:
+def movie_model_data(
+    movie_create_schema_data: MovieCreateSchema,
+    random_movie_id: uuid.UUID,
+) -> MovieModel:
+    movie = MovieModel(
+        **movie_create_schema_data.model_dump(),
+        id=random_movie_id,
+        created_at=datetime.datetime.now(tz=datetime.timezone.utc),
+        updated_at=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+
+    return movie
+
+
+@pytest_asyncio.fixture
+async def movie_fixture(
+    create_movie: Callable[[MovieModel], MovieModel],
+    movie_model_data: MovieModel,
+) -> MovieModel:
+    movie = await create_movie(movie_model_data)
+
+    return movie
+
+
+@pytest.fixture
+def movie_schema_data(
+    movie_model_data: MovieModel,
+) -> MovieSchema:
+    movie = MovieSchema(**movie_model_data.__dict__)
+
+    return movie
+
+
+@pytest.fixture
+def check_movie_exists() -> Callable[[bool], None]:
+    def _raise_exception(exists: bool):
+        if not exists:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return _raise_exception
+
+
+"""
+###############################################################################
+[END] Movie-app fixtures
+"""
+
+"""
+###############################################################################
+[START] Phrases-app fixtures
+###############################################################################
+"""
+
+
+@pytest.fixture
+def phrases_repository(db: AsyncSession) -> PhrasesRepository:
+    return PhrasesRepository(db)
+
+
+@pytest.fixture
+def mock_phrases_repository() -> mock.AsyncMock:
+    return mock.AsyncMock()
+
+
+@pytest.fixture
+def phrases_service(mock_phrases_repository: PhrasesRepository) -> PhrasesService:
+    return PhrasesService(mock_phrases_repository)
+
+
+@pytest.fixture
+def mock_phrases_service() -> mock.AsyncMock:
+    return mock.AsyncMock()
+
+
+@pytest.fixture
+def random_phrase_id() -> uuid.UUID:
     return uuid.uuid4()
+
+
+@pytest_asyncio.fixture
+async def create_phrase(db: AsyncSession) -> Callable[[PhraseModel], PhraseModel]:
+    async def _create_phrase(phrase: PhraseModel) -> PhraseModel:
+        db.add(phrase)
+        await db.commit()
+        await db.refresh(phrase)
+
+        return phrase
+
+    return _create_phrase
+
+
+@pytest.fixture
+def phrase_create_schema_data(
+    random_movie_id: uuid.UUID, movie_fixture: MovieModel
+) -> PhraseCreateSchema:
+    return PhraseCreateSchema(
+        movie_id=random_movie_id,
+        full_text="fruits: apples, bananas and oranges",
+        cleaned_text="fruits apples bananas and oranges",
+        start_in_movie="00:00:01.000000",
+        end_in_movie="00:00:02.000000",
+    )
+
+
+@pytest.fixture
+def phrase_file_path() -> str:
+    return "test/movies/test.mp4"
+
+
+@pytest.fixture
+def phrase_update_schema_data(
+    phrase_create_schema_data: PhraseCreateSchema, phrase_file_path: str
+) -> PhraseUpdateSchema:
+    return PhraseUpdateSchema(
+        **phrase_create_schema_data.model_dump(),
+        file_s3_key=phrase_file_path,
+    )
+
+
+@pytest.fixture
+def phrase_model_data(
+    phrase_update_schema_data: PhraseUpdateSchema,
+    random_phrase_id: uuid.UUID,
+):
+    return PhraseModel(
+        **phrase_update_schema_data.model_dump(),
+        id=random_phrase_id,
+        created_at=datetime.datetime.now(tz=datetime.timezone.utc),
+        updated_at=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+
+
+@pytest_asyncio.fixture
+async def phrase_fixture(
+    create_phrase: Callable[[PhraseCreateSchema], PhraseModel],
+    phrase_model_data: PhraseModel,
+) -> PhraseModel:
+    phrase = await create_phrase(phrase_model_data)
+
+    return phrase
+
+
+@pytest.fixture
+def phrase_schema_data(
+    phrase_fixture: PhraseModel,
+) -> PhraseSchema:
+    phrase = PhraseSchema(**phrase_fixture.__dict__)
+
+    return phrase
+
+
+@pytest.fixture
+def check_phrase_exists() -> Callable[[bool], None]:
+    def _raise_exception(exists: bool):
+        if not exists:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return _raise_exception
+
+
+"""
+###############################################################################
+[END] Phrases-app fixtures
+###############################################################################
+"""

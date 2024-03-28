@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.movies.router import router as movies_router
+from app.api.phrases.router import router as phrases_router
 from app.api.users.router import router as users_router
 from app.core.config import settings
 from app.core.database import sessionmanager
@@ -31,3 +32,4 @@ app = FastAPI(lifespan=lifespan, docs_url=docs_url)
 # Routers
 app.include_router(users_router)
 app.include_router(movies_router)
+app.include_router(phrases_router)
