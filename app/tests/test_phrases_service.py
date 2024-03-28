@@ -1,0 +1,113 @@
+import json
+import uuid
+from unittest import mock
+
+import pytest
+
+from app.api.phrases.models import PhraseModel
+from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
+from app.api.phrases.service import PhrasesService
+
+
+@pytest.mark.asyncio
+class TestPhrasesService:
+    async def test_create(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_create_schema_data: PhraseCreateSchema,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.create.return_value = phrase_model_data
+
+        phrase = await phrases_service.create(phrase_create_schema_data)
+
+        assert phrase == phrase_model_data
+        mock_phrases_repository.create.assert_awaited_once_with(
+            phrase_create_schema_data
+        )
+
+    async def test_get_by_id(
+        self,
+        phrases_service: PhrasesService,
+        phrase_create_schema_data: PhraseCreateSchema,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.get_by_id.return_value = phrase_model_data
+
+        phrase = await phrases_service.get_by_id(phrase_model_data.id)
+
+        assert phrase == phrase_model_data
+        mock_phrases_repository.get_by_id.assert_awaited_once_with(phrase_model_data.id)
+
+    async def test_update(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+        phrase_update_schema_data: PhraseUpdateSchema,
+    ):
+        mock_phrases_repository.update.return_value = phrase_model_data
+
+        phrase = await phrases_service.update(
+            phrase_model_data.id, phrase_update_schema_data
+        )
+
+        assert phrase == phrase_model_data
+        mock_phrases_repository.update.assert_awaited_once_with(
+            phrase_model_data.id, phrase_update_schema_data
+        )
+
+    async def test_delete(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.delete.return_value = None
+
+        result = await phrases_service.delete(phrase_model_data.id)
+
+        assert result is None
+        mock_phrases_repository.delete.assert_awaited_once_with(phrase_model_data.id)
+
+    async def test_get_all(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.get_all.return_value = [phrase_model_data]
+
+        result = await phrases_service.get_all()
+
+        assert len(result) == 1
+        assert result[0] == phrase_model_data
+        mock_phrases_repository.get_all.assert_awaited_once()
+
+    async def test_exists(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.exists.return_value = True
+
+        result = await phrases_service.exists(phrase_model_data.id)
+
+        assert result is True
+        mock_phrases_repository.exists.assert_awaited_once_with(phrase_model_data.id)
+
+    async def test_does_not_exist(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.exists.return_value = False
+
+        result = await phrases_service.exists(phrase_model_data.id)
+
+        assert result is False
+        mock_phrases_repository.exists.assert_awaited_once_with(phrase_model_data.id)

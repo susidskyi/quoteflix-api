@@ -4,7 +4,7 @@ import pytest
 
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
-from app.api.movies.schemas import MovieCreateSchema
+from app.api.movies.schemas import MovieUpdateSchema
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -13,21 +13,21 @@ class TestMoviesRepository:
     async def test_get_all_movies(
         self,
         movies_repository: MoviesRepository,
-        movie_active_without_files_fixture: MovieModel,
+        movie_fixture: MovieModel,
     ):
-        movies = await movies_repository.get_all()
+        result = await movies_repository.get_all()
 
-        assert len(movies) == 1
-        assert movie_active_without_files_fixture in movies
+        assert len(result) == 1
+        assert movie_fixture in result
 
     async def test_get_movie_by_id(
         self,
         movies_repository: MoviesRepository,
-        movie_active_without_files_fixture: MovieModel,
+        movie_fixture: MovieModel,
     ):
-        movie = await movies_repository.get_by_id(movie_active_without_files_fixture.id)
+        result = await movies_repository.get_by_id(movie_fixture.id)
 
-        assert movie == movie_active_without_files_fixture
+        assert result == movie_fixture
 
     async def test_get_movie_by_id_not_found(
         self, movies_repository: MoviesRepository, random_movie_id: uuid.UUID
@@ -41,30 +41,25 @@ class TestMoviesRepository:
     async def test_update_movie(
         self,
         movies_repository: MoviesRepository,
-        movie_active_without_files_fixture: MovieModel,
-        movie_active_without_files_data: MovieCreateSchema,
+        movie_fixture: MovieModel,
+        movie_update_schema_data: MovieUpdateSchema,
     ):
-        new_title = "New title"
-        new_movie_data = movie_active_without_files_data.model_copy()
-        new_movie_data.title = new_title
-
-        movie = await movies_repository.update(
-            movie_active_without_files_fixture.id, new_movie_data
+        result = await movies_repository.update(
+            movie_fixture.id,
+            movie_update_schema_data,
         )
 
-        assert movie.id == movie_active_without_files_fixture.id
-        assert movie.title == new_title
+        assert result.id == movie_fixture.id
+        assert result.title == movie_fixture.title
 
     async def test_update_movie_not_found(
         self,
         movies_repository: MoviesRepository,
-        movie_active_without_files_data: MovieCreateSchema,
+        movie_update_schema_data: MovieUpdateSchema,
         random_movie_id: uuid.UUID,
     ):
         with pytest.raises(RepositoryNotFoundError) as excinfo:
-            await movies_repository.update(
-                random_movie_id, movie_active_without_files_data
-            )
+            await movies_repository.update(random_movie_id, movie_update_schema_data)
 
         assert excinfo.type is RepositoryNotFoundError
         assert str(random_movie_id) in excinfo.value.args[0]
@@ -72,32 +67,32 @@ class TestMoviesRepository:
     async def test_exists(
         self,
         movies_repository: MoviesRepository,
-        movie_active_without_files_fixture: MovieModel,
+        movie_fixture: MovieModel,
     ):
-        exists = await movies_repository.exists(movie_active_without_files_fixture.id)
+        result = await movies_repository.exists(movie_fixture.id)
 
-        assert exists is True
+        assert result is True
 
     async def test_does_not_exist(
         self, movies_repository: MoviesRepository, random_movie_id: uuid.UUID
     ):
-        exists = await movies_repository.exists(random_movie_id)
+        result = await movies_repository.exists(random_movie_id)
 
-        assert exists is False
+        assert result is False
 
     async def test_delete(
         self,
         movies_repository: MoviesRepository,
-        movie_active_without_files_fixture: MovieModel,
+        movie_fixture: MovieModel,
     ):
-        movie_id = movie_active_without_files_fixture.id
+        movie_id = movie_fixture.id
 
-        exists = await movies_repository.exists(movie_id)
-        assert exists is True
+        result = await movies_repository.exists(movie_id)
+        assert result is True
 
         await movies_repository.delete(movie_id)
-        exists = await movies_repository.exists(movie_id)
-        assert exists is False
+        result = await movies_repository.exists(movie_id)
+        assert result is False
 
     async def test_delete_not_found(
         self, movies_repository: MoviesRepository, random_movie_id: uuid.UUID

@@ -6,22 +6,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_db_session
 from app.api.movies.repository import MoviesRepository
 from app.api.movies.service import MoviesService
+from app.core.s3_service import S3Service
 
 
-async def get_movie_repository(
+async def get_movies_repository(
     session: AsyncSession = Depends(get_db_session),
 ) -> MoviesRepository:
     return MoviesRepository(session)
 
 
-async def get_movie_service(
-    movie_repository: MoviesRepository = Depends(get_movie_repository),
+async def get_s3_service() -> S3Service:
+    return S3Service()
+
+
+async def get_movies_service(
+    movie_repository: MoviesRepository = Depends(get_movies_repository),
 ) -> MoviesService:
     return MoviesService(movie_repository)
 
 
 async def movie_exists(
-    movie_id: uuid.UUID, movie_service: MoviesService = Depends(get_movie_service)
+    movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
 ) -> bool:
-    if not await movie_service.exists(movie_id):
+    if not await movies_service.exists(movie_id):
         raise HTTPException(status_code=404, detail="Movie not found")
