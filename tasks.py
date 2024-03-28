@@ -1,8 +1,4 @@
-import os
-
 from invoke import task
-
-WORKSPACE_MODE = os.environ.get("SOCIAL_WORKSPACE_MODE", "docker")
 
 
 @task(incrementable=["verbose"], optional=["check_coverage", "path"])

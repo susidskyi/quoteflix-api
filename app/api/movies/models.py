@@ -16,6 +16,6 @@ class MovieModel(BaseModel):
     status: Mapped[MovieStatus] = mapped_column(default=MovieStatus.PENDING)
     language: Mapped[Languages]
 
-    phrases: Mapped[List["PhraseModel"]] = relationship(  # type: ignore # noqa: F821 # TODO: fix
+    phrases: Mapped[List["PhraseModel"]] = relationship(  # type: ignore # noqa: F821
         back_populates="movie"
     )
