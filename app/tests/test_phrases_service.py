@@ -111,3 +111,19 @@ class TestPhrasesService:
 
         assert result is False
         mock_phrases_repository.exists.assert_awaited_once_with(phrase_model_data.id)
+
+    async def test_get_by_movie_id(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.get_by_movie_id.return_value = [phrase_model_data]
+
+        result = await phrases_service.get_by_movie_id(phrase_model_data.movie_id)
+
+        assert len(result) == 1
+        assert result[0] == phrase_model_data
+        mock_phrases_repository.get_by_movie_id.assert_awaited_once_with(
+            phrase_model_data.movie_id
+        )

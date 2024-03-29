@@ -42,7 +42,7 @@ class PhrasesRepository:
         return phrases.all()
 
     async def create(self, data: PhraseCreateSchema) -> PhraseModel:
-        phrase = PhraseModel(**data.model_dump(exclude={"file"}))
+        phrase = PhraseModel(**data.model_dump())
 
         self.session.add(phrase)
         await self.session.commit()
@@ -66,3 +66,9 @@ class PhrasesRepository:
         await self.session.refresh(phrase)
 
         return phrase
+
+    async def get_by_movie_id(self, movie_id: uuid.UUID) -> Sequence[PhraseModel]:
+        query = select(PhraseModel).where(PhraseModel.movie_id == movie_id)
+        phrases = await self.session.scalars(query)
+
+        return phrases.all()

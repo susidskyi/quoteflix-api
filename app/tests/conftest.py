@@ -322,9 +322,7 @@ async def create_phrase(db: AsyncSession) -> Callable[[PhraseModel], PhraseModel
 
 
 @pytest.fixture
-def phrase_create_schema_data(
-    random_movie_id: uuid.UUID, movie_fixture: MovieModel
-) -> PhraseCreateSchema:
+def phrase_create_schema_data(random_movie_id: uuid.UUID) -> PhraseCreateSchema:
     return PhraseCreateSchema(
         movie_id=random_movie_id,
         full_text="fruits: apples, bananas and oranges",
@@ -366,6 +364,7 @@ def phrase_model_data(
 async def phrase_fixture(
     create_phrase: Callable[[PhraseCreateSchema], PhraseModel],
     phrase_model_data: PhraseModel,
+    movie_fixture: MovieModel,
 ) -> PhraseModel:
     phrase = await create_phrase(phrase_model_data)
 
