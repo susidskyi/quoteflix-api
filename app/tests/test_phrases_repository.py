@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 
+from app.api.movies.models import MovieModel
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
@@ -95,7 +96,18 @@ class TestPhrasesRepository:
         self,
         phrases_repository: PhrasesRepository,
         phrase_create_schema_data: PhraseCreateSchema,
+        movie_fixture: MovieModel,
     ):
         result = await phrases_repository.create(phrase_create_schema_data)
 
         assert await phrases_repository.exists(result.id) is True
+
+    async def test_get_by_movie_id(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
+    ):
+        result = await phrases_repository.get_by_movie_id(phrase_fixture.movie_id)
+
+        assert len(result) == 1
+        assert phrase_fixture in result

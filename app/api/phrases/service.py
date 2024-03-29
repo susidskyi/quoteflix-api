@@ -37,3 +37,6 @@ class PhrasesService:
         phrase = await self.repository.update(phrase_id, data)
 
         return phrase
+
+    async def get_by_movie_id(self, movie_id: uuid.UUID) -> Sequence[PhraseModel]:
+        return await self.repository.get_by_movie_id(movie_id)

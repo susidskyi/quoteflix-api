@@ -26,7 +26,7 @@ async def get_all(
 ) -> Sequence[MovieSchema]:
     movies = await movies_service.get_all()
 
-    return [movie for movie in movies]
+    return movies
 
 
 @router.post(

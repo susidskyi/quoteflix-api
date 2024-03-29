@@ -4,6 +4,7 @@ from typing import Sequence
 from fastapi import Depends
 from fastapi.routing import APIRouter
 
+from app.api.movies.dependencies import movie_exists
 from app.api.phrases.dependencies import get_phrases_service, phrase_exists
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseUpdateSchema
 from app.api.phrases.service import PhrasesService
@@ -23,7 +24,7 @@ async def get_all_phrases(
 ) -> Sequence[PhraseSchema]:
     phrases = await phrases_service.get_all()
 
-    return [phrase for phrase in phrases]
+    return phrases
 
 
 @router.get(
@@ -86,3 +87,18 @@ async def delete_phrase(
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> None:
     await phrases_service.delete(phrase_id)
+
+
+@router.get(
+    "/phrases/by-movie-id/{movie_id}",
+    name="phrases:get-phrases-by-movie-id",
+    response_model=Sequence[PhraseSchema],
+    dependencies=[Depends(current_superuser), Depends(movie_exists)],
+)
+async def get_phrases_by_movie_id(
+    movie_id: uuid.UUID,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> Sequence[PhraseSchema]:
+    phrases = await phrases_service.get_by_movie_id(movie_id)
+
+    return phrases
