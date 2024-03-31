@@ -4,6 +4,7 @@ from typing import Sequence
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
 from app.api.movies.schemas import MovieCreateSchema, MovieUpdateSchema
+from app.core.constants import MovieStatus
 
 
 class MoviesService:
@@ -35,3 +36,6 @@ class MoviesService:
 
     async def exists(self, movie_id: uuid.UUID) -> bool:
         return await self.repository.exists(movie_id)
+
+    async def update_status(self, movie_id: uuid.UUID, status: MovieStatus) -> None:
+        await self.repository.update_status(movie_id, status)

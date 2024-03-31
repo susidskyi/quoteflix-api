@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     aws_region_name: str
     stage: str
     secret: str
+    scenes_tmp_path: str
     max_movie_file_size: int = 5 * 1024**3  # 5 GB
     max_subtitles_file_size: int = 10 * 1024**2  # 10 MB
 

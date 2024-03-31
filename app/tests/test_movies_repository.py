@@ -5,6 +5,7 @@ import pytest
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
 from app.api.movies.schemas import MovieUpdateSchema
+from app.core.constants import MovieStatus
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -102,3 +103,17 @@ class TestMoviesRepository:
 
         assert excinfo.type is RepositoryNotFoundError
         assert str(random_movie_id) in excinfo.value.args[0]
+
+    async def test_update_status(
+        self,
+        movies_repository: MoviesRepository,
+        movie_fixture: MovieModel,
+        random_movie_id: uuid.UUID,
+    ):
+        assert movie_fixture.status == MovieStatus.PENDING
+
+        await movies_repository.update_status(random_movie_id, MovieStatus.ERROR)
+
+        result = await movies_repository.get_by_id(random_movie_id)
+
+        assert result.status == MovieStatus.ERROR

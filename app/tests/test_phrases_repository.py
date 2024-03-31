@@ -78,7 +78,7 @@ class TestPhrasesRepository:
         )
 
         assert result.id == phrase_fixture.id
-        assert result.file_s3_key == phrase_update_schema_data.file_s3_key
+        assert result.scene_s3_key == phrase_update_schema_data.scene_s3_key
 
     async def test_update_not_found(
         self,
@@ -111,3 +111,18 @@ class TestPhrasesRepository:
 
         assert len(result) == 1
         assert phrase_fixture in result
+
+    async def test_bulk_create(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_create_schema_data: PhraseCreateSchema,
+        movie_fixture: MovieModel,
+    ):
+        result = await phrases_repository.bulk_create(
+            [phrase_create_schema_data, phrase_create_schema_data]
+        )
+
+        all_phrases_in_db = await phrases_repository.get_all()
+
+        assert len(all_phrases_in_db) == 2
+        assert len(result) == 2

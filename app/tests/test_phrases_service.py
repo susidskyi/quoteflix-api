@@ -127,3 +127,20 @@ class TestPhrasesService:
         mock_phrases_repository.get_by_movie_id.assert_awaited_once_with(
             phrase_model_data.movie_id
         )
+
+    async def test_bulk_create(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+        phrase_create_schema_data: PhraseCreateSchema,
+    ):
+        mock_phrases_repository.bulk_create.return_value = [phrase_model_data]
+
+        result = await phrases_service.bulk_create([phrase_create_schema_data])
+
+        assert len(result) == 1
+        assert result[0] == phrase_model_data
+        mock_phrases_repository.bulk_create.assert_awaited_once_with(
+            [phrase_create_schema_data]
+        )

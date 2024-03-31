@@ -4,7 +4,7 @@ import uuid
 
 from pydantic import BaseModel
 
-from app.api.movies.constants import (
+from app.core.constants import (
     Languages,
     MovieStatus,
 )
@@ -34,4 +34,8 @@ class MovieCreateSchema(MovieCreateUpdateBase):
 
 class MovieUpdateSchema(MovieCreateUpdateBase):
     is_active: bool
+    status: MovieStatus
+
+
+class MovieUpdateStatusSchema(BaseModel):
     status: MovieStatus

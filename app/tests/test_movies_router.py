@@ -364,3 +364,97 @@ class TestDeleteMovieRoute:
         )
 
         assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio
+class TestUpdateMovieStatusRoute:
+    async def test_ok(
+        self,
+        random_movie_id: uuid.UUID,
+        mock_movies_service: mock.AsyncMock,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+        check_movie_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(True)
+        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: True
+        )
+        mock_movies_service.update_status.return_value = None
+
+        result = await async_client.patch(
+            app_with_dependency_overrides.url_path_for(
+                "movies:update-status", movie_id=random_movie_id
+            ),
+            json={"status": "processed"},
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        mock_movies_service.update_status.assert_awaited_once_with(
+            random_movie_id, "processed"
+        )
+
+    async def test_movie_not_found(
+        self,
+        random_movie_id: uuid.UUID,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+        check_movie_exists: Callable[[bool], None],
+        mock_movies_service: mock.AsyncMock,
+    ):
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(False)
+        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: True
+        )
+
+        result = await async_client.patch(
+            app_with_dependency_overrides.url_path_for(
+                "movies:update-status", movie_id=random_movie_id
+            ),
+            json={"status": "processed"},
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        mock_movies_service.update_status.assert_not_awaited()
+
+    @pytest.mark.parametrize(
+        "user,expected_status_code",
+        [
+            ("admin_user", status.HTTP_204_NO_CONTENT),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+        ],
+    )
+    async def test_permissions(
+        self,
+        request: pytest.FixtureRequest,
+        random_movie_id: uuid.UUID,
+        app_with_dependency_overrides: FastAPI,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+        mock_movies_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        check_movie_exists: Callable[[bool], None],
+        expected_status_code: int,
+        user: str,
+    ):
+        user_fixture_value: str | None = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(True)
+        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: check_is_superuser(user_fixture_value)
+        )
+        mock_movies_service.update_status.return_value = None
+
+        result = await async_client.patch(
+            app_with_dependency_overrides.url_path_for(
+                "movies:update-status", movie_id=random_movie_id
+            ),
+            json={"status": "processed"},
+        )
+
+        assert result.status_code == expected_status_code

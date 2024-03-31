@@ -2,47 +2,34 @@ import abc
 import datetime
 import uuid
 
+from fastapi import File, UploadFile
 from pydantic import BaseModel, field_validator, model_validator
+
+from app.core.config import settings
+from app.core.constants import (
+    SUPPORTED_SUBTITLES_EXTENSIONS,
+    SUPPORTED_VIDEO_EXTENSIONS,
+)
+from app.core.validators import FileValidator
 
 
 class PhraseSchema(BaseModel):
     movie_id: uuid.UUID
     full_text: str
-    file_s3_key: str
+    scene_s3_key: str | None
 
 
 class PhraseCreateUpdateSchema(BaseModel, abc.ABC):
     movie_id: uuid.UUID
     full_text: str
-    cleaned_text: str
-    start_in_movie: str
-    end_in_movie: str
+    normalized_text: str
+    start_in_movie: datetime.timedelta
+    end_in_movie: datetime.timedelta
     is_active: bool = True
-
-    @field_validator("start_in_movie", "end_in_movie")
-    @classmethod
-    def validate_time(cls, value: str) -> str:
-        """
-        Check the time format should be %H:%M:%S:%.%f
-        Example: 00:00:00:00.000000
-        """
-        time_format = "%H:%M:%S.%f"
-
-        try:
-            datetime.datetime.strptime(value, time_format)
-        except ValueError as e:
-            raise ValueError(f"Time must be in format {time_format}") from e
-
-        return value
 
     @model_validator(mode="after")
     def validate_start_time_less_than_end(self) -> "PhraseCreateUpdateSchema":
-        start_in_movie_time = datetime.datetime.strptime(
-            self.start_in_movie, "%H:%M:%S.%f"
-        )
-        end_in_movie_time = datetime.datetime.strptime(self.end_in_movie, "%H:%M:%S.%f")
-
-        if start_in_movie_time >= end_in_movie_time:
+        if self.start_in_movie >= self.end_in_movie:
             raise ValueError("Start time must be less than end time")
 
         return self
@@ -53,4 +40,53 @@ class PhraseCreateSchema(PhraseCreateUpdateSchema):
 
 
 class PhraseUpdateSchema(PhraseCreateUpdateSchema):
-    file_s3_key: str
+    scene_s3_key: str
+
+
+class PhraseCreateFromMovieFilesSchema(BaseModel):
+    movie_file: UploadFile
+    subtitles_file: UploadFile
+
+    @field_validator("movie_file")
+    def validate_movie_file(cls, value: UploadFile) -> UploadFile:
+        FileValidator.validate_file_type(
+            file=value, supported_extensions=SUPPORTED_VIDEO_EXTENSIONS
+        )
+        FileValidator.validate_file_size(
+            file=value, max_size=settings.max_movie_file_size
+        )
+        FileValidator.validate_file_name(file=value)
+
+        return value
+
+    @field_validator("subtitles_file")
+    def validate_subtitles_file(cls, value: UploadFile) -> UploadFile:
+        FileValidator.validate_file_type(
+            file=value, supported_extensions=SUPPORTED_SUBTITLES_EXTENSIONS
+        )
+        FileValidator.validate_file_size(
+            file=value, max_size=settings.max_subtitles_file_size
+        )
+        FileValidator.validate_file_name(file=value)
+
+        return value
+
+    @classmethod
+    async def depends(
+        cls, movie_file: UploadFile = File(...), subtitles_file: UploadFile = File(...)
+    ) -> "PhraseCreateFromMovieFilesSchema":
+        return cls(movie_file=movie_file, subtitles_file=subtitles_file)
+
+
+class SubtitleItem(BaseModel):
+    start_time: datetime.timedelta
+    end_time: datetime.timedelta
+    text: str
+    normalized_text: str
+
+    @model_validator(mode="after")
+    def validate_start_time_less_than_end(self) -> "SubtitleItem":
+        if self.start_time >= self.end_time:
+            raise ValueError("Start time must be less than end time")
+
+        return self

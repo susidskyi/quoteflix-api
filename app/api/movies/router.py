@@ -9,6 +9,7 @@ from app.api.movies.schemas import (
     MovieCreateSchema,
     MovieSchema,
     MovieUpdateSchema,
+    MovieUpdateStatusSchema,
 )
 from app.api.movies.service import MoviesService
 from app.api.users.permissions import current_superuser
@@ -78,10 +79,24 @@ async def get_movie_by_id(
 @router.delete(
     "/{movie_id}",
     name="movies:delete-movie",
-    status_code=204,
+    status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(current_superuser), Depends(movie_exists)],
 )
 async def delete_movie(
     movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
 ) -> None:
     await movies_service.delete(movie_id)
+
+
+@router.patch(
+    "/{movie_id}/update-status",
+    name="movies:update-status",
+    dependencies=[Depends(movie_exists), Depends(current_superuser)],
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def update_status(
+    movie_id: uuid.UUID,
+    new_status_schema: MovieUpdateStatusSchema,
+    movies_service: MoviesService = Depends(get_movies_service),
+) -> None:
+    await movies_service.update_status(movie_id, new_status_schema.status)

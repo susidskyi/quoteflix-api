@@ -7,7 +7,7 @@ from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
 
 
 class PhrasesService:
-    def __init__(self, repository: PhrasesRepository):
+    def __init__(self, repository: PhrasesRepository) -> None:
         self.repository = repository
 
     async def get_all(self) -> Sequence[PhraseModel]:
@@ -40,3 +40,8 @@ class PhrasesService:
 
     async def get_by_movie_id(self, movie_id: uuid.UUID) -> Sequence[PhraseModel]:
         return await self.repository.get_by_movie_id(movie_id)
+
+    async def bulk_create(
+        self, data: Sequence[PhraseCreateSchema]
+    ) -> Sequence[PhraseModel]:
+        return await self.repository.bulk_create(data)
