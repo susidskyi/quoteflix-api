@@ -38,6 +38,36 @@ async def get_all_phrases(
 
 
 @router.get(
+    "/get-by-search-text",
+    name="phrases:get-phrases-by-search-text",
+    response_model=Sequence[PhraseSchema],
+    status_code=status.HTTP_200_OK,
+)
+async def get_phrases_by_search_text(
+    search_text: str,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> Sequence[PhraseSchema]:
+    phrases = await phrases_service.get_by_search_text(search_text)
+
+    return phrases
+
+
+@router.get(
+    "/get-by-movie-id/{movie_id}",
+    name="phrases:get-phrases-by-movie-id",
+    response_model=Sequence[PhraseSchema],
+    dependencies=[Depends(current_superuser), Depends(movie_exists)],
+)
+async def get_phrases_by_movie_id(
+    movie_id: uuid.UUID,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> Sequence[PhraseSchema]:
+    phrases = await phrases_service.get_by_movie_id(movie_id)
+
+    return phrases
+
+
+@router.get(
     "/{phrase_id}",
     name="phrases:get-phrase-by-id",
     response_model=PhraseSchema,
@@ -97,21 +127,6 @@ async def delete_phrase(
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> None:
     await phrases_service.delete(phrase_id)
-
-
-@router.get(
-    "/by-movie-id/{movie_id}",
-    name="phrases:get-phrases-by-movie-id",
-    response_model=Sequence[PhraseSchema],
-    dependencies=[Depends(current_superuser), Depends(movie_exists)],
-)
-async def get_phrases_by_movie_id(
-    movie_id: uuid.UUID,
-    phrases_service: PhrasesService = Depends(get_phrases_service),
-) -> Sequence[PhraseSchema]:
-    phrases = await phrases_service.get_by_movie_id(movie_id)
-
-    return phrases
 
 
 @router.post(

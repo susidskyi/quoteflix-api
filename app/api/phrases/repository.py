@@ -93,3 +93,12 @@ class PhrasesRepository:
             phrases.append(PhraseModel(**phrase_obj))
 
         return phrases
+
+    async def get_by_search_text(self, search_text: str) -> Sequence[PhraseModel]:
+        query = select(PhraseModel).where(
+            PhraseModel.normalized_text.icontains(search_text)
+        )
+
+        phrases = await self.session.scalars(query)
+
+        return phrases.all()

@@ -6,6 +6,7 @@ from app.api.movies.models import MovieModel
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
+from app.api.phrases.utils import normalize_phrase_text
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -126,3 +127,24 @@ class TestPhrasesRepository:
 
         assert len(all_phrases_in_db) == 2
         assert len(result) == 2
+
+    @pytest.mark.parametrize(
+        "search_text, expected_count",
+        [
+            ("fruits: apples, bananas and oranges", 1),
+            ("bananas", 1),
+            ("fru'its .....::,,", 1),
+            ("invalid string", 0),
+        ],
+    )
+    async def test_get_by_search_text(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
+        search_text: str,
+        expected_count: int,
+    ):
+        normalized_text = normalize_phrase_text(search_text)
+        result = await phrases_repository.get_by_search_text(normalized_text)
+
+        assert len(result) == expected_count

@@ -1,5 +1,5 @@
 import pytest
 
 
-@pytest.mark.asycnio
+@pytest.mark.asyncio
 class TestScenesUploadService: ...

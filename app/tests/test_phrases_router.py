@@ -491,3 +491,35 @@ class TestGetAllPhrasesByMovieId:
         )
 
         assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio
+class TestGetPhrasesBySearchText:
+    async def test_get_by_search_text(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+        phrase_schema_data: PhraseSchema,
+    ):
+        mock_phrases_service.get_by_search_text.return_value = [phrase_model_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:get-phrases-by-search-text",
+            ),
+            params={"search_text": phrase_model_data.full_text},
+        )
+
+        result_data = result.json()
+
+        assert len(result_data) == 1
+        assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
+            phrase_schema_data.model_dump(mode="json"), sort_keys=True
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        mock_phrases_service.get_by_search_text.assert_awaited_once_with(
+            phrase_model_data.full_text
+        )
