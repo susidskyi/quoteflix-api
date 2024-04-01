@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from app.api.movies.constants import Languages, MovieStatus
 from app.api.movies.dependencies import get_movies_service
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
@@ -23,11 +22,14 @@ from app.api.movies.service import MoviesService
 from app.api.phrases.dependencies import get_phrases_service
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
+from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseUpdateSchema
 from app.api.phrases.service import PhrasesService
 from app.api.users.models import UserModel
 from app.core.config import settings
+from app.core.constants import Languages, MovieStatus
 from app.core.models import BaseModel
+from app.core.s3_service import S3Service
 from app.main import app as main_app
 
 """
@@ -326,24 +328,24 @@ def phrase_create_schema_data(random_movie_id: uuid.UUID) -> PhraseCreateSchema:
     return PhraseCreateSchema(
         movie_id=random_movie_id,
         full_text="fruits: apples, bananas and oranges",
-        cleaned_text="fruits apples bananas and oranges",
-        start_in_movie="00:00:01.000000",
-        end_in_movie="00:00:02.000000",
+        normalized_text="fruits apples bananas and oranges",
+        start_in_movie="00:00:01.541",
+        end_in_movie="00:00:02.020000",
     )
 
 
 @pytest.fixture
-def phrase_file_path() -> str:
+def scene_file_path() -> str:
     return "test/movies/test.mp4"
 
 
 @pytest.fixture
 def phrase_update_schema_data(
-    phrase_create_schema_data: PhraseCreateSchema, phrase_file_path: str
+    phrase_create_schema_data: PhraseCreateSchema, scene_file_path: str
 ) -> PhraseUpdateSchema:
     return PhraseUpdateSchema(
         **phrase_create_schema_data.model_dump(),
-        file_s3_key=phrase_file_path,
+        scene_s3_key=scene_file_path,
     )
 
 
@@ -392,5 +394,55 @@ def check_phrase_exists() -> Callable[[bool], None]:
 """
 ###############################################################################
 [END] Phrases-app fixtures
+###############################################################################
+"""
+
+
+"""
+#############################################################################
+[START] S3Service fixtures
+#############################################################################
+"""
+
+
+@pytest.fixture
+def s3_service() -> S3Service:
+    return S3Service()
+
+
+@pytest.fixture
+def mock_s3_service() -> mock.AsyncMock:
+    return mock.AsyncMock()
+
+
+"""
+###############################################################################
+[END]
+#############################################################################
+"""
+
+"""
+###############################################################################
+[START] Scenes-upload-service fixtures
+###############################################################################
+"""
+
+
+@pytest.fixture
+def scenes_upload_service(
+    mock_phrases_service: mock.AsyncMock,
+    mock_movies_service: mock.AsyncMock,
+    mock_s3_service: mock.AsyncMock,
+) -> ScenesUploadService:
+    return ScenesUploadService(
+        movies_service=mock_phrases_service,
+        phrases_service=mock_movies_service,
+        s3_service=mock_s3_service,
+    )
+
+
+"""
+###############################################################################
+[END] Scenes-upload-service fixtures
 ###############################################################################
 """

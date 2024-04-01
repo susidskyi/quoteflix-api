@@ -1,8 +1,8 @@
+import io
 import logging
 from typing import Any
 
 import aioboto3
-from fastapi import UploadFile
 
 from app.core.config import settings
 
@@ -16,7 +16,7 @@ class S3Service:
         self.s3_bucket = settings.s3_bucket
         self.session = aioboto3.Session(region_name=settings.aws_region_name)
 
-    async def upload_file_object(self, upload_file: UploadFile, key: str) -> bool:
+    async def upload_file_object(self, upload_file: io.BytesIO, key: str) -> bool:
         async with self.session.client("s3") as s3_client:
             await s3_client.upload_fileobj(upload_file, self.s3_bucket, key)
 

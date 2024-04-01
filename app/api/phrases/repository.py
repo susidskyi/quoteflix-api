@@ -1,7 +1,7 @@
 import uuid
 from typing import Sequence
 
-from sqlalchemy import delete, exists, select
+from sqlalchemy import delete, exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.phrases.models import PhraseModel
@@ -69,6 +69,36 @@ class PhrasesRepository:
 
     async def get_by_movie_id(self, movie_id: uuid.UUID) -> Sequence[PhraseModel]:
         query = select(PhraseModel).where(PhraseModel.movie_id == movie_id)
+        phrases = await self.session.scalars(query)
+
+        return phrases.all()
+
+    async def bulk_create(
+        self, data: Sequence[PhraseCreateSchema]
+    ) -> Sequence[PhraseModel]:
+        result = (
+            await self.session.scalars(insert(PhraseModel).returning(PhraseModel), data)
+        ).all()
+
+        await self.session.commit()
+
+        for phrase in result:
+            await self.session.refresh(phrase)
+
+        phrases = []
+
+        for phrase_model in result:
+            phrase_obj = phrase_model.__dict__
+            phrase_obj.pop("_sa_instance_state", None)
+            phrases.append(PhraseModel(**phrase_obj))
+
+        return phrases
+
+    async def get_by_search_text(self, search_text: str) -> Sequence[PhraseModel]:
+        query = select(PhraseModel).where(
+            PhraseModel.normalized_text.icontains(search_text)
+        )
+
         phrases = await self.session.scalars(query)
 
         return phrases.all()

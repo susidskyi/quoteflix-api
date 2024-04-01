@@ -6,6 +6,7 @@ from app.api.movies.models import MovieModel
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
+from app.api.phrases.utils import normalize_phrase_text
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -78,7 +79,7 @@ class TestPhrasesRepository:
         )
 
         assert result.id == phrase_fixture.id
-        assert result.file_s3_key == phrase_update_schema_data.file_s3_key
+        assert result.scene_s3_key == phrase_update_schema_data.scene_s3_key
 
     async def test_update_not_found(
         self,
@@ -111,3 +112,39 @@ class TestPhrasesRepository:
 
         assert len(result) == 1
         assert phrase_fixture in result
+
+    async def test_bulk_create(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_create_schema_data: PhraseCreateSchema,
+        movie_fixture: MovieModel,
+    ):
+        result = await phrases_repository.bulk_create(
+            [phrase_create_schema_data, phrase_create_schema_data]
+        )
+
+        all_phrases_in_db = await phrases_repository.get_all()
+
+        assert len(all_phrases_in_db) == 2
+        assert len(result) == 2
+
+    @pytest.mark.parametrize(
+        "search_text, expected_count",
+        [
+            ("fruits: apples, bananas and oranges", 1),
+            ("bananas", 1),
+            ("fru'its .....::,,", 1),
+            ("invalid string", 0),
+        ],
+    )
+    async def test_get_by_search_text(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
+        search_text: str,
+        expected_count: int,
+    ):
+        normalized_text = normalize_phrase_text(search_text)
+        result = await phrases_repository.get_by_search_text(normalized_text)
+
+        assert len(result) == expected_count

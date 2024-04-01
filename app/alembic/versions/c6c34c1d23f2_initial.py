@@ -1,8 +1,8 @@
 """Initial
 
-Revision ID: bcbd707a407a
+Revision ID: c6c34c1d23f2
 Revises: 
-Create Date: 2024-03-28 21:01:53.864380
+Create Date: 2024-03-31 17:21:33.478001
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "bcbd707a407a"
+revision: str = "c6c34c1d23f2"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -56,10 +56,10 @@ def upgrade() -> None:
         "phrases",
         sa.Column("movie_id", sa.Uuid(), nullable=False),
         sa.Column("full_text", sa.String(), nullable=False),
-        sa.Column("cleaned_text", sa.String(), nullable=False),
-        sa.Column("start_in_movie", sa.String(), nullable=False),
-        sa.Column("end_in_movie", sa.String(), nullable=False),
-        sa.Column("file_s3_key", sa.String(length=100), nullable=True),
+        sa.Column("normalized_text", sa.String(), nullable=False),
+        sa.Column("start_in_movie", sa.Interval(), nullable=False),
+        sa.Column("end_in_movie", sa.Interval(), nullable=False),
+        sa.Column("scene_s3_key", sa.String(length=100), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),

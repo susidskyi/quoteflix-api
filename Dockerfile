@@ -25,6 +25,8 @@ ENV VIRTUAL_ENV=/code/.venv \
     PATH="/code/.venv/bin:$PATH" \
     PYTHONPATH=/code
 
+RUN apt update && apt install ffmpeg -y
+
 WORKDIR /code
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}

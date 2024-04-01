@@ -34,3 +34,11 @@ class FileValidator:
                 detail="File type not supported. Supported types: "
                 + ", ".join(supported_extensions),
             )
+
+    @staticmethod
+    def validate_file_name(file: UploadFile) -> None:
+        if file.filename is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File name is required",
+            )

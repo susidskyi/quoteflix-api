@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy import SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.api.movies.constants import Languages, MovieStatus
+from app.core.constants import Languages, MovieStatus
 from app.core.models import BaseModel
 
 

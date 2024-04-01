@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_db_session
@@ -29,4 +29,6 @@ async def movie_exists(
     movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
 ) -> bool:
     if not await movies_service.exists(movie_id):
-        raise HTTPException(status_code=404, detail="Movie not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found"
+        )

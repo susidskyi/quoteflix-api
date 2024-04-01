@@ -1,11 +1,12 @@
 import uuid
 from typing import Sequence
 
-from sqlalchemy import delete, exists, select
+from sqlalchemy import delete, exists, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.movies.models import MovieModel
 from app.api.movies.schemas import MovieCreateSchema, MovieUpdateSchema
+from app.core.constants import MovieStatus
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -64,3 +65,14 @@ class MoviesRepository:
         query = select(exists().where(MovieModel.id == movie_id))
 
         return await self.session.scalar(query)
+
+    async def update_status(self, movie_id: uuid.UUID, status: MovieStatus) -> None:
+        if not await self.exists(movie_id):
+            raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
+
+        query = (
+            update(MovieModel).where(MovieModel.id == movie_id).values(status=status)
+        )
+        await self.session.execute(query)
+
+        await self.session.commit()
