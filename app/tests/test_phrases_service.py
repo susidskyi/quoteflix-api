@@ -172,3 +172,18 @@ class TestPhrasesService:
         mock_phrases_repository.get_by_search_text.assert_awaited_once_with(
             normalized_text
         )
+
+    async def test_delete_by_movie_id(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+    ):
+        mock_phrases_repository.delete_by_movie_id.return_value = None
+
+        result = await phrases_service.delete_by_movie_id(phrase_model_data.movie_id)
+
+        assert result is None
+        mock_phrases_repository.delete_by_movie_id.assert_awaited_once_with(
+            phrase_model_data.movie_id
+        )

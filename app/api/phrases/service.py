@@ -51,3 +51,6 @@ class PhrasesService:
         normalized_search_text = normalize_phrase_text(search_text)
 
         return await self.repository.get_by_search_text(normalized_search_text)
+
+    async def delete_by_movie_id(self, movie_id: uuid.UUID) -> None:
+        await self.repository.delete_by_movie_id(movie_id)

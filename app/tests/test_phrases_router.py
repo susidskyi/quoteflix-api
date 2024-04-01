@@ -523,3 +523,95 @@ class TestGetPhrasesBySearchText:
         mock_phrases_service.get_by_search_text.assert_awaited_once_with(
             phrase_model_data.full_text
         )
+
+
+@pytest.mark.asyncio
+class TestDeletePhrasesByMovieId:
+    async def test_delete_by_movie_id(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+        check_movie_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: True
+        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(True)
+        )
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-by-movie-id",
+                movie_id=phrase_model_data.movie_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        mock_phrases_service.delete_by_movie_id.assert_awaited_once_with(
+            phrase_model_data.movie_id
+        )
+
+    async def test_delete_by_movie_id_not_found(
+        self,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        check_movie_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(False)
+        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: True
+        )
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-by-movie-id",
+                movie_id=random_movie_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        mock_phrases_service.delete_by_movie_id.assert_not_awaited()
+
+    @pytest.mark.parametrize(
+        "user, expected_status_code",
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_204_NO_CONTENT),
+        ],
+    )
+    async def test_permissions(
+        self,
+        request: pytest.FixtureRequest,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+        check_movie_exists: Callable[[bool], None],
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+        user: str,
+        expected_status_code: int,
+    ):
+        user_fixture_value: str | None = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: check_is_superuser(user_fixture_value)
+        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(True)
+        )
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-by-movie-id",
+                movie_id=phrase_model_data.movie_id,
+            ),
+        )
+
+        assert result.status_code == expected_status_code

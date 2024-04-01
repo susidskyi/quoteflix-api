@@ -102,3 +102,9 @@ class PhrasesRepository:
         phrases = await self.session.scalars(query)
 
         return phrases.all()
+
+    async def delete_by_movie_id(self, movie_id: uuid.UUID) -> None:
+        query = delete(PhraseModel).where(PhraseModel.movie_id == movie_id)
+
+        await self.session.execute(query)
+        await self.session.commit()

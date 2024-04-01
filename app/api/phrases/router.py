@@ -67,6 +67,19 @@ async def get_phrases_by_movie_id(
     return phrases
 
 
+@router.delete(
+    "/delete-by-movie-id/{movie_id}",
+    name="phrases:delete-by-movie-id",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(current_superuser), Depends(movie_exists)],
+)
+async def delete_phrases_by_movie_id(
+    movie_id: uuid.UUID,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> None:
+    await phrases_service.delete_by_movie_id(movie_id)
+
+
 @router.get(
     "/{phrase_id}",
     name="phrases:get-phrase-by-id",

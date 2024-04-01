@@ -148,3 +148,19 @@ class TestPhrasesRepository:
         result = await phrases_repository.get_by_search_text(normalized_text)
 
         assert len(result) == expected_count
+
+    async def test_delete_by_movie_id(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
+        random_movie_id: uuid.UUID,
+    ):
+        existing_phrases = await phrases_repository.get_by_movie_id(random_movie_id)
+
+        assert len(existing_phrases) != 0
+
+        await phrases_repository.delete_by_movie_id(phrase_fixture.movie_id)
+
+        result = await phrases_repository.get_by_movie_id(phrase_fixture.movie_id)
+
+        assert len(result) == 0
