@@ -28,6 +28,7 @@ pytest-cov = "5.0.0"
 aioboto3 = "12.3.0"
 types-aioboto3 = "12.3.0"
 srt = "3.5.3"
+pytest-mock = "3.14.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "1.9.0"

@@ -134,7 +134,7 @@ class ScenesUploadService:
                 scene_file = self._get_scene_file(tmp_output_dir, scene_filename)
                 scene_s3_key = os.path.join("movies", str(movie_id), scene_filename)
 
-                # await self.s3_service.upload_file_object(scene_file, scene_s3_key)
+                await self.s3_service.upload_file_object(scene_file, scene_s3_key)
 
                 new_phrase_data = {
                     **phrase.__dict__,
@@ -163,7 +163,7 @@ class ScenesUploadService:
         phrases: Sequence[PhraseModel],
         tmp_output_dir: str,
         video_extension: str,
-    ):
+    ) -> None:
         self._setup_tmp_path(tmp_output_dir)
 
         movie_tmp_path = os.path.join(tmp_output_dir, movie_filename)
