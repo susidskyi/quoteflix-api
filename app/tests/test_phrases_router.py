@@ -1,14 +1,15 @@
+import io
 import json
 import uuid
 from typing import Callable
 from unittest import mock
 
 import pytest
-from fastapi import FastAPI, status
+from fastapi import FastAPI, UploadFile, status
 from httpx import AsyncClient
 
 from app.api.movies.dependencies import movie_exists
-from app.api.phrases.dependencies import phrase_exists
+from app.api.phrases.dependencies import get_scenes_upload_service, phrase_exists
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseUpdateSchema
 from app.api.users.models import UserModel
@@ -612,6 +613,118 @@ class TestDeletePhrasesByMovieId:
                 "phrases:delete-by-movie-id",
                 movie_id=phrase_model_data.movie_id,
             ),
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio
+class TestCreatePhrasesFromMovieFiles:
+    async def test_create_phrases_from_movie_files(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        random_movie_id: uuid.UUID,
+        check_movie_exists: Callable[[bool], None],
+        mock_scenes_upload_service: mock.AsyncMock,
+        movie_file: UploadFile,
+        subtitle_file: UploadFile,
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: True
+        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(True)
+        )
+        app_with_dependency_overrides.dependency_overrides[
+            get_scenes_upload_service
+        ] = lambda: mock_scenes_upload_service
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:create-from-movie-files",
+                movie_id=random_movie_id,
+            ),
+            files={
+                "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
+                "subtitles_file": ("subtitles.srt", subtitle_file.file, "text/plain"),
+            },
+        )
+
+        assert result.status_code == status.HTTP_202_ACCEPTED
+        mock_scenes_upload_service.upload_and_process_files.assert_awaited_once()
+
+    async def test_create_phrases_from_movie_files_not_found(
+        self,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        app_with_dependency_overrides: FastAPI,
+        check_movie_exists: Callable[[bool], None],
+        movie_file: UploadFile,
+        subtitle_file: UploadFile,
+        mock_scenes_upload_service: mock.AsyncMock,
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: True
+        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(False)
+        )
+        app_with_dependency_overrides.dependency_overrides[
+            get_scenes_upload_service
+        ] = lambda: mock_scenes_upload_service
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:create-from-movie-files",
+                movie_id=random_movie_id,
+            ),
+            files={
+                "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
+                "subtitles_file": ("subtitles.srt", subtitle_file.file, "text/plain"),
+            },
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.parametrize(
+        "user, expected_status_code",
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_202_ACCEPTED),
+        ],
+    )
+    async def test_permissions(
+        self,
+        request: pytest.FixtureRequest,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        random_movie_id: uuid.UUID,
+        check_movie_exists: Callable[[bool], None],
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+        user: str,
+        expected_status_code: int,
+        movie_file: UploadFile,
+        subtitle_file: UploadFile,
+    ):
+        user_fixture_value: str | None = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
+            lambda: check_is_superuser(user_fixture_value)
+        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
+            lambda: check_movie_exists(True)
+        )
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:create-from-movie-files",
+                movie_id=random_movie_id,
+            ),
+            files={
+                "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
+                "subtitles_file": ("subtitles.srt", subtitle_file.file, "text/plain"),
+            },
         )
 
         assert result.status_code == expected_status_code
