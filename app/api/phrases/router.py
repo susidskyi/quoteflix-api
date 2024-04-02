@@ -146,16 +146,16 @@ async def delete_phrase(
     "/create-from-movie-files/{movie_id}",
     name="phrases:create-from-movie-files",  # TODO: check naming for all routes
     status_code=status.HTTP_202_ACCEPTED,
-    dependencies=[],
+    dependencies=[Depends(movie_exists), Depends(current_superuser)],
 )
 async def create_phrases_from_movie_files(
     movie_id: uuid.UUID,
     movie_files: PhraseCreateFromMovieFilesSchema = Depends(
         PhraseCreateFromMovieFilesSchema.depends
     ),
-    file_upload_service: ScenesUploadService = Depends(get_scenes_upload_service),
+    scenes_upload_service: ScenesUploadService = Depends(get_scenes_upload_service),
 ):
-    await file_upload_service.upload_and_process_files(  # TODO remove await
+    await scenes_upload_service.upload_and_process_files(  # TODO remove await
         movie_id=movie_id,
         movie_file=movie_files.movie_file,
         subtitle_file=movie_files.subtitles_file,

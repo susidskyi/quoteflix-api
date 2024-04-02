@@ -447,7 +447,12 @@ def scenes_upload_service(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
+def mock_scenes_upload_service() -> mock.AsyncMock:
+    return mock.AsyncMock()
+
+
+@pytest.fixture
 def subtitle_file() -> UploadFile:
     with open("app/tests/data/subtitles.srt", "rb") as f:
         _file = UploadFile(
