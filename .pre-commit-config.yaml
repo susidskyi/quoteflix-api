@@ -28,3 +28,4 @@ repos:
     always_run: true
     pass_filenames: false
     fail_fast: true
+    verbose: true
