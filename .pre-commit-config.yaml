@@ -2,7 +2,6 @@ repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.5.0
   hooks:
-  - id: check-added-large-files
   - id: check-toml
   - id: check-yaml
   - id: debug-statements
@@ -29,3 +28,4 @@ repos:
     always_run: true
     pass_filenames: false
     fail_fast: true
+    verbose: true

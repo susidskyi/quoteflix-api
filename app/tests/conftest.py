@@ -1,11 +1,12 @@
 import datetime
+import io
 import uuid
 from typing import AsyncGenerator, AsyncIterator, Callable
 from unittest import mock
 
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, UploadFile, status
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -23,7 +24,12 @@ from app.api.phrases.dependencies import get_phrases_service
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.scenes_upload_service import ScenesUploadService
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import (
+    PhraseCreateSchema,
+    PhraseSchema,
+    PhraseUpdateSchema,
+    SubtitleItem,
+)
 from app.api.phrases.service import PhrasesService
 from app.api.users.models import UserModel
 from app.core.config import settings
@@ -329,8 +335,8 @@ def phrase_create_schema_data(random_movie_id: uuid.UUID) -> PhraseCreateSchema:
         movie_id=random_movie_id,
         full_text="fruits: apples, bananas and oranges",
         normalized_text="fruits apples bananas and oranges",
-        start_in_movie="00:00:01.541",
-        end_in_movie="00:00:02.020000",
+        start_in_movie="00:00:30.000",
+        end_in_movie="00:00:40.00000",
     )
 
 
@@ -435,10 +441,52 @@ def scenes_upload_service(
     mock_s3_service: mock.AsyncMock,
 ) -> ScenesUploadService:
     return ScenesUploadService(
-        movies_service=mock_phrases_service,
-        phrases_service=mock_movies_service,
+        movies_service=mock_movies_service,
+        phrases_service=mock_phrases_service,
         s3_service=mock_s3_service,
     )
+
+
+@pytest.fixture()
+def subtitle_file() -> UploadFile:
+    with open("app/tests/data/subtitles.srt", "rb") as f:
+        _file = UploadFile(
+            file=io.BytesIO(f.read()),
+            filename="subtitles.srt",
+            size=69,
+            headers={"Content-Type": "text/plain"},
+        )
+
+    return _file
+
+
+@pytest.fixture
+def movie_file() -> UploadFile:
+    with open("app/tests/data/movie.mp4", "rb") as f:
+        _file = UploadFile(
+            file=io.BytesIO(f.read()),
+            filename="movie.mp4",
+            size=1055736,
+            headers={"Content-Type": "video/mp4"},
+        )
+
+    return _file
+
+
+@pytest.fixture
+def subtitle_item() -> SubtitleItem:
+    return SubtitleItem(
+        start_time=datetime.timedelta(seconds=30),
+        end_time=datetime.timedelta(seconds=40),
+        text="fruits: apples, bananas and oranges",
+        normalized_text="fruits apples bananas and oranges",
+    )
+
+
+@pytest.fixture
+def scene_file_buffered_bytes() -> io.BytesIO:
+    with open("app/tests/data/scene.mp4", "rb") as f:
+        return io.BytesIO(f.read())
 
 
 """
