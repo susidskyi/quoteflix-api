@@ -190,8 +190,10 @@ def mock_movies_repository() -> mock.AsyncMock:
 
 
 @pytest.fixture
-def movies_service(movies_repository: MoviesRepository) -> MoviesService:
-    return MoviesService(movies_repository)
+def movies_service(
+    mock_movies_repository: mock.AsyncMock, mock_s3_service: mock.AsyncMock
+) -> MoviesService:
+    return MoviesService(mock_movies_repository, mock_s3_service)
 
 
 @pytest.fixture
@@ -303,8 +305,10 @@ def mock_phrases_repository() -> mock.AsyncMock:
 
 
 @pytest.fixture
-def phrases_service(mock_phrases_repository: PhrasesRepository) -> PhrasesService:
-    return PhrasesService(mock_phrases_repository)
+def phrases_service(
+    mock_phrases_repository: mock.AsyncMock, mock_s3_service: mock.AsyncMock
+) -> PhrasesService:
+    return PhrasesService(mock_phrases_repository, mock_s3_service)
 
 
 @pytest.fixture

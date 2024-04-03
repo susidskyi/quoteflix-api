@@ -1,15 +1,21 @@
+import os
 import uuid
 from typing import Sequence
 
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
 from app.api.movies.schemas import MovieCreateSchema, MovieUpdateSchema
+from app.core.config import settings
 from app.core.constants import MovieStatus
+from app.core.s3_service import S3Service
 
 
 class MoviesService:
-    def __init__(self, movie_repository: MoviesRepository) -> None:
+    def __init__(
+        self, movie_repository: MoviesRepository, s3_service: S3Service
+    ) -> None:
         self.repository = movie_repository
+        self.s3_service = s3_service
 
     async def create(self, data: MovieCreateSchema) -> MovieModel:
         movie = await self.repository.create(data)
@@ -33,6 +39,9 @@ class MoviesService:
 
     async def delete(self, movie_id: uuid.UUID) -> None:
         await self.repository.delete(movie_id)
+
+        movie_s3_folder_path = os.path.join(settings.movies_s3_path, str(movie_id))
+        await self.s3_service.delete_folder(movie_s3_folder_path)  # TODO: remove await
 
     async def exists(self, movie_id: uuid.UUID) -> bool:
         return await self.repository.exists(movie_id)
