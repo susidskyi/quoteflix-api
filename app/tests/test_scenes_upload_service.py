@@ -102,12 +102,12 @@ class TestScenesUploadService:
             movie_file, "movie", phrases, tmp_output_dir, ".mp4"
         )
         assert mock_get_scene_file.await_count(len(phrases))
-        assert mock_s3_service.upload_file_object.await_count == len(phrases)
+        assert mock_s3_service.upload_fileobj.await_count == len(phrases)
         assert mock_phrases_service.update.await_count == len(phrases)
 
         for phrase in phrases:
             mock_get_scene_file.assert_called_with(tmp_output_dir, f"{phrase.id}.mp4")
-            mock_s3_service.upload_file_object.assert_awaited_with(
+            mock_s3_service.upload_fileobj.assert_awaited_with(
                 scene_file_buffered_bytes, scene_s3_key
             )
             expected_new_phrase_data = {

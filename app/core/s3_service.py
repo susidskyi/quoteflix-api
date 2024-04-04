@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 import aioboto3
+
 from app.core.config import settings
 
 # Disable a lot of boto3 logs such as binary file data etc.
@@ -29,6 +30,10 @@ class S3Service:
                 all_objects.extend(new_objects)
 
         return all_objects
+
+    async def upload_fileobj(self, fileobj: io.BytesIO, key: str) -> None:
+        async with self.session.client("s3") as s3_client:
+            await s3_client.upload_fileobj(fileobj, settings.s3_bucket, key)
 
     async def delete_folder(self, prefix: str) -> None:
         all_objects = await self.get_all_objects_in_folder(prefix)

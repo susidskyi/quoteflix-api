@@ -22,14 +22,20 @@ class PhrasesRepository:
 
         return phrase
 
-    async def delete(self, phrase_id: uuid.UUID) -> None:
+    async def delete(self, phrase_id: uuid.UUID) -> str | None:
         if not await self.exists(phrase_id):
             raise RepositoryNotFoundError(f"Phrase not found: id={phrase_id}")
 
-        query = delete(PhraseModel).where(PhraseModel.id == phrase_id)
+        query = (
+            delete(PhraseModel)
+            .where(PhraseModel.id == phrase_id)
+            .returning(PhraseModel.scene_s3_key)
+        )
 
-        await self.session.execute(query)
+        result = await self.session.scalar(query)
         await self.session.commit()
+
+        return result
 
     async def exists(self, phrase_id: uuid.UUID) -> bool:
         query = select(exists().where(PhraseModel.id == phrase_id))

@@ -3,7 +3,13 @@ import datetime
 import uuid
 
 from fastapi import File, UploadFile
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from app.core.config import settings
 from app.core.constants import (
@@ -14,6 +20,7 @@ from app.core.validators import FileValidator
 
 
 class PhraseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     movie_id: uuid.UUID
     full_text: str
     scene_s3_key: str | None

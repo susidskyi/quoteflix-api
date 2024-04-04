@@ -35,6 +35,7 @@ from app.api.users.models import UserModel
 from app.core.config import settings
 from app.core.constants import Languages, MovieStatus
 from app.core.models import BaseModel
+from app.core.presigned_url_service import PresignedURLService
 from app.core.s3_service import S3Service
 from app.main import app as main_app
 
@@ -306,9 +307,13 @@ def mock_phrases_repository() -> mock.AsyncMock:
 
 @pytest.fixture
 def phrases_service(
-    mock_phrases_repository: mock.AsyncMock, mock_s3_service: mock.AsyncMock
+    mock_phrases_repository: mock.AsyncMock,
+    mock_s3_service: mock.AsyncMock,
+    mock_presigned_url_service: mock.AsyncMock,
 ) -> PhrasesService:
-    return PhrasesService(mock_phrases_repository, mock_s3_service)
+    return PhrasesService(
+        mock_phrases_repository, mock_s3_service, mock_presigned_url_service
+    )
 
 
 @pytest.fixture
@@ -345,17 +350,17 @@ def phrase_create_schema_data(random_movie_id: uuid.UUID) -> PhraseCreateSchema:
 
 
 @pytest.fixture
-def scene_file_path() -> str:
+def scene_s3_key() -> str:
     return "test/movies/test.mp4"
 
 
 @pytest.fixture
 def phrase_update_schema_data(
-    phrase_create_schema_data: PhraseCreateSchema, scene_file_path: str
+    phrase_create_schema_data: PhraseCreateSchema, scene_s3_key: str
 ) -> PhraseUpdateSchema:
     return PhraseUpdateSchema(
         **phrase_create_schema_data.model_dump(),
-        scene_s3_key=scene_file_path,
+        scene_s3_key=scene_s3_key,
     )
 
 
@@ -501,5 +506,33 @@ def scene_file_buffered_bytes() -> io.BytesIO:
 """
 ###############################################################################
 [END] Scenes-upload-service fixtures
+###############################################################################
+"""
+
+"""
+###############################################################################
+[START] Presigned-url-service fixtures
+###############################################################################
+"""
+
+
+@pytest.fixture
+def presigned_url_service(mock_s3_service: mock.AsyncMock) -> PresignedURLService:
+    return PresignedURLService(s3_service=mock_s3_service)
+
+
+@pytest.fixture
+def mock_presigned_url_service() -> mock.AsyncMock:
+    return mock.AsyncMock()
+
+
+@pytest.fixture
+def mock_presigned_url_value() -> str:
+    return "https://quoteflix.s3.aws/key"
+
+
+"""
+###############################################################################
+[END] Presigned-url-service fixtures
 ###############################################################################
 """
