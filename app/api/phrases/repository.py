@@ -14,103 +14,113 @@ class PhrasesRepository:
         self.session = session
 
     async def get_by_id(self, phrase_id: uuid.UUID) -> PhraseModel:
-        query = select(PhraseModel).where(PhraseModel.id == phrase_id)
-        phrase = await self.session.scalar(query)
+        async with self.session as session:
+            query = select(PhraseModel).where(PhraseModel.id == phrase_id)
+            phrase = await session.scalar(query)
 
-        if not phrase:
-            raise RepositoryNotFoundError(f"Phrase not found: id={phrase_id}")
+            if not phrase:
+                raise RepositoryNotFoundError(f"Phrase not found: id={phrase_id}")
 
-        return phrase
+            return phrase
 
     async def delete(self, phrase_id: uuid.UUID) -> str | None:
         if not await self.exists(phrase_id):
             raise RepositoryNotFoundError(f"Phrase not found: id={phrase_id}")
 
-        query = (
-            delete(PhraseModel)
-            .where(PhraseModel.id == phrase_id)
-            .returning(PhraseModel.scene_s3_key)
-        )
+        async with self.session as session:
+            query = (
+                delete(PhraseModel)
+                .where(PhraseModel.id == phrase_id)
+                .returning(PhraseModel.scene_s3_key)
+            )
 
-        result = await self.session.scalar(query)
-        await self.session.commit()
+            result = await session.scalar(query)
+            await session.commit()
 
-        return result
+            return result
 
     async def exists(self, phrase_id: uuid.UUID) -> bool:
-        query = select(exists().where(PhraseModel.id == phrase_id))
+        async with self.session as session:
+            query = select(exists().where(PhraseModel.id == phrase_id))
 
-        return await self.session.scalar(query)
+            return await session.scalar(query)
 
     async def get_all(self) -> Sequence[PhraseModel]:
-        phrases = await self.session.scalars(select(PhraseModel))
+        async with self.session as session:
+            phrases = await session.scalars(select(PhraseModel))
 
-        return phrases.all()
+            return phrases.all()
 
     async def create(self, data: PhraseCreateSchema) -> PhraseModel:
-        phrase = PhraseModel(**data.model_dump())
+        async with self.session as session:
+            phrase = PhraseModel(**data.model_dump())
 
-        self.session.add(phrase)
-        await self.session.commit()
-        await self.session.refresh(phrase)
+            session.add(phrase)
+            await session.commit()
+            await session.refresh(phrase)
 
         return phrase
 
     async def update(
         self, phrase_id: uuid.UUID, data: PhraseUpdateSchema
     ) -> PhraseModel:
-        query = select(PhraseModel).where(PhraseModel.id == phrase_id)
-        phrase = await self.session.scalar(query)
+        async with self.session as session:
+            query = select(PhraseModel).where(PhraseModel.id == phrase_id)
+            phrase = await session.scalar(query)
 
-        if not phrase:
-            raise RepositoryNotFoundError(f"Phrase not found: id={phrase_id}")
+            if not phrase:
+                raise RepositoryNotFoundError(f"Phrase not found: id={phrase_id}")
 
-        for field, value in data.model_dump().items():
-            setattr(phrase, field, value)
+            for field, value in data.model_dump().items():
+                setattr(phrase, field, value)
 
-        await self.session.commit()
-        await self.session.refresh(phrase)
+            await session.commit()
+            await session.refresh(phrase)
 
         return phrase
 
     async def get_by_movie_id(self, movie_id: uuid.UUID) -> Sequence[PhraseModel]:
-        query = select(PhraseModel).where(PhraseModel.movie_id == movie_id)
-        phrases = await self.session.scalars(query)
+        async with self.session as session:
+            query = select(PhraseModel).where(PhraseModel.movie_id == movie_id)
+            phrases = await session.scalars(query)
 
-        return phrases.all()
+            return phrases.all()
 
     async def bulk_create(
         self, data: Sequence[PhraseCreateSchema]
     ) -> Sequence[PhraseModel]:
-        result = (
-            await self.session.scalars(insert(PhraseModel).returning(PhraseModel), data)
-        ).all()
+        async with self.session as session:
+            result = (
+                await session.scalars(insert(PhraseModel).returning(PhraseModel), data)
+            ).all()  # TODO: check all scalars in the project, if we can use it more conveniently
 
-        await self.session.commit()
+            await session.commit()
 
-        for phrase in result:
-            await self.session.refresh(phrase)
+            for phrase in result:
+                await session.refresh(phrase)
 
-        phrases = []
+            phrases = []
 
-        for phrase_model in result:
-            phrase_obj = phrase_model.__dict__
-            phrase_obj.pop("_sa_instance_state", None)
-            phrases.append(PhraseModel(**phrase_obj))
+            for phrase_model in result:
+                phrase_obj = phrase_model.__dict__
+                phrase_obj.pop("_sa_instance_state", None)
+                phrases.append(PhraseModel(**phrase_obj))
 
         return phrases
 
     async def get_by_search_text(self, search_text: str) -> Sequence[PhraseModel]:
-        query = select(PhraseModel).where(
-            PhraseModel.normalized_text.icontains(search_text)
-        )
+        async with self.session as session:
+            query = select(PhraseModel).where(
+                PhraseModel.normalized_text.icontains(search_text)
+            )
 
-        phrases = await self.session.scalars(query)
+            phrases = await session.scalars(query)
 
-        return phrases.all()
+            return phrases.all()
 
     async def delete_by_movie_id(self, movie_id: uuid.UUID) -> None:
-        query = delete(PhraseModel).where(PhraseModel.movie_id == movie_id)
+        async with self.session as session:
+            query = delete(PhraseModel).where(PhraseModel.movie_id == movie_id)
 
-        await self.session.execute(query)
-        await self.session.commit()
+            await session.execute(query)
+            await session.commit()
