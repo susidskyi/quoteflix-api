@@ -45,6 +45,7 @@ services:
     depends_on:
       - db
       - test-db
+      - motoserver
 
   api:
     build:
@@ -60,6 +61,13 @@ services:
     restart: unless-stopped
     depends_on:
     - db
+
+  motoserver:
+    image: motoserver/moto:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - MOTO_PORT=5000 
 
 volumes:
   db-data:

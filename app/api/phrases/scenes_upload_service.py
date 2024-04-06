@@ -207,5 +207,5 @@ class ScenesUploadService:
         Original exception was: (raised as a result of Query-invoked autoflush; consider using a
         session.no_autoflush block if this flush is occurring prematurely)
         """
-        # await self.movies_service.update_status(movie_id, MovieStatus.ERROR)
+        await self.movies_service.update_status(movie_id, MovieStatus.ERROR)
         self._tear_down_tmp_path(tmp_output_dir)

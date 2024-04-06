@@ -1,19 +1,24 @@
 import datetime
 import io
+import os
 import uuid
 from typing import AsyncGenerator, AsyncIterator, Callable
 from unittest import mock
 
+import aioboto3
 import pytest
 import pytest_asyncio
+import pytest_mock
 from fastapi import FastAPI, HTTPException, UploadFile, status
 from httpx import ASGITransport, AsyncClient
+from moto.server import ThreadedMotoServer
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from types_aiobotocore_s3 import S3Client
 
 from app.api.movies.dependencies import get_movies_service
 from app.api.movies.models import MovieModel
@@ -421,13 +426,95 @@ def check_phrase_exists() -> Callable[[bool], None]:
 
 
 @pytest.fixture
-def s3_service() -> S3Service:
-    return S3Service()
+def aws_credentials():
+    """Mocked AWS Credentials for moto."""
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_ENDPOINT_URL"] = "http://motoserver:5000"
+
+
+@pytest.fixture
+def s3_session(aws_credentials) -> aioboto3.Session:
+    session = aioboto3.Session(region_name="eu-central-1")
+
+    return session
+
+
+@pytest.fixture
+def bucket_test_name() -> str:
+    return settings.s3_bucket
+
+
+@pytest_asyncio.fixture()
+async def setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str):
+    """
+    Delete the bucket if it alread exists and create fresh bucket for tests
+    """
+
+    async with s3_session.client("s3") as s3_client:
+        try:
+            list_objects = await s3_client.list_objects_v2(Bucket=bucket_test_name)
+            list_objects_keys = []
+
+            if "Contents" in list_objects:
+                list_objects_keys = list(
+                    map(lambda x: {"Key": x["Key"]}, list_objects["Contents"])
+                )
+
+            if list_objects_keys:
+                await s3_client.delete_objects(
+                    Bucket=bucket_test_name, Delete={"Objects": list_objects_keys}
+                )
+
+            await s3_client.delete_bucket(Bucket=bucket_test_name)
+        except s3_client.exceptions.NoSuchBucket:
+            pass
+
+        location = {
+            "LocationConstraint": "eu-central-1"  # TODO: replace eu-center-1 with environment variable
+        }
+        await s3_client.create_bucket(
+            Bucket=bucket_test_name, CreateBucketConfiguration=location
+        )
+
+
+@pytest_asyncio.fixture()
+async def s3_service(s3_session: aioboto3.Session, setup_bucket) -> S3Service:
+    return S3Service(s3_session=s3_session)
 
 
 @pytest.fixture
 def mock_s3_service() -> mock.AsyncMock:
     return mock.AsyncMock()
+
+
+@pytest.fixture
+def movie_in_s3_prefix(
+    random_movie_id: uuid.UUID,
+) -> str:
+    return os.path.join(settings.movies_s3_path, str(random_movie_id))
+
+
+@pytest.fixture
+def file_in_s3_key(movie_in_s3_prefix: str, random_phrase_id: uuid.UUID) -> str:
+    key = os.path.join(movie_in_s3_prefix, f"{random_phrase_id}.mp4")
+
+    return key
+
+
+@pytest_asyncio.fixture
+async def created_file_in_s3(
+    s3_session: aioboto3.Session,
+    bucket_test_name: str,
+    file_in_s3_key: str,
+    scene_file_buffered_bytes: io.BytesIO,
+):
+    async with s3_session.client("s3") as s3_client:
+        await s3_client.upload_fileobj(
+            scene_file_buffered_bytes, bucket_test_name, file_in_s3_key
+        )
 
 
 """
