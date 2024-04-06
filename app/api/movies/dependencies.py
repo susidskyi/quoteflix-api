@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_db_session
 from app.api.movies.repository import MoviesRepository
 from app.api.movies.service import MoviesService
+from app.core.dependencies import get_s3_service
 from app.core.s3_service import S3Service
 
 
@@ -15,14 +16,11 @@ async def get_movies_repository(
     return MoviesRepository(session)
 
 
-async def get_s3_service() -> S3Service:
-    return S3Service()
-
-
 async def get_movies_service(
     movie_repository: MoviesRepository = Depends(get_movies_repository),
+    s3_service: S3Service = Depends(get_s3_service),
 ) -> MoviesService:
-    return MoviesService(movie_repository)
+    return MoviesService(movie_repository, s3_service)
 
 
 async def movie_exists(

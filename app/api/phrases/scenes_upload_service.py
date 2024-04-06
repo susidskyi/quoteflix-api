@@ -134,7 +134,7 @@ class ScenesUploadService:
                 scene_file = self._get_scene_file(tmp_output_dir, scene_filename)
                 scene_s3_key = os.path.join("movies", str(movie_id), scene_filename)
 
-                await self.s3_service.upload_file_object(scene_file, scene_s3_key)
+                await self.s3_service.upload_fileobj(scene_file, scene_s3_key)
 
                 new_phrase_data = {
                     **phrase.__dict__,
@@ -200,5 +200,12 @@ class ScenesUploadService:
         os.makedirs(path, exist_ok=True)
 
     async def _rollback(self, movie_id: uuid.UUID, tmp_output_dir: str) -> None:
+        """
+        TODO: fix rollback. Now it raises: sqlalchemy.exc.PendingRollbackError:
+        This Session's transaction has been rolled back due to a previous exception during flush.
+        To begin a new transaction with this Session, first issue Session.rollback().
+        Original exception was: (raised as a result of Query-invoked autoflush; consider using a
+        session.no_autoflush block if this flush is occurring prematurely)
+        """
         await self.movies_service.update_status(movie_id, MovieStatus.ERROR)
         self._tear_down_tmp_path(tmp_output_dir)

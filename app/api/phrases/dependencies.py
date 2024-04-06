@@ -9,7 +9,8 @@ from app.api.movies.service import MoviesService
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.service import PhrasesService
-from app.core.dependencies import get_s3_service
+from app.core.dependencies import get_presigned_url_service, get_s3_service
+from app.core.presigned_url_service import PresignedURLService
 from app.core.s3_service import S3Service
 
 
@@ -21,8 +22,14 @@ async def get_phrases_repository(
 
 async def get_phrases_service(
     phrases_repository: PhrasesRepository = Depends(get_phrases_repository),
+    s3_service: S3Service = Depends(get_s3_service),
+    presigned_url_service: PresignedURLService = Depends(get_presigned_url_service),
 ) -> PhrasesService:
-    return PhrasesService(phrases_repository)
+    return PhrasesService(
+        phrases_repository,
+        s3_service=s3_service,
+        presigned_url_service=presigned_url_service,
+    )
 
 
 async def get_scenes_upload_service(

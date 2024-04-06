@@ -1,8 +1,9 @@
 import io
+import itertools
 import logging
-from typing import Any
 
 import aioboto3
+from types_aiobotocore_s3 import S3Client
 
 from app.core.config import settings
 
@@ -12,22 +13,53 @@ logging.getLogger("botocore").setLevel(logging.CRITICAL)
 
 
 class S3Service:
-    def __init__(self) -> None:
+    def __init__(self, s3_session: aioboto3.Session) -> None:
         self.s3_bucket = settings.s3_bucket
-        self.session = aioboto3.Session(region_name=settings.aws_region_name)
+        self.s3_session = s3_session
 
-    async def upload_file_object(self, upload_file: io.BytesIO, key: str) -> bool:
-        async with self.session.client("s3") as s3_client:
-            await s3_client.upload_fileobj(upload_file, self.s3_bucket, key)
+    async def get_all_objects_in_folder(self, prefix: str) -> list[str]:
+        async with self.s3_session.client("s3") as s3_client:
+            paginator = s3_client.get_paginator("list_objects_v2")
 
-        return True
+            all_objects = []
 
-    async def get_object(self, key: str) -> Any:
-        async with self.session.client("s3") as s3_client:
-            return await s3_client.get_object(Bucket=self.s3_bucket, Key=key)
+            async for page in paginator.paginate(Bucket=self.s3_bucket, Prefix=prefix):
+                # Collect only the objects keys
+                if "Contents" in page:
+                    objects = list(map(lambda x: x["Key"], page["Contents"]))
+                    all_objects.extend(objects)
 
-    async def delete_file(self, key: str) -> bool:
-        async with self.session.client("s3") as s3_client:
+        return all_objects
+
+    async def upload_fileobj(self, fileobj: io.BytesIO, key: str) -> None:
+        async with self.s3_session.client("s3") as s3_client:
+            await s3_client.upload_fileobj(fileobj, self.s3_bucket, key)
+
+    async def delete_folder(self, prefix: str) -> None:
+        all_objects = await self.get_all_objects_in_folder(prefix)
+
+        await self.delete_objects(all_objects)
+
+    async def delete_object(self, key: str) -> None:
+        async with self.s3_session.client("s3") as s3_client:
             await s3_client.delete_object(Bucket=self.s3_bucket, Key=key)
 
-        return True
+    async def delete_objects(self, keys: list[str]) -> None:
+        async with self.s3_session.client("s3") as s3_client:
+            objects_list = {"Objects": []}
+
+            for key in keys:
+                objects_list["Objects"].append({"Key": key})
+
+            for batched_objects in itertools.batched(objects_list["Objects"], 1000):
+                await s3_client.delete_objects(
+                    Bucket=self.s3_bucket, Delete={"Objects": batched_objects}
+                )
+
+    async def get_presigned_url(self, key: str) -> str:
+        async with self.s3_session.client("s3") as s3_client:
+            return await s3_client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": self.s3_bucket, "Key": key},
+                HttpMethod="GET",
+            )

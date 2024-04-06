@@ -1,0 +1,25 @@
+from app.core.s3_service import S3Service
+
+
+class PresignedURLService:
+    """
+    TODO: add typehints
+    """
+
+    def __init__(self, s3_service: S3Service):
+        self.s3_service = s3_service
+
+    async def update_s3_urls_for_models(self, items, key: str):
+        for item in items:
+            await self.update_s3_url_for_model(item, key)
+
+        return items
+
+    async def update_s3_url_for_model(self, item, key: str):
+        s3_key = getattr(item, key, None)
+
+        if s3_key is not None:
+            pre_signed_url = await self.s3_service.get_presigned_url(s3_key)
+            setattr(item, key, pre_signed_url)
+
+        return item

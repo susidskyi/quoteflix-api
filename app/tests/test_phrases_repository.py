@@ -51,13 +51,19 @@ class TestPhrasesRepository:
         assert result is False
 
     async def test_delete(
-        self, phrase_fixture: PhraseModel, phrases_repository: PhrasesRepository
+        self,
+        phrase_fixture: PhraseModel,
+        phrases_repository: PhrasesRepository,
+        scene_s3_key: str,
     ):
-        await phrases_repository.delete(phrase_fixture.id)
+        exists = await phrases_repository.exists(phrase_fixture.id)
+        assert exists is True
 
-        result = await phrases_repository.exists(phrase_fixture.id)
+        result = await phrases_repository.delete(phrase_fixture.id)
 
-        assert result is False
+        assert result == scene_s3_key
+        exists = await phrases_repository.exists(phrase_fixture.id)
+        assert exists is False
 
     async def test_delete_not_found(
         self, phrases_repository: PhrasesRepository, random_phrase_id: uuid.UUID
@@ -156,11 +162,11 @@ class TestPhrasesRepository:
         random_movie_id: uuid.UUID,
     ):
         existing_phrases = await phrases_repository.get_by_movie_id(random_movie_id)
-
-        assert len(existing_phrases) != 0
+        assert len(existing_phrases) == 1
 
         await phrases_repository.delete_by_movie_id(phrase_fixture.movie_id)
 
-        result = await phrases_repository.get_by_movie_id(phrase_fixture.movie_id)
-
-        assert len(result) == 0
+        existing_phrases = await phrases_repository.get_by_movie_id(
+            phrase_fixture.movie_id
+        )
+        assert len(existing_phrases) == 0

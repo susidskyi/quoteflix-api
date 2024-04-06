@@ -15,64 +15,73 @@ class MoviesRepository:
         self.session: AsyncSession = session
 
     async def get_by_id(self, movie_id: uuid.UUID) -> MovieModel:
-        query = select(MovieModel).where(MovieModel.id == movie_id)
-        movie = await self.session.scalar(query)
+        async with self.session as session:
+            query = select(MovieModel).where(MovieModel.id == movie_id)
+            movie = await session.scalar(query)
 
-        if not movie:
-            raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
+            if not movie:
+                raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
 
-        return movie
+            return movie
 
     async def create(self, data: MovieCreateSchema) -> MovieModel:
-        movie = MovieModel(**data.model_dump())
+        async with self.session as session:
+            movie = MovieModel(**data.model_dump())
 
-        self.session.add(movie)
-        await self.session.commit()
-        await self.session.refresh(movie)
+            session.add(movie)
+            await session.commit()
+            await session.refresh(movie)
 
-        return movie
+            return movie
 
     async def get_all(self) -> Sequence[MovieModel]:
-        movies = await self.session.scalars(select(MovieModel))
+        async with self.session as session:
+            movies = await session.scalars(select(MovieModel))
 
-        return movies.all()
+            return movies.all()
 
     async def update(self, movie_id: uuid.UUID, data: MovieUpdateSchema) -> MovieModel:
-        query = select(MovieModel).where(MovieModel.id == movie_id)
-        movie = await self.session.scalar(query)
+        async with self.session as session:
+            query = select(MovieModel).where(MovieModel.id == movie_id)
+            movie = await session.scalar(query)
 
-        if not movie:
-            raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
+            if not movie:
+                raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
 
-        for field, value in data.model_dump().items():
-            setattr(movie, field, value)
+            for field, value in data.model_dump().items():
+                setattr(movie, field, value)
 
-        await self.session.commit()
-        await self.session.refresh(movie)
+            await session.commit()
+            await session.refresh(movie)
 
-        return movie
+            return movie
 
     async def delete(self, movie_id: uuid.UUID) -> None:
         if not await self.exists(movie_id):
             raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
 
-        query = delete(MovieModel).where(MovieModel.id == movie_id)
+        async with self.session as session:
+            query = delete(MovieModel).where(MovieModel.id == movie_id)
 
-        await self.session.execute(query)
-        await self.session.commit()
+            await session.execute(query)
+            await session.commit()
 
     async def exists(self, movie_id: uuid.UUID) -> bool:
-        query = select(exists().where(MovieModel.id == movie_id))
+        async with self.session as session:
+            query = select(exists().where(MovieModel.id == movie_id))
 
-        return await self.session.scalar(query)
+            return await session.scalar(query)
 
     async def update_status(self, movie_id: uuid.UUID, status: MovieStatus) -> None:
-        if not await self.exists(movie_id):
-            raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
+        async with self.session as session:
+            if not await self.exists(movie_id):
+                raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
 
-        query = (
-            update(MovieModel).where(MovieModel.id == movie_id).values(status=status)
-        )
-        await self.session.execute(query)
+            query = (
+                update(MovieModel)
+                .where(MovieModel.id == movie_id)
+                .values(status=status)
+            )
+            await session.execute(query)
 
-        await self.session.commit()
+            await session.commit()
