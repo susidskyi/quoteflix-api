@@ -39,7 +39,7 @@ from app.api.phrases.service import PhrasesService
 from app.api.users.models import UserModel
 from app.core.config import settings
 from app.core.constants import Languages, MovieStatus
-from app.core.models import BaseModel
+from app.core.models import CoreModel
 from app.core.presigned_url_service import PresignedURLService
 from app.core.s3_service import S3Service
 from app.main import app as main_app
@@ -70,8 +70,8 @@ async def db(
     engine: AsyncEngine, session_local: async_sessionmaker[AsyncSession]
 ) -> AsyncIterator[AsyncSession]:
     async with engine.begin() as conn:
-        await conn.run_sync(BaseModel.metadata.drop_all)
-        await conn.run_sync(BaseModel.metadata.create_all)
+        await conn.run_sync(CoreModel.metadata.drop_all)
+        await conn.run_sync(CoreModel.metadata.create_all)
 
     db = session_local()
 

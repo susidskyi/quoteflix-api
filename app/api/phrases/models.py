@@ -5,10 +5,10 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.api.movies.models import MovieModel
-from app.core.models import BaseModel
+from app.core.models import CoreModel
 
 
-class PhraseModel(BaseModel):
+class PhraseModel(CoreModel):
     __tablename__ = "phrases"
 
     movie_id: Mapped[uuid.UUID] = mapped_column(
