@@ -1,3 +1,4 @@
+import asyncio
 import os
 import uuid
 from typing import Sequence
@@ -22,7 +23,7 @@ class MoviesService:
 
         return movie
 
-    async def get_all(self, *args, **kwargs) -> Sequence[MovieModel]:
+    async def get_all(self) -> Sequence[MovieModel]:
         movies = await self.repository.get_all()
 
         return movies
@@ -41,7 +42,7 @@ class MoviesService:
         await self.repository.delete(movie_id)
 
         movie_s3_folder_path = os.path.join(settings.movies_s3_path, str(movie_id))
-        await self.s3_service.delete_folder(movie_s3_folder_path)  # TODO: remove await
+        asyncio.create_task(self.s3_service.delete_folder(movie_s3_folder_path))
 
     async def exists(self, movie_id: uuid.UUID) -> bool:
         return await self.repository.exists(movie_id)

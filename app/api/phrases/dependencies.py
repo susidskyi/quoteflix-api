@@ -36,13 +36,13 @@ async def get_scenes_upload_service(
     movies_service: MoviesService = Depends(get_movies_service),
     phrases_service: PhrasesService = Depends(get_phrases_service),
     s3_service: S3Service = Depends(get_s3_service),
-):
+) -> ScenesUploadService:
     return ScenesUploadService(movies_service, phrases_service, s3_service)
 
 
 async def phrase_exists(
     phrase_id: uuid.UUID,
-    phrases_service: get_phrases_service = Depends(get_phrases_service),
-) -> bool:
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> None:
     if not await phrases_service.exists(phrase_id):
         raise HTTPException(status_code=404, detail="Phrase not found")

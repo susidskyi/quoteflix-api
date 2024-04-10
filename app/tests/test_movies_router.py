@@ -386,7 +386,7 @@ class TestUpdateMovieStatusRoute:
 
         result = await async_client.patch(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-status", movie_id=random_movie_id
+                "movies:update-movie-status", movie_id=random_movie_id
             ),
             json={"status": "processed"},
         )
@@ -413,7 +413,7 @@ class TestUpdateMovieStatusRoute:
 
         result = await async_client.patch(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-status", movie_id=random_movie_id
+                "movies:update-movie-status", movie_id=random_movie_id
             ),
             json={"status": "processed"},
         )
@@ -452,7 +452,7 @@ class TestUpdateMovieStatusRoute:
 
         result = await async_client.patch(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-status", movie_id=random_movie_id
+                "movies:update-movie-status", movie_id=random_movie_id
             ),
             json={"status": "processed"},
         )

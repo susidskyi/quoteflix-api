@@ -10,6 +10,7 @@ from app.api.phrases.dependencies import (
     get_scenes_upload_service,
     phrase_exists,
 )
+from app.api.phrases.models import PhraseModel
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
     PhraseCreateFromMovieFilesSchema,
@@ -31,7 +32,7 @@ router = APIRouter(prefix="/phrases", tags=["phrases"])
 )
 async def get_all_phrases(
     phrases_service: PhrasesService = Depends(get_phrases_service),
-) -> Sequence[PhraseSchema]:
+) -> Sequence[PhraseModel]:
     phrases = await phrases_service.get_all()
 
     return phrases
@@ -46,7 +47,7 @@ async def get_all_phrases(
 async def get_phrases_by_search_text(
     search_text: str,
     phrases_service: PhrasesService = Depends(get_phrases_service),
-) -> Sequence[PhraseSchema]:
+) -> Sequence[PhraseModel]:
     phrases = await phrases_service.get_by_search_text(search_text)
 
     return phrases
@@ -61,7 +62,7 @@ async def get_phrases_by_search_text(
 async def get_phrases_by_movie_id(
     movie_id: uuid.UUID,
     phrases_service: PhrasesService = Depends(get_phrases_service),
-) -> Sequence[PhraseSchema]:
+) -> Sequence[PhraseModel]:
     phrases = await phrases_service.get_by_movie_id(movie_id)
 
     return phrases
@@ -69,7 +70,7 @@ async def get_phrases_by_movie_id(
 
 @router.delete(
     "/delete-by-movie-id/{movie_id}",
-    name="phrases:delete-by-movie-id",
+    name="phrases:delete-phrases-by-movie-id",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(current_superuser), Depends(movie_exists)],
 )
@@ -91,7 +92,7 @@ async def delete_phrases_by_movie_id(
 async def get_phrase_by_id(
     phrase_id: uuid.UUID,
     phrases_service: PhrasesService = Depends(get_phrases_service),
-):
+) -> PhraseModel:
     phrase = await phrases_service.get_by_id(phrase_id)
 
     return phrase
@@ -107,7 +108,7 @@ async def get_phrase_by_id(
 async def create_phrase(
     payload: PhraseCreateSchema,
     phrases_service: PhrasesService = Depends(get_phrases_service),
-):
+) -> PhraseModel:
     phrase = await phrases_service.create(payload)
 
     return phrase
@@ -123,7 +124,7 @@ async def update_phrase(
     phrase_id: uuid.UUID,
     payload: PhraseUpdateSchema,
     phrases_service: PhrasesService = Depends(get_phrases_service),
-):
+) -> PhraseModel:
     phrase = await phrases_service.update(phrase_id, payload)
 
     return phrase
@@ -144,7 +145,7 @@ async def delete_phrase(
 
 @router.post(
     "/create-from-movie-files/{movie_id}",
-    name="phrases:create-from-movie-files",  # TODO: check naming for all routes
+    name="phrases:create-phrases-from-movie-files",
     status_code=status.HTTP_202_ACCEPTED,
     dependencies=[Depends(movie_exists), Depends(current_superuser)],
 )
@@ -154,8 +155,14 @@ async def create_phrases_from_movie_files(
         PhraseCreateFromMovieFilesSchema.depends
     ),
     scenes_upload_service: ScenesUploadService = Depends(get_scenes_upload_service),
-):
-    await scenes_upload_service.upload_and_process_files(  # TODO remove await
+) -> None:
+    """
+    Actually need to await the upload and process files
+    Because FastAPI has oppened issues to process large files (UploadFile) in Background Tasks
+    https://github.com/tiangolo/fastapi/issues/10857
+    When it's resolved, this will be rewritten to `background_tasks.add_task`
+    """
+    await scenes_upload_service.upload_and_process_files(
         movie_id=movie_id,
         movie_file=movie_files.movie_file,
         subtitle_file=movie_files.subtitles_file,

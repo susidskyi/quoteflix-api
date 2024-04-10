@@ -10,7 +10,7 @@ from app.api.movies.models import MovieModel  # noqa: F401
 from app.api.users.models import UserModel  # noqa: F401
 from app.api.phrases.models import PhraseModel  # noqa: F401
 from app.core.config import settings
-from app.core.database import Base
+from app.core.models import CoreModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -22,7 +22,7 @@ fileConfig(config.config_file_name)  # type: ignore
 
 
 # add your model's MetaData object here
-target_metadata = Base.metadata
+target_metadata = CoreModel.metadata
 
 
 def get_url():

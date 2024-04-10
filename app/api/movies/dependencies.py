@@ -25,7 +25,7 @@ async def get_movies_service(
 
 async def movie_exists(
     movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
-) -> bool:
+) -> None:
     if not await movies_service.exists(movie_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found"

@@ -3,12 +3,13 @@ import uuid
 from unittest import mock
 
 import pytest
+import pytest_mock
 
 from app.api.movies.models import MovieModel
 from app.api.movies.schemas import MovieCreateSchema, MovieUpdateSchema
 from app.api.movies.service import MoviesService
-from app.core.constants import MovieStatus
 from app.core.config import settings
+from app.core.constants import MovieStatus
 
 
 @pytest.mark.asyncio
@@ -73,14 +74,17 @@ class TestMoviesService:
         mock_movies_repository: mock.AsyncMock,
         random_movie_id: uuid.UUID,
         mock_s3_service: mock.AsyncMock,
+        mocker: pytest_mock.MockerFixture,
     ):
+        asyncio_mocker = mocker.patch("asyncio.create_task")
         mock_movies_repository.delete.return_value = None
 
         result = await movies_service.delete(random_movie_id)
 
         assert result is None
+        asyncio_mocker.assert_called_once()
         mock_movies_repository.delete.assert_awaited_once_with(random_movie_id)
-        mock_s3_service.delete_folder.assert_awaited_once_with(
+        mock_s3_service.delete_folder.assert_called_once_with(
             os.path.join(settings.movies_s3_path, str(random_movie_id))
         )
 

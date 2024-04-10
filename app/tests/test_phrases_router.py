@@ -545,7 +545,7 @@ class TestDeletePhrasesByMovieId:
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "phrases:delete-by-movie-id",
+                "phrases:delete-phrases-by-movie-id",
                 movie_id=phrase_model_data.movie_id,
             ),
         )
@@ -572,7 +572,7 @@ class TestDeletePhrasesByMovieId:
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "phrases:delete-by-movie-id",
+                "phrases:delete-phrases-by-movie-id",
                 movie_id=random_movie_id,
             ),
         )
@@ -610,7 +610,7 @@ class TestDeletePhrasesByMovieId:
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "phrases:delete-by-movie-id",
+                "phrases:delete-phrases-by-movie-id",
                 movie_id=phrase_model_data.movie_id,
             ),
         )
@@ -642,7 +642,7 @@ class TestCreatePhrasesFromMovieFiles:
 
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for(
-                "phrases:create-from-movie-files",
+                "phrases:create-phrases-from-movie-files",
                 movie_id=random_movie_id,
             ),
             files={
@@ -676,7 +676,7 @@ class TestCreatePhrasesFromMovieFiles:
 
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for(
-                "phrases:create-from-movie-files",
+                "phrases:create-phrases-from-movie-files",
                 movie_id=random_movie_id,
             ),
             files={
@@ -718,7 +718,7 @@ class TestCreatePhrasesFromMovieFiles:
 
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for(
-                "phrases:create-from-movie-files",
+                "phrases:create-phrases-from-movie-files",
                 movie_id=random_movie_id,
             ),
             files={

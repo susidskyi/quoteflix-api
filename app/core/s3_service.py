@@ -4,6 +4,7 @@ import logging
 
 import aioboto3
 from types_aiobotocore_s3 import S3Client
+from types_aiobotocore_s3.type_defs import ObjectIdentifierTypeDef
 
 from app.core.config import settings
 
@@ -46,7 +47,7 @@ class S3Service:
 
     async def delete_objects(self, keys: list[str]) -> None:
         async with self.s3_session.client("s3") as s3_client:
-            objects_list = {"Objects": []}
+            objects_list: dict[str, list[ObjectIdentifierTypeDef]] = {"Objects": []}
 
             for key in keys:
                 objects_list["Objects"].append({"Key": key})

@@ -37,6 +37,17 @@ def makemigrations(ctx, message):
 
 
 @task
+def checks(ctx):
+    ctx.run("mypy app/", pty=True)
+
+
+@task
+def ci(ctx):
+    checks(ctx)
+    tests(ctx, check_coverage=True)
+
+
+@task
 def migrate(ctx):
     ctx.run("docker compose run api-ops alembic upgrade head")
 

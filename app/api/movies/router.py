@@ -5,6 +5,7 @@ from fastapi import Depends, status
 from fastapi.routing import APIRouter
 
 from app.api.movies.dependencies import get_movies_service, movie_exists
+from app.api.movies.models import MovieModel
 from app.api.movies.schemas import (
     MovieCreateSchema,
     MovieSchema,
@@ -24,7 +25,7 @@ router = APIRouter(
 @router.get("/", name="movies:get-all-movies", response_model=Sequence[MovieSchema])
 async def get_all(
     movies_service: MoviesService = Depends(get_movies_service),
-) -> Sequence[MovieSchema]:
+) -> Sequence[MovieModel]:
     movies = await movies_service.get_all()
 
     return movies
@@ -40,7 +41,7 @@ async def get_all(
 async def create(
     payload: MovieCreateSchema,
     movies_service: MoviesService = Depends(get_movies_service),
-) -> MovieSchema:
+) -> MovieModel:
     movie = await movies_service.create(payload)
 
     return movie
@@ -56,7 +57,7 @@ async def update(
     movie_id: uuid.UUID,
     payload: MovieUpdateSchema,
     movies_service: MoviesService = Depends(get_movies_service),
-):
+) -> MovieModel:
     movie = await movies_service.update(movie_id, payload)
 
     return movie
@@ -70,7 +71,7 @@ async def update(
 )
 async def get_movie_by_id(
     movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
-) -> MovieSchema:
+) -> MovieModel:
     movie = await movies_service.get_by_id(movie_id)
 
     return movie
@@ -90,7 +91,7 @@ async def delete_movie(
 
 @router.patch(
     "/{movie_id}/update-status",
-    name="movies:update-status",
+    name="movies:update-movie-status",
     dependencies=[Depends(movie_exists), Depends(current_superuser)],
     status_code=status.HTTP_204_NO_CONTENT,
 )

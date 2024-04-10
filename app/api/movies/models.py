@@ -4,10 +4,10 @@ from sqlalchemy import SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.constants import Languages, MovieStatus
-from app.core.models import CoreModel
+from app.core.models import CoreModel, DateTimeModelMixin, IDModelMixin
 
 
-class MovieModel(CoreModel):
+class MovieModel(CoreModel, IDModelMixin, DateTimeModelMixin):
     __tablename__ = "movies"
 
     title: Mapped[str] = mapped_column(String(100))

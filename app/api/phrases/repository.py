@@ -43,7 +43,9 @@ class PhrasesRepository:
         async with self.session as session:
             query = select(exists().where(PhraseModel.id == phrase_id))
 
-            return await session.scalar(query)
+            result = await session.scalar(query)
+
+            return bool(result)
 
     async def get_all(self) -> Sequence[PhraseModel]:
         async with self.session as session:
@@ -89,10 +91,17 @@ class PhrasesRepository:
     async def bulk_create(
         self, data: Sequence[PhraseCreateSchema]
     ) -> Sequence[PhraseModel]:
+        """
+        If have time, I will try to optimize this.
+        """
+        phrases_data = [phrase.model_dump() for phrase in data]
+
         async with self.session as session:
             result = (
-                await session.scalars(insert(PhraseModel).returning(PhraseModel), data)
-            ).all()  # TODO: check all scalars in the project, if we can use it more conveniently
+                await session.scalars(
+                    insert(PhraseModel).returning(PhraseModel), phrases_data
+                )
+            ).all()
 
             await session.commit()
 

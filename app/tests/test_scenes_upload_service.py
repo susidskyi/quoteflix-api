@@ -60,7 +60,9 @@ class TestScenesUploadService:
         scenes_upload_service: ScenesUploadService,
         scene_file_buffered_bytes: io.BytesIO,
     ):
-        result = scenes_upload_service._get_scene_file("app/tests/data", "scene.mp4")
+        result = await scenes_upload_service._get_scene_file(
+            "app/tests/data", "scene.mp4"
+        )
 
         assert result.read() == scene_file_buffered_bytes.read()
 
@@ -101,12 +103,12 @@ class TestScenesUploadService:
         mock_create_scenes_files.assert_awaited_once_with(
             movie_file, "movie", phrases, tmp_output_dir, ".mp4"
         )
-        assert mock_get_scene_file.await_count(len(phrases))
+        assert mock_get_scene_file.await_count == len(phrases)
         assert mock_s3_service.upload_fileobj.await_count == len(phrases)
         assert mock_phrases_service.update.await_count == len(phrases)
 
         for phrase in phrases:
-            mock_get_scene_file.assert_called_with(tmp_output_dir, f"{phrase.id}.mp4")
+            mock_get_scene_file.assert_awaited_with(tmp_output_dir, f"{phrase.id}.mp4")
             mock_s3_service.upload_fileobj.assert_awaited_with(
                 scene_file_buffered_bytes, scene_s3_key
             )
