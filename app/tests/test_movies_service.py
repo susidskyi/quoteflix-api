@@ -84,6 +84,7 @@ class TestMoviesService:
         result = await movies_service.delete(random_movie_id, background_tasks_mock)
 
         assert result is None
+        asyncio_mocker.assert_called_once()
         mock_movies_repository.delete.assert_awaited_once_with(random_movie_id)
         background_tasks_mock.add_task.assert_called_once_with(mock_s3_service.delete_folder, expected_movie_s3_path)
 

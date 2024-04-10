@@ -1,3 +1,5 @@
+import typing
+
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
