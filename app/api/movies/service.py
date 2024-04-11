@@ -1,7 +1,8 @@
-import asyncio
 import os
 import uuid
 from typing import Sequence
+
+from fastapi import BackgroundTasks
 
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
@@ -12,37 +13,27 @@ from app.core.s3_service import S3Service
 
 
 class MoviesService:
-    def __init__(
-        self, movie_repository: MoviesRepository, s3_service: S3Service
-    ) -> None:
+    def __init__(self, movie_repository: MoviesRepository, s3_service: S3Service) -> None:
         self.repository = movie_repository
         self.s3_service = s3_service
 
     async def create(self, data: MovieCreateSchema) -> MovieModel:
-        movie = await self.repository.create(data)
-
-        return movie
+        return await self.repository.create(data)
 
     async def get_all(self) -> Sequence[MovieModel]:
-        movies = await self.repository.get_all()
-
-        return movies
+        return await self.repository.get_all()
 
     async def update(self, movie_id: uuid.UUID, data: MovieUpdateSchema) -> MovieModel:
-        movie = await self.repository.update(movie_id, data)
-
-        return movie
+        return await self.repository.update(movie_id, data)
 
     async def get_by_id(self, movie_id: uuid.UUID) -> MovieModel:
-        movie = await self.repository.get_by_id(movie_id)
+        return await self.repository.get_by_id(movie_id)
 
-        return movie
-
-    async def delete(self, movie_id: uuid.UUID) -> None:
+    async def delete(self, movie_id: uuid.UUID, background_tasks: BackgroundTasks) -> None:
         await self.repository.delete(movie_id)
 
         movie_s3_folder_path = os.path.join(settings.movies_s3_path, str(movie_id))
-        asyncio.create_task(self.s3_service.delete_folder(movie_s3_folder_path))
+        background_tasks.add_task(self.s3_service.delete_folder, movie_s3_folder_path)
 
     async def exists(self, movie_id: uuid.UUID) -> bool:
         return await self.repository.exists(movie_id)

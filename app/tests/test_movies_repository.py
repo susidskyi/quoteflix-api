@@ -9,7 +9,7 @@ from app.core.constants import MovieStatus
 from app.core.exceptions import RepositoryNotFoundError
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestMoviesRepository:
     async def test_get_all_movies(
         self,
@@ -31,7 +31,9 @@ class TestMoviesRepository:
         assert result == movie_fixture
 
     async def test_get_movie_by_id_not_found(
-        self, movies_repository: MoviesRepository, random_movie_id: uuid.UUID
+        self,
+        movies_repository: MoviesRepository,
+        random_movie_id: uuid.UUID,
     ):
         with pytest.raises(RepositoryNotFoundError) as excinfo:
             await movies_repository.get_by_id(random_movie_id)
@@ -75,7 +77,9 @@ class TestMoviesRepository:
         assert result is True
 
     async def test_does_not_exist(
-        self, movies_repository: MoviesRepository, random_movie_id: uuid.UUID
+        self,
+        movies_repository: MoviesRepository,
+        random_movie_id: uuid.UUID,
     ):
         result = await movies_repository.exists(random_movie_id)
 
@@ -96,7 +100,9 @@ class TestMoviesRepository:
         assert result is False
 
     async def test_delete_not_found(
-        self, movies_repository: MoviesRepository, random_movie_id: uuid.UUID
+        self,
+        movies_repository: MoviesRepository,
+        random_movie_id: uuid.UUID,
     ):
         with pytest.raises(RepositoryNotFoundError) as excinfo:
             await movies_repository.delete(random_movie_id)

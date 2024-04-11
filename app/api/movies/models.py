@@ -17,5 +17,5 @@ class MovieModel(CoreModel, IDModelMixin, DateTimeModelMixin):
     language: Mapped[Languages]
 
     phrases: Mapped[List["PhraseModel"]] = relationship(  # type: ignore # noqa: F821
-        back_populates="movie"
+        back_populates="movie",
     )

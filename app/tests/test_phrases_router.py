@@ -1,4 +1,3 @@
-import io
 import json
 import uuid
 from typing import Callable
@@ -16,7 +15,7 @@ from app.api.users.models import UserModel
 from app.api.users.permissions import current_superuser
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestGetAllPhrases:
     async def test_get_all(
         self,
@@ -27,24 +26,23 @@ class TestGetAllPhrases:
         phrase_schema_data: PhraseSchema,
     ):
         mock_phrases_service.get_all.return_value = [phrase_model_data]
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         result = await async_client.get(
-            app_with_dependency_overrides.url_path_for("phrases:get-all-phrases")
+            app_with_dependency_overrides.url_path_for("phrases:get-all-phrases"),
         )
 
         result_data = result.json()
 
         assert len(result_data) == 1
         assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
-            phrase_schema_data.model_dump(mode="json"), sort_keys=True
+            phrase_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result.status_code == status.HTTP_200_OK
         mock_phrases_service.get_all.assert_awaited_once()
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -64,18 +62,18 @@ class TestGetAllPhrases:
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
         mock_phrases_service.get_all.return_value = [phrase_model_data]
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
 
         result = await async_client.get(
-            app_with_dependency_overrides.url_path_for("phrases:get-all-phrases")
+            app_with_dependency_overrides.url_path_for("phrases:get-all-phrases"),
         )
 
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCreatePhrase:
     async def test_create(
         self,
@@ -87,9 +85,7 @@ class TestCreatePhrase:
         phrase_model_data: PhraseModel,
     ):
         mock_phrases_service.create.return_value = phrase_model_data
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for("phrases:create-phrase"),
             json=phrase_create_schema_data.model_dump(mode="json"),
@@ -97,7 +93,8 @@ class TestCreatePhrase:
         result_data = result.json()
 
         assert json.dumps(result_data, sort_keys=True) == json.dumps(
-            phrase_schema_data.model_dump(mode="json"), sort_keys=True
+            phrase_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result.status_code == status.HTTP_201_CREATED
         mock_phrases_service.create.assert_awaited_once_with(phrase_create_schema_data)
@@ -108,9 +105,7 @@ class TestCreatePhrase:
         app_with_dependency_overrides: FastAPI,
         mock_phrases_service: mock.AsyncMock,
     ):
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for("phrases:create-phrase"),
             json={"invalid": "value"},
@@ -120,7 +115,7 @@ class TestCreatePhrase:
         mock_phrases_service.create.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -141,8 +136,8 @@ class TestCreatePhrase:
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
         mock_phrases_service.create.return_value = phrase_model_data
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
 
         result = await async_client.post(
@@ -153,7 +148,7 @@ class TestCreatePhrase:
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestDeletePhrase:
     async def test_delete(
         self,
@@ -164,16 +159,13 @@ class TestDeletePhrase:
         check_phrase_exists: Callable[[bool], None],
     ):
         mock_phrases_service.delete.return_value = None
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(True)
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "phrases:delete-phrase", phrase_id=phrase_model_data.id
+                "phrases:delete-phrase",
+                phrase_id=phrase_model_data.id,
             ),
         )
 
@@ -188,16 +180,13 @@ class TestDeletePhrase:
         phrase_model_data: PhraseModel,
         check_phrase_exists: Callable[[bool], None],
     ):
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(False)
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(False)
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "phrases:delete-phrase", phrase_id=phrase_model_data.id
+                "phrases:delete-phrase",
+                phrase_id=phrase_model_data.id,
             ),
         )
 
@@ -205,7 +194,7 @@ class TestDeletePhrase:
         mock_phrases_service.delete.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -226,23 +215,22 @@ class TestDeletePhrase:
     ):
         mock_phrases_service.delete.return_value = None
         user_fixture_value: str | None = request.getfixturevalue(user)
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(True)
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "phrases:delete-phrase", phrase_id=phrase_model_data.id
+                "phrases:delete-phrase",
+                phrase_id=phrase_model_data.id,
             ),
         )
 
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestUpdatePhrase:
     async def test_update(
         self,
@@ -255,16 +243,13 @@ class TestUpdatePhrase:
         phrase_update_schema_data: PhraseUpdateSchema,
     ):
         mock_phrases_service.update.return_value = phrase_model_data
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(True)
 
         result = await async_client.put(
             app_with_dependency_overrides.url_path_for(
-                "phrases:update-phrase", phrase_id=phrase_model_data.id
+                "phrases:update-phrase",
+                phrase_id=phrase_model_data.id,
             ),
             json=phrase_update_schema_data.model_dump(mode="json"),
         )
@@ -272,11 +257,13 @@ class TestUpdatePhrase:
         result_data = result.json()
 
         assert json.dumps(result_data, sort_keys=True) == json.dumps(
-            phrase_schema_data.model_dump(mode="json"), sort_keys=True
+            phrase_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result.status_code == status.HTTP_200_OK
         mock_phrases_service.update.assert_awaited_once_with(
-            phrase_model_data.id, phrase_update_schema_data
+            phrase_model_data.id,
+            phrase_update_schema_data,
         )
 
     async def test_update_not_found(
@@ -288,16 +275,13 @@ class TestUpdatePhrase:
         check_phrase_exists: Callable[[bool], None],
         phrase_update_schema_data: PhraseUpdateSchema,
     ):
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(False)
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(False)
 
         result = await async_client.put(
             app_with_dependency_overrides.url_path_for(
-                "phrases:update-phrase", phrase_id=phrase_model_data.id
+                "phrases:update-phrase",
+                phrase_id=phrase_model_data.id,
             ),
             json=phrase_update_schema_data.model_dump(mode="json"),
         )
@@ -306,7 +290,7 @@ class TestUpdatePhrase:
         mock_phrases_service.update.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -328,16 +312,15 @@ class TestUpdatePhrase:
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
         mock_phrases_service.update.return_value = phrase_model_data
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(True)
 
         result = await async_client.put(
             app_with_dependency_overrides.url_path_for(
-                "phrases:update-phrase", phrase_id=phrase_model_data.id
+                "phrases:update-phrase",
+                phrase_id=phrase_model_data.id,
             ),
             json=phrase_update_schema_data.model_dump(mode="json"),
         )
@@ -345,7 +328,7 @@ class TestUpdatePhrase:
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestGetPhraseById:
     async def test_get_by_id(
         self,
@@ -357,20 +340,20 @@ class TestGetPhraseById:
         check_phrase_exists: Callable[[bool], None],
     ):
         mock_phrases_service.get_by_id.return_value = phrase_model_data
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(True)
 
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
-                "phrases:get-phrase-by-id", phrase_id=phrase_model_data.id
+                "phrases:get-phrase-by-id",
+                phrase_id=phrase_model_data.id,
             ),
         )
 
         result_data = result.json()
 
         assert json.dumps(result_data, sort_keys=True) == json.dumps(
-            phrase_schema_data.model_dump(mode="json"), sort_keys=True
+            phrase_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result.status_code == status.HTTP_200_OK
         mock_phrases_service.get_by_id.assert_awaited_once_with(phrase_model_data.id)
@@ -383,13 +366,12 @@ class TestGetPhraseById:
         mock_phrases_service: mock.AsyncMock,
         check_phrase_exists: Callable[[bool], None],
     ):
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = (
-            lambda: check_phrase_exists(False)
-        )
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(False)
 
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
-                "phrases:get-phrase-by-id", phrase_id=random_phrase_id
+                "phrases:get-phrase-by-id",
+                phrase_id=random_phrase_id,
             ),
         )
 
@@ -397,7 +379,7 @@ class TestGetPhraseById:
         mock_phrases_service.get_by_id.assert_not_awaited()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestGetAllPhrasesByMovieId:
     async def test_get_by_movie_id(
         self,
@@ -409,12 +391,8 @@ class TestGetAllPhrasesByMovieId:
         check_movie_exists: Callable[[bool], None],
     ):
         mock_phrases_service.get_by_movie_id.return_value = [phrase_model_data]
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
 
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
@@ -427,11 +405,12 @@ class TestGetAllPhrasesByMovieId:
 
         assert len(result_data) == 1
         assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
-            phrase_schema_data.model_dump(mode="json"), sort_keys=True
+            phrase_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result.status_code == status.HTTP_200_OK
         mock_phrases_service.get_by_movie_id.assert_awaited_once_with(
-            phrase_model_data.movie_id
+            phrase_model_data.movie_id,
         )
 
     async def test_get_by_movie_id_not_found(
@@ -442,12 +421,8 @@ class TestGetAllPhrasesByMovieId:
         mock_phrases_service: mock.AsyncMock,
         check_movie_exists: Callable[[bool], None],
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(False)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
 
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
@@ -460,7 +435,7 @@ class TestGetAllPhrasesByMovieId:
         mock_phrases_service.get_by_movie_id.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user, expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -480,8 +455,8 @@ class TestGetAllPhrasesByMovieId:
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
         mock_phrases_service.get_by_movie_id.return_value = [phrase_model_data]
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
 
         result = await async_client.get(
@@ -494,7 +469,7 @@ class TestGetAllPhrasesByMovieId:
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestGetPhrasesBySearchText:
     async def test_get_by_search_text(
         self,
@@ -517,16 +492,17 @@ class TestGetPhrasesBySearchText:
 
         assert len(result_data) == 1
         assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
-            phrase_schema_data.model_dump(mode="json"), sort_keys=True
+            phrase_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
 
         assert result.status_code == status.HTTP_200_OK
         mock_phrases_service.get_by_search_text.assert_awaited_once_with(
-            phrase_model_data.full_text
+            phrase_model_data.full_text,
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestDeletePhrasesByMovieId:
     async def test_delete_by_movie_id(
         self,
@@ -536,12 +512,8 @@ class TestDeletePhrasesByMovieId:
         phrase_model_data: PhraseModel,
         check_movie_exists: Callable[[bool], None],
     ):
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
@@ -552,7 +524,7 @@ class TestDeletePhrasesByMovieId:
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
         mock_phrases_service.delete_by_movie_id.assert_awaited_once_with(
-            phrase_model_data.movie_id
+            phrase_model_data.movie_id,
         )
 
     async def test_delete_by_movie_id_not_found(
@@ -563,12 +535,8 @@ class TestDeletePhrasesByMovieId:
         mock_phrases_service: mock.AsyncMock,
         check_movie_exists: Callable[[bool], None],
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(False)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
@@ -581,7 +549,7 @@ class TestDeletePhrasesByMovieId:
         mock_phrases_service.delete_by_movie_id.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user, expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -601,12 +569,10 @@ class TestDeletePhrasesByMovieId:
         expected_status_code: int,
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
@@ -618,7 +584,7 @@ class TestDeletePhrasesByMovieId:
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCreatePhrasesFromMovieFiles:
     async def test_create_phrases_from_movie_files(
         self,
@@ -630,15 +596,11 @@ class TestCreatePhrasesFromMovieFiles:
         movie_file: UploadFile,
         subtitle_file: UploadFile,
     ):
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[get_scenes_upload_service] = (
+            lambda: mock_scenes_upload_service
         )
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
-        app_with_dependency_overrides.dependency_overrides[
-            get_scenes_upload_service
-        ] = lambda: mock_scenes_upload_service
 
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for(
@@ -664,15 +626,11 @@ class TestCreatePhrasesFromMovieFiles:
         subtitle_file: UploadFile,
         mock_scenes_upload_service: mock.AsyncMock,
     ):
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+        app_with_dependency_overrides.dependency_overrides[get_scenes_upload_service] = (
+            lambda: mock_scenes_upload_service
         )
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(False)
-        )
-        app_with_dependency_overrides.dependency_overrides[
-            get_scenes_upload_service
-        ] = lambda: mock_scenes_upload_service
 
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for(
@@ -688,7 +646,7 @@ class TestCreatePhrasesFromMovieFiles:
         assert result.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.parametrize(
-        "user, expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -709,12 +667,10 @@ class TestCreatePhrasesFromMovieFiles:
         subtitle_file: UploadFile,
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
 
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for(

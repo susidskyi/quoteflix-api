@@ -12,12 +12,13 @@ from app.core.config import settings
 from app.core.database import sessionmanager
 
 logging.basicConfig(
-    stream=sys.stdout, level=logging.DEBUG if settings.debug_logs else logging.INFO
+    stream=sys.stdout,
+    level=logging.DEBUG if settings.debug_logs else logging.INFO,
 )
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
     """
     Function that handles startup and shutdown events.
     """

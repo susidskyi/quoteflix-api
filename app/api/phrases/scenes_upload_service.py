@@ -45,7 +45,10 @@ class ScenesUploadService:
         self.s3_service = s3_service
 
     async def upload_and_process_files(
-        self, movie_id: uuid.UUID, movie_file: UploadFile, subtitle_file: UploadFile
+        self,
+        movie_id: uuid.UUID,
+        movie_file: UploadFile,
+        subtitle_file: UploadFile,
     ) -> None:
         """
         Uploads movie file and subtitle file to s3 and creates scenes for each phrase
@@ -57,7 +60,10 @@ class ScenesUploadService:
 
             subtitle_items = await self._parse_subtitles_file(subtitle_file)
             await self._process_subtitles_and_create_scenes(
-                movie_id, movie_file, subtitle_items, tmp_output_dir
+                movie_id,
+                movie_file,
+                subtitle_items,
+                tmp_output_dir,
             )
 
             await self.movies_service.update_status(movie_id, MovieStatus.PROCESSED)
@@ -66,7 +72,8 @@ class ScenesUploadService:
             raise SceneUploadError("Failed to upload scenes") from e
 
     async def _parse_subtitles_file(
-        self, subtitles_file: UploadFile
+        self,
+        subtitles_file: UploadFile,
     ) -> Sequence[SubtitleItem]:
         """
         Parses subtitles file and returns list of SubtitleItems
@@ -82,7 +89,7 @@ class ScenesUploadService:
                     end_time=sub.end,
                     text=sub.content,
                     normalized_text=normalize_phrase_text(sub.content),
-                )
+                ),
             )
 
         return subtitle_items
@@ -107,9 +114,7 @@ class ScenesUploadService:
             for item in subtitle_items
         ]
 
-        phrases = await self.phrases_service.bulk_create(phrase_objects)
-
-        return phrases
+        return await self.phrases_service.bulk_create(phrase_objects)
 
     async def _process_subtitles_and_create_scenes(
         self,
@@ -129,7 +134,11 @@ class ScenesUploadService:
         movie_filename, video_extension = os.path.splitext(movie_file.filename)
 
         await self._create_scenes_files(
-            movie_file, movie_filename, phrases, tmp_output_dir, video_extension
+            movie_file,
+            movie_filename,
+            phrases,
+            tmp_output_dir,
+            video_extension,
         )
 
         for phrase in phrases:
@@ -153,10 +162,12 @@ class ScenesUploadService:
                 )
 
             except Exception as e:
-                raise SceneUploadError(str(e))
+                raise SceneUploadError() from e
 
     async def _get_scene_file(
-        self, tmp_output_dir: str, scene_filename: str
+        self,
+        tmp_output_dir: str,
+        scene_filename: str,
     ) -> io.BytesIO:
         phrase_file_path = os.path.join(tmp_output_dir, scene_filename)
 
@@ -180,8 +191,7 @@ class ScenesUploadService:
                 await f.write(chunk)
 
         cmd_scenes_output_args = [
-            ffmpeg_output_arg_from_phrase(phrase, tmp_output_dir, video_extension)
-            for phrase in phrases
+            ffmpeg_output_arg_from_phrase(phrase, tmp_output_dir, video_extension) for phrase in phrases
         ]
 
         base_ffmpeg_command = f"ffmpeg -y -i {movie_tmp_path}"

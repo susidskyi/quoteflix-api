@@ -7,11 +7,13 @@ CM = typing.TypeVar("CM", bound=CoreModel)
 
 
 class PresignedURLService:
-    def __init__(self, s3_service: S3Service):
+    def __init__(self, s3_service: S3Service) -> None:
         self.s3_service = s3_service
 
     async def update_s3_urls_for_models(
-        self, items: typing.Sequence[CM], key: str
+        self,
+        items: typing.Sequence[CM],
+        key: str,
     ) -> typing.Sequence[CM]:
         for item in items:
             await self.update_s3_url_for_model(item, key)

@@ -7,9 +7,7 @@ from app.core.s3_service import S3Service
 
 
 async def get_s3_session() -> aioboto3.Session:
-    session = aioboto3.Session(region_name=settings.aws_region_name)
-
-    return session
+    return aioboto3.Session(region_name=settings.aws_region_name)
 
 
 async def get_s3_service(

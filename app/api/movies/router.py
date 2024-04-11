@@ -1,7 +1,7 @@
 import uuid
 from typing import Sequence
 
-from fastapi import Depends, status
+from fastapi import BackgroundTasks, Depends, status
 from fastapi.routing import APIRouter
 
 from app.api.movies.dependencies import get_movies_service, movie_exists
@@ -26,9 +26,7 @@ router = APIRouter(
 async def get_all(
     movies_service: MoviesService = Depends(get_movies_service),
 ) -> Sequence[MovieModel]:
-    movies = await movies_service.get_all()
-
-    return movies
+    return await movies_service.get_all()
 
 
 @router.post(
@@ -42,9 +40,7 @@ async def create(
     payload: MovieCreateSchema,
     movies_service: MoviesService = Depends(get_movies_service),
 ) -> MovieModel:
-    movie = await movies_service.create(payload)
-
-    return movie
+    return await movies_service.create(payload)
 
 
 @router.put(
@@ -58,9 +54,7 @@ async def update(
     payload: MovieUpdateSchema,
     movies_service: MoviesService = Depends(get_movies_service),
 ) -> MovieModel:
-    movie = await movies_service.update(movie_id, payload)
-
-    return movie
+    return await movies_service.update(movie_id, payload)
 
 
 @router.get(
@@ -70,11 +64,10 @@ async def update(
     dependencies=[Depends(movie_exists)],
 )
 async def get_movie_by_id(
-    movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
+    movie_id: uuid.UUID,
+    movies_service: MoviesService = Depends(get_movies_service),
 ) -> MovieModel:
-    movie = await movies_service.get_by_id(movie_id)
-
-    return movie
+    return await movies_service.get_by_id(movie_id)
 
 
 @router.delete(
@@ -84,9 +77,11 @@ async def get_movie_by_id(
     dependencies=[Depends(current_superuser), Depends(movie_exists)],
 )
 async def delete_movie(
-    movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)
+    movie_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    movies_service: MoviesService = Depends(get_movies_service),
 ) -> None:
-    await movies_service.delete(movie_id)
+    await movies_service.delete(movie_id, background_tasks)
 
 
 @router.patch(

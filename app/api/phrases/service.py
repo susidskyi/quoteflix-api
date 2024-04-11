@@ -1,4 +1,3 @@
-import asyncio
 import os
 import uuid
 from typing import Sequence
@@ -25,9 +24,7 @@ class PhrasesService:
 
     async def get_all(self) -> Sequence[PhraseModel]:
         phrases = await self.repository.get_all()
-        await self.presigned_url_service.update_s3_urls_for_models(
-            phrases, "scene_s3_key"
-        )
+        await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
 
         return phrases
 
@@ -52,9 +49,7 @@ class PhrasesService:
 
         return phrase
 
-    async def update(
-        self, phrase_id: uuid.UUID, data: PhraseUpdateSchema
-    ) -> PhraseModel:
+    async def update(self, phrase_id: uuid.UUID, data: PhraseUpdateSchema) -> PhraseModel:
         phrase = await self.repository.update(phrase_id, data)
         await self.presigned_url_service.update_s3_url_for_model(phrase, "scene_s3_key")
 
@@ -62,27 +57,19 @@ class PhrasesService:
 
     async def get_by_movie_id(self, movie_id: uuid.UUID) -> Sequence[PhraseModel]:
         phrases = await self.repository.get_by_movie_id(movie_id)
-        await self.presigned_url_service.update_s3_urls_for_models(
-            phrases, "scene_s3_key"
-        )
+        await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
 
         return phrases
 
-    async def bulk_create(
-        self, data: Sequence[PhraseCreateSchema]
-    ) -> Sequence[PhraseModel]:
+    async def bulk_create(self, data: Sequence[PhraseCreateSchema]) -> Sequence[PhraseModel]:
         phrases = await self.repository.bulk_create(data)
-        await self.presigned_url_service.update_s3_urls_for_models(
-            phrases, "scene_s3_key"
-        )
+        await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
         return phrases
 
     async def get_by_search_text(self, search_text: str) -> Sequence[PhraseModel]:
         normalized_search_text = normalize_phrase_text(search_text)
         phrases = await self.repository.get_by_search_text(normalized_search_text)
-        await self.presigned_url_service.update_s3_urls_for_models(
-            phrases, "scene_s3_key"
-        )
+        await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
 
         return phrases
 

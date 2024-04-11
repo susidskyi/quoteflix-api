@@ -28,11 +28,7 @@ class PhrasesRepository:
             raise RepositoryNotFoundError(f"Phrase not found: id={phrase_id}")
 
         async with self.session as session:
-            query = (
-                delete(PhraseModel)
-                .where(PhraseModel.id == phrase_id)
-                .returning(PhraseModel.scene_s3_key)
-            )
+            query = delete(PhraseModel).where(PhraseModel.id == phrase_id).returning(PhraseModel.scene_s3_key)
 
             result = await session.scalar(query)
             await session.commit()
@@ -64,7 +60,9 @@ class PhrasesRepository:
         return phrase
 
     async def update(
-        self, phrase_id: uuid.UUID, data: PhraseUpdateSchema
+        self,
+        phrase_id: uuid.UUID,
+        data: PhraseUpdateSchema,
     ) -> PhraseModel:
         async with self.session as session:
             query = select(PhraseModel).where(PhraseModel.id == phrase_id)
@@ -89,7 +87,8 @@ class PhrasesRepository:
             return phrases.all()
 
     async def bulk_create(
-        self, data: Sequence[PhraseCreateSchema]
+        self,
+        data: Sequence[PhraseCreateSchema],
     ) -> Sequence[PhraseModel]:
         """
         If have time, I will try to optimize this.
@@ -99,7 +98,8 @@ class PhrasesRepository:
         async with self.session as session:
             result = (
                 await session.scalars(
-                    insert(PhraseModel).returning(PhraseModel), phrases_data
+                    insert(PhraseModel).returning(PhraseModel),
+                    phrases_data,
                 )
             ).all()
 
@@ -120,7 +120,7 @@ class PhrasesRepository:
     async def get_by_search_text(self, search_text: str) -> Sequence[PhraseModel]:
         async with self.session as session:
             query = select(PhraseModel).where(
-                PhraseModel.normalized_text.icontains(search_text)
+                PhraseModel.normalized_text.icontains(search_text),
             )
 
             phrases = await session.scalars(query)

@@ -33,9 +33,7 @@ router = APIRouter(prefix="/phrases", tags=["phrases"])
 async def get_all_phrases(
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> Sequence[PhraseModel]:
-    phrases = await phrases_service.get_all()
-
-    return phrases
+    return await phrases_service.get_all()
 
 
 @router.get(
@@ -48,9 +46,7 @@ async def get_phrases_by_search_text(
     search_text: str,
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> Sequence[PhraseModel]:
-    phrases = await phrases_service.get_by_search_text(search_text)
-
-    return phrases
+    return await phrases_service.get_by_search_text(search_text)
 
 
 @router.get(
@@ -63,9 +59,7 @@ async def get_phrases_by_movie_id(
     movie_id: uuid.UUID,
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> Sequence[PhraseModel]:
-    phrases = await phrases_service.get_by_movie_id(movie_id)
-
-    return phrases
+    return await phrases_service.get_by_movie_id(movie_id)
 
 
 @router.delete(
@@ -93,9 +87,7 @@ async def get_phrase_by_id(
     phrase_id: uuid.UUID,
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> PhraseModel:
-    phrase = await phrases_service.get_by_id(phrase_id)
-
-    return phrase
+    return await phrases_service.get_by_id(phrase_id)
 
 
 @router.post(
@@ -109,9 +101,7 @@ async def create_phrase(
     payload: PhraseCreateSchema,
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> PhraseModel:
-    phrase = await phrases_service.create(payload)
-
-    return phrase
+    return await phrases_service.create(payload)
 
 
 @router.put(
@@ -125,9 +115,7 @@ async def update_phrase(
     payload: PhraseUpdateSchema,
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> PhraseModel:
-    phrase = await phrases_service.update(phrase_id, payload)
-
-    return phrase
+    return await phrases_service.update(phrase_id, payload)
 
 
 @router.delete(
@@ -152,7 +140,7 @@ async def delete_phrase(
 async def create_phrases_from_movie_files(
     movie_id: uuid.UUID,
     movie_files: PhraseCreateFromMovieFilesSchema = Depends(
-        PhraseCreateFromMovieFilesSchema.depends
+        PhraseCreateFromMovieFilesSchema.depends,
     ),
     scenes_upload_service: ScenesUploadService = Depends(get_scenes_upload_service),
 ) -> None:

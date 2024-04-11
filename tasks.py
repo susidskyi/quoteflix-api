@@ -1,14 +1,16 @@
 from invoke import task
 
+RUN_COMMAND = "docker compose"
 
-@task(incrementable=["verbose"], optional=["check_coverage", "path"])
+
+@task(incrementable=["verbose"])
 def tests(ctx, check_coverage=False, path="app/", verbose=0):
     check_coverage_command = ""
 
     if check_coverage:
         check_coverage_command = "--cov  --cov-fail-under=85"
 
-    command = f"docker compose run api-ops pytest --color=yes {check_coverage_command} {path} "
+    command = f"{RUN_COMMAND} run api-ops pytest --color=yes {check_coverage_command} {path} "
 
     if verbose > 0:
         command += "-" + "v" * verbose
@@ -21,24 +23,27 @@ def tests(ctx, check_coverage=False, path="app/", verbose=0):
 
 @task
 def build(ctx):
-    ctx.run("docker compose build")
+    ctx.run(f"{RUN_COMMAND} build")
 
 
 @task
 def run(ctx):
-    ctx.run("docker compose up")
+    ctx.run(f"{RUN_COMMAND} up")
 
 
 @task(help={"message": "Message string to use with 'revision'"})
 def makemigrations(ctx, message):
-    ctx.run(
-        f"docker compose run api-ops alembic revision --autogenerate -m '{message}'"
-    )
+    ctx.run(f"{RUN_COMMAND} run api-ops alembic revision --autogenerate -m '{message}'")
+
+
+@task
+def mypy(ctx):
+    ctx.run("mypy app/", pty=True)
 
 
 @task
 def checks(ctx):
-    ctx.run("mypy app/", pty=True)
+    mypy(ctx)
 
 
 @task
@@ -49,7 +54,7 @@ def ci(ctx):
 
 @task
 def migrate(ctx):
-    ctx.run("docker compose run api-ops alembic upgrade head")
+    ctx.run("{RUN_COMMAND} run api-ops alembic upgrade head")
 
 
 @task

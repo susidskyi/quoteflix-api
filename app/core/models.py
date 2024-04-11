@@ -24,5 +24,7 @@ class DateTimeModelMixin(AbstractConcreteBase):
 
 class IDModelMixin(AbstractConcreteBase):
     id: Mapped[uuid.UUID] = mapped_column(
-        sqlalchemy.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        sqlalchemy.UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
     )

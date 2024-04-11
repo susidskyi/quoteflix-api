@@ -11,7 +11,7 @@ from app.api.phrases.utils import normalize_phrase_text
 from app.core.config import settings
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestPhrasesService:
     async def test_create(
         self,
@@ -22,17 +22,16 @@ class TestPhrasesService:
         mock_presigned_url_service: mock.AsyncMock,
     ):
         mock_phrases_repository.create.return_value = phrase_model_data
-        mock_presigned_url_service.update_s3_url_for_model.return_value = (
-            phrase_model_data
-        )
+        mock_presigned_url_service.update_s3_url_for_model.return_value = phrase_model_data
         phrase = await phrases_service.create(phrase_create_schema_data)
 
         assert phrase == phrase_model_data
         mock_phrases_repository.create.assert_awaited_once_with(
-            phrase_create_schema_data
+            phrase_create_schema_data,
         )
         mock_presigned_url_service.update_s3_url_for_model.assert_awaited_once_with(
-            phrase_model_data, "scene_s3_key"
+            phrase_model_data,
+            "scene_s3_key",
         )
 
     async def test_get_by_id(
@@ -43,16 +42,15 @@ class TestPhrasesService:
         mocker: pytest_mock.MockerFixture,
         mock_presigned_url_service: mock.AsyncMock,
     ):
-        mock_presigned_url_service.update_s3_url_for_model.return_value = (
-            phrase_model_data
-        )
+        mock_presigned_url_service.update_s3_url_for_model.return_value = phrase_model_data
         mock_phrases_repository.get_by_id.return_value = phrase_model_data
         phrase = await phrases_service.get_by_id(phrase_model_data.id)
 
         assert phrase == phrase_model_data
         mock_phrases_repository.get_by_id.assert_awaited_once_with(phrase_model_data.id)
         mock_presigned_url_service.update_s3_url_for_model.assert_awaited_once_with(
-            phrase_model_data, "scene_s3_key"
+            phrase_model_data,
+            "scene_s3_key",
         )
 
     async def test_update(
@@ -64,19 +62,20 @@ class TestPhrasesService:
         mock_presigned_url_service: mock.AsyncMock,
     ):
         mock_phrases_repository.update.return_value = phrase_model_data
-        mock_presigned_url_service.update_s3_url_for_model.return_value = (
-            phrase_model_data
-        )
+        mock_presigned_url_service.update_s3_url_for_model.return_value = phrase_model_data
         phrase = await phrases_service.update(
-            phrase_model_data.id, phrase_update_schema_data
+            phrase_model_data.id,
+            phrase_update_schema_data,
         )
 
         assert phrase == phrase_model_data
         mock_phrases_repository.update.assert_awaited_once_with(
-            phrase_model_data.id, phrase_update_schema_data
+            phrase_model_data.id,
+            phrase_update_schema_data,
         )
         mock_presigned_url_service.update_s3_url_for_model.assert_awaited_once_with(
-            phrase_model_data, "scene_s3_key"
+            phrase_model_data,
+            "scene_s3_key",
         )
 
     async def test_delete(
@@ -93,7 +92,7 @@ class TestPhrasesService:
         assert result is None
         mock_phrases_repository.delete.assert_awaited_once_with(phrase_model_data.id)
         mock_s3_service.delete_object.assert_awaited_once_with(
-            phrase_model_data.scene_s3_key
+            phrase_model_data.scene_s3_key,
         )
 
     async def test_get_all(
@@ -105,7 +104,7 @@ class TestPhrasesService:
     ):
         mock_phrases_repository.get_all.return_value = [phrase_model_data]
         mock_presigned_url_service.update_s3_urls_for_models.return_value = [
-            phrase_model_data
+            phrase_model_data,
         ]
 
         result = await phrases_service.get_all()
@@ -114,7 +113,8 @@ class TestPhrasesService:
         assert phrase_model_data in result
         mock_phrases_repository.get_all.assert_awaited_once()
         mock_presigned_url_service.update_s3_urls_for_models.assert_awaited_once_with(
-            [phrase_model_data], "scene_s3_key"
+            [phrase_model_data],
+            "scene_s3_key",
         )
 
     async def test_exists(
@@ -152,17 +152,18 @@ class TestPhrasesService:
     ):
         mock_phrases_repository.get_by_movie_id.return_value = [phrase_model_data]
         mock_presigned_url_service.update_s3_urls_for_models.return_value = [
-            [phrase_model_data]
+            [phrase_model_data],
         ]
         result = await phrases_service.get_by_movie_id(phrase_model_data.movie_id)
 
         assert len(result) == 1
         assert result[0] == phrase_model_data
         mock_phrases_repository.get_by_movie_id.assert_awaited_once_with(
-            phrase_model_data.movie_id
+            phrase_model_data.movie_id,
         )
         mock_presigned_url_service.update_s3_urls_for_models.assert_awaited_once_with(
-            [phrase_model_data], "scene_s3_key"
+            [phrase_model_data],
+            "scene_s3_key",
         )
 
     async def test_bulk_create(
@@ -174,7 +175,7 @@ class TestPhrasesService:
         mock_presigned_url_service: mock.AsyncMock,
     ):
         mock_presigned_url_service.update_s3_urls_for_models.return_value = [
-            [phrase_model_data]
+            [phrase_model_data],
         ]
         mock_phrases_repository.bulk_create.return_value = [phrase_model_data]
 
@@ -183,10 +184,11 @@ class TestPhrasesService:
         assert len(result) == 1
         assert result[0] == phrase_model_data
         mock_phrases_repository.bulk_create.assert_awaited_once_with(
-            [phrase_create_schema_data]
+            [phrase_create_schema_data],
         )
         mock_presigned_url_service.update_s3_urls_for_models.assert_called_once_with(
-            [phrase_model_data], "scene_s3_key"
+            [phrase_model_data],
+            "scene_s3_key",
         )
 
     @pytest.mark.parametrize(
@@ -208,7 +210,7 @@ class TestPhrasesService:
         mock_phrases_repository.get_by_search_text.return_value = [phrase_model_data]
         normalized_text = normalize_phrase_text(search_text)
         mock_presigned_url_service.update_s3_urls_for_models.return_value = [
-            phrase_model_data
+            phrase_model_data,
         ]
 
         result = await phrases_service.get_by_search_text(search_text)
@@ -216,10 +218,11 @@ class TestPhrasesService:
         assert len(result) == 1
         assert phrase_model_data in result
         mock_phrases_repository.get_by_search_text.assert_awaited_once_with(
-            normalized_text
+            normalized_text,
         )
         mock_presigned_url_service.update_s3_urls_for_models.assert_awaited_once_with(
-            [phrase_model_data], "scene_s3_key"
+            [phrase_model_data],
+            "scene_s3_key",
         )
 
     async def test_delete_by_movie_id(
@@ -230,16 +233,17 @@ class TestPhrasesService:
         mock_s3_service: mock.AsyncMock,
     ):
         mock_phrases_repository.delete_by_movie_id.return_value = [
-            phrase_model_data.scene_s3_key
+            phrase_model_data.scene_s3_key,
         ]
         movie_s3_path = os.path.join(
-            settings.movies_s3_path, str(phrase_model_data.movie_id)
+            settings.movies_s3_path,
+            str(phrase_model_data.movie_id),
         )
 
         result = await phrases_service.delete_by_movie_id(phrase_model_data.movie_id)
 
         assert result is None
         mock_phrases_repository.delete_by_movie_id.assert_awaited_once_with(
-            phrase_model_data.movie_id
+            phrase_model_data.movie_id,
         )
         mock_s3_service.delete_folder.assert_awaited_once_with(movie_s3_path)

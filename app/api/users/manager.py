@@ -15,15 +15,23 @@ class UserManager(UUIDIDMixin, BaseUserManager[UserModel, uuid.UUID]):
     verification_token_secret = settings.secret
 
     async def on_after_register(
-        self, user: UserModel, request: Request | None = None
+        self,
+        user: UserModel,
+        request: Request | None = None,
     ) -> None: ...
 
     async def on_after_forgot_password(
-        self, user: UserModel, token: str, request: Request | None = None
+        self,
+        user: UserModel,
+        token: str,
+        request: Request | None = None,
     ) -> None: ...
 
     async def on_after_request_verify(
-        self, user: UserModel, token: str, request: Request | None = None
+        self,
+        user: UserModel,
+        token: str,
+        request: Request | None = None,
     ) -> None: ...
 
 

@@ -8,17 +8,14 @@ from unittest import mock
 import aioboto3
 import pytest
 import pytest_asyncio
-import pytest_mock
 from fastapi import FastAPI, HTTPException, UploadFile, status
 from httpx import ASGITransport, AsyncClient
-from moto.server import ThreadedMotoServer
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from types_aiobotocore_s3 import S3Client
 
 from app.api.movies.dependencies import get_movies_service
 from app.api.movies.models import MovieModel
@@ -46,28 +43,25 @@ from app.main import app as main_app
 
 """
 ###############################################################################
-[START] Core fixtures 
+[START] Core fixtures
 ###############################################################################
 """
 
 
-@pytest.fixture
+@pytest.fixture()
 def engine() -> AsyncEngine:
-    engine = create_async_engine(str(settings.test_database_url))
-
-    return engine
+    return create_async_engine(str(settings.test_database_url))
 
 
-@pytest.fixture
+@pytest.fixture()
 def session_local(engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
-    session_local = async_sessionmaker(engine)
-
-    return session_local
+    return async_sessionmaker(engine)
 
 
 @pytest_asyncio.fixture
 async def db(
-    engine: AsyncEngine, session_local: async_sessionmaker[AsyncSession]
+    engine: AsyncEngine,
+    session_local: async_sessionmaker[AsyncSession],
 ) -> AsyncIterator[AsyncSession]:
     async with engine.begin() as conn:
         await conn.run_sync(CoreModel.metadata.drop_all)
@@ -84,7 +78,8 @@ async def db(
 @pytest_asyncio.fixture
 async def async_client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://testserver.tst"
+        transport=ASGITransport(app=app),
+        base_url="http://testserver.tst",
     ) as ac:
         yield ac
 
@@ -94,7 +89,7 @@ def app() -> FastAPI:
     return main_app
 
 
-@pytest.fixture
+@pytest.fixture()
 def app_with_dependency_overrides(
     app: FastAPI,
     mock_movies_service: mock.AsyncMock,
@@ -121,7 +116,7 @@ def app_with_dependency_overrides(
 """
 
 
-@pytest.fixture
+@pytest.fixture()
 def admin_user():
     return UserModel(
         id="00000000-0000-0000-0000-000000000001",
@@ -135,12 +130,12 @@ def admin_user():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def anonymous_user():
     return None
 
 
-@pytest.fixture
+@pytest.fixture()
 def common_user():
     return UserModel(
         id="00000000-0000-0000-0000-000000000002",
@@ -154,7 +149,7 @@ def common_user():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def check_is_superuser():
     def _check_permissions(user: UserModel | None) -> UserModel:
         if not user:
@@ -185,29 +180,30 @@ def check_is_superuser():
 """
 
 
-@pytest.fixture
+@pytest.fixture()
 def movies_repository(db: AsyncSession) -> MoviesRepository:
     return MoviesRepository(db)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_movies_repository() -> mock.AsyncMock:
     return mock.AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def movies_service(
-    mock_movies_repository: mock.AsyncMock, mock_s3_service: mock.AsyncMock
+    mock_movies_repository: mock.AsyncMock,
+    mock_s3_service: mock.AsyncMock,
 ) -> MoviesService:
     return MoviesService(mock_movies_repository, mock_s3_service)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_movies_service() -> mock.AsyncMock:
     return mock.AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def random_movie_id() -> uuid.UUID:
     return uuid.uuid4()
 
@@ -224,40 +220,34 @@ async def create_movie(db: AsyncSession) -> Callable[[MovieModel], MovieModel]:
     return _create_movie
 
 
-@pytest.fixture
+@pytest.fixture()
 def movie_create_schema_data() -> MovieCreateSchema:
-    movie = MovieCreateSchema(
+    return MovieCreateSchema(
         title="Test",
         year=2000,
         status=MovieStatus.PENDING,
         language=Languages.EN,
     )
 
-    return movie
 
-
-@pytest.fixture
+@pytest.fixture()
 def movie_update_schema_data(
     movie_create_schema_data: MovieCreateSchema,
 ) -> MovieUpdateSchema:
-    movie = MovieUpdateSchema(**movie_create_schema_data.model_dump())
-
-    return movie
+    return MovieUpdateSchema(**movie_create_schema_data.model_dump())
 
 
-@pytest.fixture
+@pytest.fixture()
 def movie_model_data(
     movie_create_schema_data: MovieCreateSchema,
     random_movie_id: uuid.UUID,
 ) -> MovieModel:
-    movie = MovieModel(
+    return MovieModel(
         **movie_create_schema_data.model_dump(),
         id=random_movie_id,
         created_at=datetime.datetime.now(tz=datetime.timezone.utc),
         updated_at=datetime.datetime.now(tz=datetime.timezone.utc),
     )
-
-    return movie
 
 
 @pytest_asyncio.fixture
@@ -265,23 +255,19 @@ async def movie_fixture(
     create_movie: Callable[[MovieModel], MovieModel],
     movie_model_data: MovieModel,
 ) -> MovieModel:
-    movie = await create_movie(movie_model_data)
-
-    return movie
+    return await create_movie(movie_model_data)
 
 
-@pytest.fixture
+@pytest.fixture()
 def movie_schema_data(
     movie_model_data: MovieModel,
 ) -> MovieSchema:
-    movie = MovieSchema(**movie_model_data.__dict__)
-
-    return movie
+    return MovieSchema(**movie_model_data.__dict__)
 
 
-@pytest.fixture
+@pytest.fixture()
 def check_movie_exists() -> Callable[[bool], None]:
-    def _raise_exception(exists: bool):
+    def _raise_exception(exists: bool) -> None:
         if not exists:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -300,33 +286,35 @@ def check_movie_exists() -> Callable[[bool], None]:
 """
 
 
-@pytest.fixture
+@pytest.fixture()
 def phrases_repository(db: AsyncSession) -> PhrasesRepository:
     return PhrasesRepository(db)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_phrases_repository() -> mock.AsyncMock:
     return mock.AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def phrases_service(
     mock_phrases_repository: mock.AsyncMock,
     mock_s3_service: mock.AsyncMock,
     mock_presigned_url_service: mock.AsyncMock,
 ) -> PhrasesService:
     return PhrasesService(
-        mock_phrases_repository, mock_s3_service, mock_presigned_url_service
+        mock_phrases_repository,
+        mock_s3_service,
+        mock_presigned_url_service,
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_phrases_service() -> mock.AsyncMock:
     return mock.AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def random_phrase_id() -> uuid.UUID:
     return uuid.uuid4()
 
@@ -343,7 +331,7 @@ async def create_phrase(db: AsyncSession) -> Callable[[PhraseModel], PhraseModel
     return _create_phrase
 
 
-@pytest.fixture
+@pytest.fixture()
 def phrase_create_schema_data(random_movie_id: uuid.UUID) -> PhraseCreateSchema:
     return PhraseCreateSchema(
         movie_id=random_movie_id,
@@ -354,14 +342,15 @@ def phrase_create_schema_data(random_movie_id: uuid.UUID) -> PhraseCreateSchema:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def scene_s3_key() -> str:
     return "test/movies/test.mp4"
 
 
-@pytest.fixture
+@pytest.fixture()
 def phrase_update_schema_data(
-    phrase_create_schema_data: PhraseCreateSchema, scene_s3_key: str
+    phrase_create_schema_data: PhraseCreateSchema,
+    scene_s3_key: str,
 ) -> PhraseUpdateSchema:
     return PhraseUpdateSchema(
         **phrase_create_schema_data.model_dump(),
@@ -369,7 +358,7 @@ def phrase_update_schema_data(
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def phrase_model_data(
     phrase_update_schema_data: PhraseUpdateSchema,
     random_phrase_id: uuid.UUID,
@@ -388,23 +377,19 @@ async def phrase_fixture(
     phrase_model_data: PhraseModel,
     movie_fixture: MovieModel,
 ) -> PhraseModel:
-    phrase = await create_phrase(phrase_model_data)
-
-    return phrase
+    return await create_phrase(phrase_model_data)
 
 
-@pytest.fixture
+@pytest.fixture()
 def phrase_schema_data(
     phrase_fixture: PhraseModel,
 ) -> PhraseSchema:
-    phrase = PhraseSchema(**phrase_fixture.__dict__)
-
-    return phrase
+    return PhraseSchema(**phrase_fixture.__dict__)
 
 
-@pytest.fixture
+@pytest.fixture()
 def check_phrase_exists() -> Callable[[bool], None]:
-    def _raise_exception(exists: bool):
+    def _raise_exception(exists: bool) -> None:
         if not exists:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
@@ -425,8 +410,8 @@ def check_phrase_exists() -> Callable[[bool], None]:
 """
 
 
-@pytest.fixture
-def aws_credentials():
+@pytest.fixture()
+def _setup_aws_credentials() -> None:
     """Mocked AWS Credentials for moto."""
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
@@ -435,20 +420,18 @@ def aws_credentials():
     os.environ["AWS_ENDPOINT_URL"] = "http://motoserver:5000"
 
 
-@pytest.fixture
-def s3_session(aws_credentials) -> aioboto3.Session:
-    session = aioboto3.Session(region_name="eu-central-1")
-
-    return session
+@pytest.fixture()
+def s3_session(_setup_aws_credentials: None) -> aioboto3.Session:
+    return aioboto3.Session(region_name="eu-central-1")
 
 
-@pytest.fixture
+@pytest.fixture()
 def bucket_test_name() -> str:
     return settings.s3_bucket
 
 
 @pytest_asyncio.fixture()
-async def setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str):
+async def _setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str) -> None:
     """
     Delete the bucket if it alread exists and create fresh bucket for tests
     """
@@ -459,13 +442,12 @@ async def setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str):
             list_objects_keys = []
 
             if "Contents" in list_objects:
-                list_objects_keys = list(
-                    map(lambda x: {"Key": x["Key"]}, list_objects["Contents"])
-                )
+                list_objects_keys = [{"Key": x["Key"]} for x in list_objects["Contents"]]
 
             if list_objects_keys:
                 await s3_client.delete_objects(
-                    Bucket=bucket_test_name, Delete={"Objects": list_objects_keys}
+                    Bucket=bucket_test_name,
+                    Delete={"Objects": list_objects_keys},
                 )
 
             await s3_client.delete_bucket(Bucket=bucket_test_name)
@@ -473,35 +455,34 @@ async def setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str):
             pass
 
         location = {
-            "LocationConstraint": "eu-central-1"  # TODO: replace eu-center-1 with environment variable
+            "LocationConstraint": "eu-central-1",  # TODO: replace eu-center-1 with environment variable
         }
         await s3_client.create_bucket(
-            Bucket=bucket_test_name, CreateBucketConfiguration=location
+            Bucket=bucket_test_name,
+            CreateBucketConfiguration=location,
         )
 
 
 @pytest_asyncio.fixture()
-async def s3_service(s3_session: aioboto3.Session, setup_bucket) -> S3Service:
+async def s3_service(s3_session: aioboto3.Session, _setup_bucket: None) -> S3Service:
     return S3Service(s3_session=s3_session)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_s3_service() -> mock.AsyncMock:
     return mock.AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def movie_in_s3_prefix(
     random_movie_id: uuid.UUID,
 ) -> str:
     return os.path.join(settings.movies_s3_path, str(random_movie_id))
 
 
-@pytest.fixture
+@pytest.fixture()
 def file_in_s3_key(movie_in_s3_prefix: str, random_phrase_id: uuid.UUID) -> str:
-    key = os.path.join(movie_in_s3_prefix, f"{random_phrase_id}.mp4")
-
-    return key
+    return os.path.join(movie_in_s3_prefix, f"{random_phrase_id}.mp4")
 
 
 @pytest_asyncio.fixture
@@ -513,7 +494,9 @@ async def created_file_in_s3(
 ):
     async with s3_session.client("s3") as s3_client:
         await s3_client.upload_fileobj(
-            scene_file_buffered_bytes, bucket_test_name, file_in_s3_key
+            scene_file_buffered_bytes,
+            bucket_test_name,
+            file_in_s3_key,
         )
 
 
@@ -530,7 +513,7 @@ async def created_file_in_s3(
 """
 
 
-@pytest.fixture
+@pytest.fixture()
 def scenes_upload_service(
     mock_phrases_service: mock.AsyncMock,
     mock_movies_service: mock.AsyncMock,
@@ -543,38 +526,34 @@ def scenes_upload_service(
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_scenes_upload_service() -> mock.AsyncMock:
     return mock.AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def subtitle_file() -> UploadFile:
     with open("app/tests/data/subtitles.srt", "rb") as f:
-        _file = UploadFile(
+        return UploadFile(
             file=io.BytesIO(f.read()),
             filename="subtitles.srt",
             size=69,
             headers={"Content-Type": "text/plain"},
         )
 
-    return _file
 
-
-@pytest.fixture
+@pytest.fixture()
 def movie_file() -> UploadFile:
     with open("app/tests/data/movie.mp4", "rb") as f:
-        _file = UploadFile(
+        return UploadFile(
             file=io.BytesIO(f.read()),
             filename="movie.mp4",
             size=1055736,
             headers={"Content-Type": "video/mp4"},
         )
 
-    return _file
 
-
-@pytest.fixture
+@pytest.fixture()
 def subtitle_item() -> SubtitleItem:
     return SubtitleItem(
         start_time=datetime.timedelta(seconds=30),
@@ -584,7 +563,7 @@ def subtitle_item() -> SubtitleItem:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def scene_file_buffered_bytes() -> io.BytesIO:
     with open("app/tests/data/scene.mp4", "rb") as f:
         return io.BytesIO(f.read())
@@ -603,17 +582,17 @@ def scene_file_buffered_bytes() -> io.BytesIO:
 """
 
 
-@pytest.fixture
+@pytest.fixture()
 def presigned_url_service(mock_s3_service: mock.AsyncMock) -> PresignedURLService:
     return PresignedURLService(s3_service=mock_s3_service)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_presigned_url_service() -> mock.AsyncMock:
     return mock.AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_presigned_url_value() -> str:
     return "https://quoteflix.s3.aws/key"
 

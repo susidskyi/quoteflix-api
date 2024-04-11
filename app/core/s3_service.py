@@ -3,7 +3,6 @@ import itertools
 import logging
 
 import aioboto3
-from types_aiobotocore_s3 import S3Client
 from types_aiobotocore_s3.type_defs import ObjectIdentifierTypeDef
 
 from app.core.config import settings
@@ -27,7 +26,7 @@ class S3Service:
             async for page in paginator.paginate(Bucket=self.s3_bucket, Prefix=prefix):
                 # Collect only the objects keys
                 if "Contents" in page:
-                    objects = list(map(lambda x: x["Key"], page["Contents"]))
+                    objects = [x["Key"] for x in page["Contents"]]
                     all_objects.extend(objects)
 
         return all_objects
@@ -54,7 +53,8 @@ class S3Service:
 
             for batched_objects in itertools.batched(objects_list["Objects"], 1000):
                 await s3_client.delete_objects(
-                    Bucket=self.s3_bucket, Delete={"Objects": batched_objects}
+                    Bucket=self.s3_bucket,
+                    Delete={"Objects": batched_objects},
                 )
 
     async def get_presigned_url(self, key: str) -> str:
