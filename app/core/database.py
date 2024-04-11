@@ -1,25 +1,27 @@
 import contextlib
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Optional
 
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
+    AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import declarative_base
 
 from app.core.config import settings
 
-Base = declarative_base()
-
 
 class DatabaseSessionManager:
-    def __init__(self, url: str, engine_kwargs: dict[str, Any] = {}):
-        self._engine = create_async_engine(url, **engine_kwargs)
-        self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
+    def __init__(self, url: str, engine_kwargs: Optional[dict[str, Any]] = None) -> None:
+        if engine_kwargs is None:
+            engine_kwargs = {}
+        self._engine: AsyncEngine | None = create_async_engine(url, **engine_kwargs)
+        self._sessionmaker: async_sessionmaker[AsyncSession] | None = async_sessionmaker(
+            autocommit=False, bind=self._engine
+        )
 
-    async def close(self):
+    async def close(self) -> None:
         if self._engine is None:
             raise Exception("DatabaseSessionManager is not initialized")
         await self._engine.dispose()

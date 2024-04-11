@@ -1,16 +1,12 @@
 import io
-import os
 
 import aioboto3
 import pytest
-import pytest_asyncio
-from moto import mock_aws
 
-from app.core.config import settings  # TODO: replace settings with dependency injection
 from app.core.s3_service import S3Service
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestS3Service:
     async def test_get_all_objects_in_folder_empty(self, s3_service: S3Service):
         objects = await s3_service.get_all_objects_in_folder("non-existed-prefix")
@@ -90,7 +86,10 @@ class TestS3Service:
         assert len(objects) == 0
 
     async def test_upload_fileobj(
-        self, s3_service: S3Service, file_in_s3_key: str, movie_in_s3_prefix: str
+        self,
+        s3_service: S3Service,
+        file_in_s3_key: str,
+        movie_in_s3_prefix: str,
     ):
         fileobj = io.BytesIO(b"test")
         await s3_service.upload_fileobj(fileobj, file_in_s3_key)
@@ -99,7 +98,9 @@ class TestS3Service:
         assert len(objects) == 1
 
     async def test_delete_folder_is_empty(
-        self, s3_service: S3Service, movie_in_s3_prefix: str
+        self,
+        s3_service: S3Service,
+        movie_in_s3_prefix: str,
     ):
         await s3_service.delete_folder(movie_in_s3_prefix)
 

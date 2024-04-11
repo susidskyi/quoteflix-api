@@ -6,7 +6,7 @@ from app.api.phrases.models import PhraseModel
 from app.core.presigned_url_service import PresignedURLService
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestPresignedURLService:
     async def test_update_s3_urls_for_models_key_exists(
         self,
@@ -19,7 +19,8 @@ class TestPresignedURLService:
         mock_s3_service.get_presigned_url.return_value = mock_presigned_url_value
 
         result = await presigned_url_service.update_s3_urls_for_models(
-            [phrase_model_data], "scene_s3_key"
+            [phrase_model_data],
+            "scene_s3_key",
         )
 
         assert result == [phrase_model_data]
@@ -36,7 +37,8 @@ class TestPresignedURLService:
         phrase_model_data.scene_s3_key = None
 
         result = await presigned_url_service.update_s3_urls_for_models(
-            [phrase_model_data], "scene_s3_key"
+            [phrase_model_data],
+            "scene_s3_key",
         )
 
         assert result == [phrase_model_data]
@@ -53,7 +55,8 @@ class TestPresignedURLService:
         mock_s3_service.get_presigned_url.return_value = mock_presigned_url_value
 
         result = await presigned_url_service.update_s3_url_for_model(
-            phrase_model_data, "scene_s3_key"
+            phrase_model_data,
+            "scene_s3_key",
         )
 
         assert result == phrase_model_data
@@ -70,7 +73,8 @@ class TestPresignedURLService:
         phrase_model_data.scene_s3_key = None
 
         result = await presigned_url_service.update_s3_url_for_model(
-            phrase_model_data, "scene_s3_key"
+            phrase_model_data,
+            "scene_s3_key",
         )
 
         assert result == phrase_model_data

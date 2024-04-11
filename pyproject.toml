@@ -31,8 +31,89 @@ srt = "3.5.3"
 pytest-mock = "3.14.0"
 moto = {version = "5.0.4", extras = ["s3", "server"]}
 types-aiobotocore-s3 = "2.12.2"
+aiofiles = "23.2.1"
+types-aiofiles = "23.2.0.20240403"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "1.9.0"
 pre-commit = "3.7.0"
 pytest = "8.1.1"
+
+
+# Mypy
+[tool.mypy]
+strict = true
+plugins = [
+    "pydantic.mypy",
+    "sqlalchemy.ext.mypy.plugin",
+]
+
+[[tool.mypy.overrides]]
+module = "asyncpg.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "srt.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "app.tests.*",
+    "app.alembic.*",
+]
+ignore_errors = true
+
+
+# Ruff
+[tool.ruff]
+line-length = 119
+unsafe-fixes = true
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "N", # pep8-naming
+    "ANN", # flake8-annotations
+    "ASYNC", # flake8-async
+    "S", # flake8-bandit
+    "B", # flake8-bugbear
+    "COM", # flake8-commas
+    "C4", # flake8-comprehensions
+    "PT", # flake8-pytest-style
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "PL", # Pylint error
+    "RUF", # Ruff error
+    "UP", # PyUpgrade
+]
+ignore = [
+    "ANN101", # Missing type annotation for self in method
+    "ANN102", # Missing type annotation for cls in classmethod
+    "PLR0913", # Too many arguments
+
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# Allow default arguments like, e.g., `data: List[str] = fastapi.Query(None)`.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint.extend-per-file-ignores]
+"app/tests/*" = [
+    "S101", # Use of `assert` detected
+    "ANN201", # Missing return type annotation for public function
+    "ARG002", # Unused function argument
+    "ARG001", # Unused function argument
+    "PLR2004", # Magic value used in comparison, consider replacing ` ` with a constant variable
+    "S105", # Possible hardcoded password assigned to: "{}"	
+    "S106", # Possible hardcoded password assigned to argument: "{}"	
+]
+"tasks.py"= ["ALL"]

@@ -17,15 +17,10 @@ def normalize_phrase_text(text: str) -> str:
     # Remove new lines and extra spaces
     text = " ".join(text.split())
 
-    # Lower case
-    text = text.lower()
-
-    return text
+    return text.lower()
 
 
-def ffmpeg_output_arg_from_phrase(
-    phrase: PhraseModel, output_dir: str, file_extension: str
-) -> str:
+def ffmpeg_output_arg_from_phrase(phrase: PhraseModel, output_dir: str, file_extension: str) -> str:
     start_time = phrase.start_in_movie.total_seconds()
     end_time = phrase.end_in_movie.total_seconds()
 

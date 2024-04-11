@@ -10,10 +10,12 @@ from app.api.phrases.utils import normalize_phrase_text
 from app.core.exceptions import RepositoryNotFoundError
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestPhrasesRepository:
     async def test_get_all(
-        self, phrases_repository: PhrasesRepository, phrase_fixture: PhraseModel
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
     ):
         result = await phrases_repository.get_all()
 
@@ -21,14 +23,18 @@ class TestPhrasesRepository:
         assert phrase_fixture in result
 
     async def test_get_by_id(
-        self, phrases_repository: PhrasesRepository, phrase_fixture: PhraseModel
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
     ):
         result = await phrases_repository.get_by_id(phrase_fixture.id)
 
         assert result == phrase_fixture
 
     async def test_get_by_id_not_found(
-        self, phrases_repository: PhrasesRepository, random_phrase_id: uuid.UUID
+        self,
+        phrases_repository: PhrasesRepository,
+        random_phrase_id: uuid.UUID,
     ):
         with pytest.raises(RepositoryNotFoundError) as excinfo:
             await phrases_repository.get_by_id(random_phrase_id)
@@ -37,14 +43,18 @@ class TestPhrasesRepository:
         assert str(random_phrase_id) in excinfo.value.args[0]
 
     async def test_exists(
-        self, phrase_fixture: PhraseModel, phrases_repository: PhrasesRepository
+        self,
+        phrase_fixture: PhraseModel,
+        phrases_repository: PhrasesRepository,
     ):
         result = await phrases_repository.exists(phrase_fixture.id)
 
         assert result is True
 
     async def test_does_not_exist(
-        self, random_phrase_id: uuid.UUID, phrases_repository: PhrasesRepository
+        self,
+        random_phrase_id: uuid.UUID,
+        phrases_repository: PhrasesRepository,
     ):
         result = await phrases_repository.exists(random_phrase_id)
 
@@ -66,7 +76,9 @@ class TestPhrasesRepository:
         assert exists is False
 
     async def test_delete_not_found(
-        self, phrases_repository: PhrasesRepository, random_phrase_id: uuid.UUID
+        self,
+        phrases_repository: PhrasesRepository,
+        random_phrase_id: uuid.UUID,
     ):
         with pytest.raises(RepositoryNotFoundError) as excinfo:
             await phrases_repository.delete(random_phrase_id)
@@ -81,7 +93,8 @@ class TestPhrasesRepository:
         phrase_update_schema_data: PhraseUpdateSchema,
     ):
         result = await phrases_repository.update(
-            phrase_fixture.id, phrase_update_schema_data
+            phrase_fixture.id,
+            phrase_update_schema_data,
         )
 
         assert result.id == phrase_fixture.id
@@ -126,7 +139,7 @@ class TestPhrasesRepository:
         movie_fixture: MovieModel,
     ):
         result = await phrases_repository.bulk_create(
-            [phrase_create_schema_data, phrase_create_schema_data]
+            [phrase_create_schema_data, phrase_create_schema_data],
         )
 
         all_phrases_in_db = await phrases_repository.get_all()
@@ -135,7 +148,7 @@ class TestPhrasesRepository:
         assert len(result) == 2
 
     @pytest.mark.parametrize(
-        "search_text, expected_count",
+        ("search_text", "expected_count"),
         [
             ("fruits: apples, bananas and oranges", 1),
             ("bananas", 1),
@@ -167,6 +180,6 @@ class TestPhrasesRepository:
         await phrases_repository.delete_by_movie_id(phrase_fixture.movie_id)
 
         existing_phrases = await phrases_repository.get_by_movie_id(
-            phrase_fixture.movie_id
+            phrase_fixture.movie_id,
         )
         assert len(existing_phrases) == 0

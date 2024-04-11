@@ -7,6 +7,7 @@ import shutil
 import uuid
 from typing import Sequence
 
+import aiofiles
 import srt
 from fastapi import UploadFile
 
@@ -29,6 +30,10 @@ logger.setLevel(logging.INFO)
 
 
 class ScenesUploadService:
+    """
+    Some day I'll use celery for this :D
+    """
+
     def __init__(
         self,
         movies_service: MoviesService,
@@ -40,8 +45,11 @@ class ScenesUploadService:
         self.s3_service = s3_service
 
     async def upload_and_process_files(
-        self, movie_id: uuid.UUID, movie_file: UploadFile, subtitle_file: UploadFile
-    ):
+        self,
+        movie_id: uuid.UUID,
+        movie_file: UploadFile,
+        subtitle_file: UploadFile,
+    ) -> None:
         """
         Uploads movie file and subtitle file to s3 and creates scenes for each phrase
         """
@@ -52,16 +60,20 @@ class ScenesUploadService:
 
             subtitle_items = await self._parse_subtitles_file(subtitle_file)
             await self._process_subtitles_and_create_scenes(
-                movie_id, movie_file, subtitle_items, tmp_output_dir
+                movie_id,
+                movie_file,
+                subtitle_items,
+                tmp_output_dir,
             )
 
             await self.movies_service.update_status(movie_id, MovieStatus.PROCESSED)
-        except SceneUploadError as e:
+        except Exception as e:
             await self._rollback(movie_id, tmp_output_dir)
             raise SceneUploadError("Failed to upload scenes") from e
 
     async def _parse_subtitles_file(
-        self, subtitles_file: UploadFile
+        self,
+        subtitles_file: UploadFile,
     ) -> Sequence[SubtitleItem]:
         """
         Parses subtitles file and returns list of SubtitleItems
@@ -77,7 +89,7 @@ class ScenesUploadService:
                     end_time=sub.end,
                     text=sub.content,
                     normalized_text=normalize_phrase_text(sub.content),
-                )
+                ),
             )
 
         return subtitle_items
@@ -102,9 +114,7 @@ class ScenesUploadService:
             for item in subtitle_items
         ]
 
-        phrases = await self.phrases_service.bulk_create(phrase_objects)
-
-        return phrases
+        return await self.phrases_service.bulk_create(phrase_objects)
 
     async def _process_subtitles_and_create_scenes(
         self,
@@ -124,14 +134,18 @@ class ScenesUploadService:
         movie_filename, video_extension = os.path.splitext(movie_file.filename)
 
         await self._create_scenes_files(
-            movie_file, movie_filename, phrases, tmp_output_dir, video_extension
+            movie_file,
+            movie_filename,
+            phrases,
+            tmp_output_dir,
+            video_extension,
         )
 
         for phrase in phrases:
             try:
                 scene_filename = f"{phrase.id}{video_extension}"
 
-                scene_file = self._get_scene_file(tmp_output_dir, scene_filename)
+                scene_file = await self._get_scene_file(tmp_output_dir, scene_filename)
                 scene_s3_key = os.path.join("movies", str(movie_id), scene_filename)
 
                 await self.s3_service.upload_fileobj(scene_file, scene_s3_key)
@@ -148,13 +162,17 @@ class ScenesUploadService:
                 )
 
             except Exception as e:
-                raise SceneUploadError(str(e))
+                raise SceneUploadError() from e
 
-    def _get_scene_file(self, tmp_output_dir: str, scene_filename: str) -> io.BytesIO:
+    async def _get_scene_file(
+        self,
+        tmp_output_dir: str,
+        scene_filename: str,
+    ) -> io.BytesIO:
         phrase_file_path = os.path.join(tmp_output_dir, scene_filename)
 
-        with open(phrase_file_path, "rb") as f:
-            return io.BytesIO(f.read())
+        async with aiofiles.open(phrase_file_path, "rb") as f:
+            return io.BytesIO(await f.read())
 
     async def _create_scenes_files(
         self,
@@ -168,13 +186,12 @@ class ScenesUploadService:
 
         movie_tmp_path = os.path.join(tmp_output_dir, movie_filename)
 
-        with open(movie_tmp_path, "wb") as f:
+        async with aiofiles.open(movie_tmp_path, "wb") as f:  # TODO: addd async
             while chunk := await movie_file.read(1024 * 1024 * 100):
-                f.write(chunk)
+                await f.write(chunk)
 
         cmd_scenes_output_args = [
-            ffmpeg_output_arg_from_phrase(phrase, tmp_output_dir, video_extension)
-            for phrase in phrases
+            ffmpeg_output_arg_from_phrase(phrase, tmp_output_dir, video_extension) for phrase in phrases
         ]
 
         base_ffmpeg_command = f"ffmpeg -y -i {movie_tmp_path}"
@@ -200,12 +217,5 @@ class ScenesUploadService:
         os.makedirs(path, exist_ok=True)
 
     async def _rollback(self, movie_id: uuid.UUID, tmp_output_dir: str) -> None:
-        """
-        TODO: fix rollback. Now it raises: sqlalchemy.exc.PendingRollbackError:
-        This Session's transaction has been rolled back due to a previous exception during flush.
-        To begin a new transaction with this Session, first issue Session.rollback().
-        Original exception was: (raised as a result of Query-invoked autoflush; consider using a
-        session.no_autoflush block if this flush is occurring prematurely)
-        """
         await self.movies_service.update_status(movie_id, MovieStatus.ERROR)
         self._tear_down_tmp_path(tmp_output_dir)

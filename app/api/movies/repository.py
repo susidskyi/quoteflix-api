@@ -70,7 +70,9 @@ class MoviesRepository:
         async with self.session as session:
             query = select(exists().where(MovieModel.id == movie_id))
 
-            return await session.scalar(query)
+            result = await session.scalar(query)
+
+            return bool(result)
 
     async def update_status(self, movie_id: uuid.UUID, status: MovieStatus) -> None:
         async with self.session as session:

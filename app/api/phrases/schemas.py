@@ -2,20 +2,11 @@ import abc
 import datetime
 import uuid
 
-from fastapi import File, UploadFile
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    ValidationError,
-    field_validator,
-    model_validator,
-)
+from fastapi import UploadFile
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.core.config import settings
-from app.core.constants import (
-    SUPPORTED_SUBTITLES_EXTENSIONS,
-    SUPPORTED_VIDEO_EXTENSIONS,
-)
+from app.core.constants import SUPPORTED_SUBTITLES_EXTENSIONS, SUPPORTED_VIDEO_EXTENSIONS
 from app.core.validators import FileValidator
 
 
@@ -55,32 +46,28 @@ class PhraseCreateFromMovieFilesSchema(BaseModel):
     subtitles_file: UploadFile
 
     @field_validator("movie_file")
+    @classmethod
     def validate_movie_file(cls, value: UploadFile) -> UploadFile:
-        FileValidator.validate_file_type(
-            file=value, supported_extensions=SUPPORTED_VIDEO_EXTENSIONS
-        )
-        FileValidator.validate_file_size(
-            file=value, max_size=settings.max_movie_file_size
-        )
+        FileValidator.validate_file_type(file=value, supported_extensions=SUPPORTED_VIDEO_EXTENSIONS)
+        FileValidator.validate_file_size(file=value, max_size=settings.max_movie_file_size)
         FileValidator.validate_file_name(file=value)
 
         return value
 
     @field_validator("subtitles_file")
+    @classmethod
     def validate_subtitles_file(cls, value: UploadFile) -> UploadFile:
-        FileValidator.validate_file_type(
-            file=value, supported_extensions=SUPPORTED_SUBTITLES_EXTENSIONS
-        )
-        FileValidator.validate_file_size(
-            file=value, max_size=settings.max_subtitles_file_size
-        )
+        FileValidator.validate_file_type(file=value, supported_extensions=SUPPORTED_SUBTITLES_EXTENSIONS)
+        FileValidator.validate_file_size(file=value, max_size=settings.max_subtitles_file_size)
         FileValidator.validate_file_name(file=value)
 
         return value
 
     @classmethod
     async def depends(
-        cls, movie_file: UploadFile = File(...), subtitles_file: UploadFile = File(...)
+        cls,
+        subtitles_file: UploadFile,
+        movie_file: UploadFile,
     ) -> "PhraseCreateFromMovieFilesSchema":
         return cls(movie_file=movie_file, subtitles_file=subtitles_file)
 

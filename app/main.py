@@ -1,6 +1,7 @@
 import logging
 import sys
 from contextlib import asynccontextmanager
+from typing import AsyncIterator
 
 from fastapi import FastAPI
 
@@ -11,12 +12,13 @@ from app.core.config import settings
 from app.core.database import sessionmanager
 
 logging.basicConfig(
-    stream=sys.stdout, level=logging.DEBUG if settings.debug_logs else logging.INFO
+    stream=sys.stdout,
+    level=logging.DEBUG if settings.debug_logs else logging.INFO,
 )
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
     """
     Function that handles startup and shutdown events.
     """

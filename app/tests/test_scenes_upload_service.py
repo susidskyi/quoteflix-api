@@ -12,7 +12,7 @@ from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema, SubtitleItem
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestScenesUploadService:
     async def test_parse_subtitles_file(
         self,
@@ -26,9 +26,7 @@ class TestScenesUploadService:
             "app.api.phrases.scenes_upload_service.normalize_phrase_text",
             return_value=subtitle_item.normalized_text,
         )
-        result_subtitle_items = await scenes_upload_service._parse_subtitles_file(
-            subtitle_file
-        )
+        result_subtitle_items = await scenes_upload_service._parse_subtitles_file(subtitle_file)
 
         assert result_subtitle_items == expected_subtitle_items
 
@@ -46,21 +44,17 @@ class TestScenesUploadService:
         mock_phrases_service.bulk_create.return_value = [phrase_model_data]
         phrase_create_schema_data.is_active = False
 
-        result = await scenes_upload_service._create_phrases(
-            random_movie_id, [subtitle_item]
-        )
+        result = await scenes_upload_service._create_phrases(random_movie_id, [subtitle_item])
 
         assert result == [phrase_model_data]
-        mock_phrases_service.bulk_create.assert_awaited_once_with(
-            [phrase_create_schema_data]
-        )
+        mock_phrases_service.bulk_create.assert_awaited_once_with([phrase_create_schema_data])
 
     async def test_get_scene_file(
         self,
         scenes_upload_service: ScenesUploadService,
         scene_file_buffered_bytes: io.BytesIO,
     ):
-        result = scenes_upload_service._get_scene_file("app/tests/data", "scene.mp4")
+        result = await scenes_upload_service._get_scene_file("app/tests/data", "scene.mp4")
 
         assert result.read() == scene_file_buffered_bytes.read()
 
@@ -78,12 +72,8 @@ class TestScenesUploadService:
         mock_s3_service: mock.AsyncMock,
     ):
         phrases = [phrase_model_data]
-        mock_create_phrases = mocker.patch.object(
-            ScenesUploadService, "_create_phrases", return_value=phrases
-        )
-        mock_create_scenes_files = mocker.patch.object(
-            ScenesUploadService, "_create_scenes_files"
-        )
+        mock_create_phrases = mocker.patch.object(ScenesUploadService, "_create_phrases", return_value=phrases)
+        mock_create_scenes_files = mocker.patch.object(ScenesUploadService, "_create_scenes_files")
         mock_get_scene_file = mocker.patch.object(
             ScenesUploadService,
             "_get_scene_file",
@@ -94,22 +84,21 @@ class TestScenesUploadService:
         scene_s3_key = os.path.join("movies", str(random_movie_id), str(scene_filename))
 
         await scenes_upload_service._process_subtitles_and_create_scenes(
-            random_movie_id, movie_file, [subtitle_item], tmp_output_dir
+            random_movie_id,
+            movie_file,
+            [subtitle_item],
+            tmp_output_dir,
         )
 
         mock_create_phrases.assert_awaited_once_with(random_movie_id, [subtitle_item])
-        mock_create_scenes_files.assert_awaited_once_with(
-            movie_file, "movie", phrases, tmp_output_dir, ".mp4"
-        )
-        assert mock_get_scene_file.await_count(len(phrases))
+        mock_create_scenes_files.assert_awaited_once_with(movie_file, "movie", phrases, tmp_output_dir, ".mp4")
+        assert mock_get_scene_file.await_count == len(phrases)
         assert mock_s3_service.upload_fileobj.await_count == len(phrases)
         assert mock_phrases_service.update.await_count == len(phrases)
 
         for phrase in phrases:
-            mock_get_scene_file.assert_called_with(tmp_output_dir, f"{phrase.id}.mp4")
-            mock_s3_service.upload_fileobj.assert_awaited_with(
-                scene_file_buffered_bytes, scene_s3_key
-            )
+            mock_get_scene_file.assert_awaited_with(tmp_output_dir, f"{phrase.id}.mp4")
+            mock_s3_service.upload_fileobj.assert_awaited_with(scene_file_buffered_bytes, scene_s3_key)
             expected_new_phrase_data = {
                 **phrase.__dict__,
                 "scene_s3_key": scene_s3_key,

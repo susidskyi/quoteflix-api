@@ -4,10 +4,10 @@ from sqlalchemy import SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.constants import Languages, MovieStatus
-from app.core.models import BaseModel
+from app.core.models import CoreModel, DateTimeModelMixin, IDModelMixin
 
 
-class MovieModel(BaseModel):
+class MovieModel(CoreModel, IDModelMixin, DateTimeModelMixin):
     __tablename__ = "movies"
 
     title: Mapped[str] = mapped_column(String(100))
@@ -17,5 +17,5 @@ class MovieModel(BaseModel):
     language: Mapped[Languages]
 
     phrases: Mapped[List["PhraseModel"]] = relationship(  # type: ignore # noqa: F821
-        back_populates="movie"
+        back_populates="movie",
     )

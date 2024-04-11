@@ -16,7 +16,9 @@ fastapi_users = FastAPIUsers[UserModel, uuid.UUID](
 )
 
 router.include_router(
-    fastapi_users.get_auth_router(auth_backend), prefix="/auth", tags=["auth"]
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth",
+    tags=["auth"],
 )
 router.include_router(
     fastapi_users.get_register_router(UserSchema, UserCreateSchema),
@@ -24,7 +26,9 @@ router.include_router(
     tags=["auth"],
 )
 router.include_router(
-    fastapi_users.get_verify_router(UserSchema), prefix="/auth", tags=["auth"]
+    fastapi_users.get_verify_router(UserSchema),
+    prefix="/auth",
+    tags=["auth"],
 )
 router.include_router(
     fastapi_users.get_users_router(UserSchema, UserUpdateSchema),

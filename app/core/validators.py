@@ -19,7 +19,7 @@ class FileValidator:
             )
 
     @staticmethod
-    def validate_file_type(file: UploadFile, supported_extensions: list) -> None:
+    def validate_file_type(file: UploadFile, supported_extensions: list[str]) -> None:
         if file.filename is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

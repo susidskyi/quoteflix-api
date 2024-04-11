@@ -5,14 +5,14 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.api.movies.models import MovieModel
-from app.core.models import BaseModel
+from app.core.models import CoreModel, DateTimeModelMixin, IDModelMixin
 
 
-class PhraseModel(BaseModel):
+class PhraseModel(CoreModel, IDModelMixin, DateTimeModelMixin):
     __tablename__ = "phrases"
 
     movie_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("movies.id", ondelete="CASCADE")
+        ForeignKey("movies.id", ondelete="CASCADE"),
     )
     full_text: Mapped[str]
     normalized_text: Mapped[str]

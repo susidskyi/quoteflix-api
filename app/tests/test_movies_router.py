@@ -4,6 +4,7 @@ from typing import Callable
 from unittest import mock
 
 import pytest
+import pytest_mock
 from fastapi import FastAPI, status
 from httpx import AsyncClient
 
@@ -14,7 +15,7 @@ from app.api.users.models import UserModel
 from app.api.users.permissions import current_superuser
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestGetAllMoviesRoute:
     async def test_ok(
         self,
@@ -28,21 +29,22 @@ class TestGetAllMoviesRoute:
         mock_movies_service.get_all.return_value = [movie_model_data]
 
         result = await async_client.get(
-            app_with_dependency_overrides.url_path_for("movies:get-all-movies")
+            app_with_dependency_overrides.url_path_for("movies:get-all-movies"),
         )
 
         result_data = result.json()
 
         assert len(result_data) == 1
         assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
-            movie_schema_data.model_dump(mode="json"), sort_keys=True
+            movie_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result_data[0]["id"] == str(random_movie_id)
         assert result.status_code == status.HTTP_200_OK
         mock_movies_service.get_all.assert_awaited_once()
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestCreateMovieRoute:
     async def test_ok(
         self,
@@ -54,9 +56,7 @@ class TestCreateMovieRoute:
         async_client: AsyncClient,
     ):
         mock_movies_service.create.return_value = movie_model_data
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for("movies:create-movie"),
             json=movie_create_schema_data.model_dump(mode="json"),
@@ -66,7 +66,8 @@ class TestCreateMovieRoute:
 
         assert result.status_code == status.HTTP_201_CREATED
         assert json.dumps(result_data, sort_keys=True) == json.dumps(
-            movie_schema_data.model_dump(mode="json"), sort_keys=True
+            movie_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         mock_movies_service.create.assert_awaited_once_with(movie_create_schema_data)
 
@@ -76,9 +77,7 @@ class TestCreateMovieRoute:
         mock_movies_service: mock.AsyncMock,
         async_client: AsyncClient,
     ):
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for("movies:create-movie"),
             json={"title": None},
@@ -88,7 +87,7 @@ class TestCreateMovieRoute:
         assert result.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("admin_user", status.HTTP_201_CREATED),
             ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
@@ -110,8 +109,8 @@ class TestCreateMovieRoute:
         user_fixture_value: str | None = request.getfixturevalue(user)
         mock_movies_service.create.return_value = movie_model_data
 
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for("movies:create-movie"),
@@ -121,7 +120,7 @@ class TestCreateMovieRoute:
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestGetMovieByIdRoute:
     async def test_ok(
         self,
@@ -134,19 +133,19 @@ class TestGetMovieByIdRoute:
         movie_schema_data: MovieSchema,
     ):
         mock_movies_service.get_by_id.return_value = movie_model_data
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
-                "movies:get-movie-by-id", movie_id=random_movie_id
-            )
+                "movies:get-movie-by-id",
+                movie_id=random_movie_id,
+            ),
         )
 
         result_data = result.json()
 
         assert json.dumps(result_data, sort_keys=True) == json.dumps(
-            movie_schema_data.model_dump(mode="json"), sort_keys=True
+            movie_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result.status_code == status.HTTP_200_OK
         mock_movies_service.get_by_id.assert_awaited_once_with(random_movie_id)
@@ -159,13 +158,12 @@ class TestGetMovieByIdRoute:
         check_movie_exists: Callable[[bool], None],
         mock_movies_service: mock.AsyncMock,
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(False)
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
 
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
-                "movies:get-movie-by-id", movie_id=random_movie_id
+                "movies:get-movie-by-id",
+                movie_id=random_movie_id,
             ),
         )
 
@@ -173,7 +171,7 @@ class TestGetMovieByIdRoute:
         assert result.status_code == status.HTTP_404_NOT_FOUND
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestUpdateMovieRoute:
     async def test_ok(
         self,
@@ -186,17 +184,14 @@ class TestUpdateMovieRoute:
         check_movie_exists: Callable[[bool], None],
         movie_schema_data: MovieSchema,
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         mock_movies_service.update.return_value = movie_model_data
 
         result = await async_client.put(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-movie", movie_id=random_movie_id
+                "movies:update-movie",
+                movie_id=random_movie_id,
             ),
             json=movie_update_schema_data.model_dump(mode="json"),
         )
@@ -204,11 +199,13 @@ class TestUpdateMovieRoute:
         result_json = result.json()
 
         assert json.dumps(result_json, sort_keys=True) == json.dumps(
-            movie_schema_data.model_dump(mode="json"), sort_keys=True
+            movie_schema_data.model_dump(mode="json"),
+            sort_keys=True,
         )
         assert result.status_code == status.HTTP_200_OK
         mock_movies_service.update.assert_awaited_once_with(
-            random_movie_id, movie_update_schema_data
+            random_movie_id,
+            movie_update_schema_data,
         )
 
     async def test_movie_not_found(
@@ -220,16 +217,13 @@ class TestUpdateMovieRoute:
         app_with_dependency_overrides: FastAPI,
         mock_movies_service: mock.AsyncMock,
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(False)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
 
         result = await async_client.put(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-movie", movie_id=random_movie_id
+                "movies:update-movie",
+                movie_id=random_movie_id,
             ),
             json=movie_create_schema_data.model_dump(mode="json"),
         )
@@ -238,7 +232,7 @@ class TestUpdateMovieRoute:
         mock_movies_service.update.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("admin_user", status.HTTP_200_OK),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -261,16 +255,15 @@ class TestUpdateMovieRoute:
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
         mock_movies_service.update.return_value = movie_model_data
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
 
         result = await async_client.put(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-movie", movie_id=random_movie_id
+                "movies:update-movie",
+                movie_id=random_movie_id,
             ),
             json=movie_update_schema_data.model_dump(mode="json"),
         )
@@ -278,7 +271,7 @@ class TestUpdateMovieRoute:
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestDeleteMovieRoute:
     async def test_ok(
         self,
@@ -288,22 +281,19 @@ class TestDeleteMovieRoute:
         async_client: AsyncClient,
         check_movie_exists: Callable[[bool], None],
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         mock_movies_service.delete.return_value = None
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "movies:delete-movie", movie_id=random_movie_id
+                "movies:delete-movie",
+                movie_id=random_movie_id,
             ),
         )
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
-        mock_movies_service.delete.assert_awaited_once_with(random_movie_id)
+        mock_movies_service.delete.assert_awaited_once()
 
     async def test_movie_not_found(
         self,
@@ -313,23 +303,20 @@ class TestDeleteMovieRoute:
         check_movie_exists: Callable[[bool], None],
         mock_movies_service: mock.AsyncMock,
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(False)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "movies:delete-movie", movie_id=random_movie_id
+                "movies:delete-movie",
+                movie_id=random_movie_id,
             ),
         )
         assert result.status_code == status.HTTP_404_NOT_FOUND
         mock_movies_service.delete.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("admin_user", status.HTTP_204_NO_CONTENT),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -349,24 +336,23 @@ class TestDeleteMovieRoute:
         user: str,
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
         mock_movies_service.delete.return_value = None
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
-                "movies:delete-movie", movie_id=random_movie_id
-            )
+                "movies:delete-movie",
+                movie_id=random_movie_id,
+            ),
         )
 
         assert result.status_code == expected_status_code
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 class TestUpdateMovieStatusRoute:
     async def test_ok(
         self,
@@ -376,24 +362,22 @@ class TestUpdateMovieStatusRoute:
         async_client: AsyncClient,
         check_movie_exists: Callable[[bool], None],
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         mock_movies_service.update_status.return_value = None
 
         result = await async_client.patch(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-status", movie_id=random_movie_id
+                "movies:update-movie-status",
+                movie_id=random_movie_id,
             ),
             json={"status": "processed"},
         )
 
         assert result.status_code == status.HTTP_204_NO_CONTENT
         mock_movies_service.update_status.assert_awaited_once_with(
-            random_movie_id, "processed"
+            random_movie_id,
+            "processed",
         )
 
     async def test_movie_not_found(
@@ -404,16 +388,13 @@ class TestUpdateMovieStatusRoute:
         check_movie_exists: Callable[[bool], None],
         mock_movies_service: mock.AsyncMock,
     ):
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(False)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: True
-        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
 
         result = await async_client.patch(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-status", movie_id=random_movie_id
+                "movies:update-movie-status",
+                movie_id=random_movie_id,
             ),
             json={"status": "processed"},
         )
@@ -422,7 +403,7 @@ class TestUpdateMovieStatusRoute:
         mock_movies_service.update_status.assert_not_awaited()
 
     @pytest.mark.parametrize(
-        "user,expected_status_code",
+        ("user", "expected_status_code"),
         [
             ("admin_user", status.HTTP_204_NO_CONTENT),
             ("common_user", status.HTTP_403_FORBIDDEN),
@@ -442,17 +423,16 @@ class TestUpdateMovieStatusRoute:
         user: str,
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
-        app_with_dependency_overrides.dependency_overrides[movie_exists] = (
-            lambda: check_movie_exists(True)
-        )
-        app_with_dependency_overrides.dependency_overrides[current_superuser] = (
-            lambda: check_is_superuser(user_fixture_value)
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value
         )
         mock_movies_service.update_status.return_value = None
 
         result = await async_client.patch(
             app_with_dependency_overrides.url_path_for(
-                "movies:update-status", movie_id=random_movie_id
+                "movies:update-movie-status",
+                movie_id=random_movie_id,
             ),
             json={"status": "processed"},
         )

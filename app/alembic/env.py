@@ -7,10 +7,10 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.api.movies.models import MovieModel  # noqa: F401
-from app.api.users.models import UserModel  # noqa: F401
 from app.api.phrases.models import PhraseModel  # noqa: F401
+from app.api.users.models import UserModel  # noqa: F401
 from app.core.config import settings
-from app.core.database import Base
+from app.core.models import CoreModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -22,14 +22,14 @@ fileConfig(config.config_file_name)  # type: ignore
 
 
 # add your model's MetaData object here
-target_metadata = Base.metadata
+target_metadata = CoreModel.metadata
 
 
-def get_url():
+def get_url() -> str:
     return str(settings.database_url)
 
 
-def run_migrations_offline():
+def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
     This configures the context with just a URL
     and not an Engine, though an Engine is acceptable
@@ -58,7 +58,7 @@ def do_run_migrations(connection: Connection) -> None:
         context.run_migrations()
 
 
-async def run_migrations_online():
+async def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
     In this scenario we need to create an Engine
     and associate a connection with the context.
