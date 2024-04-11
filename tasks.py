@@ -54,7 +54,7 @@ def ci(ctx):
 
 @task
 def checks(ctx):
-    ctx.run("mypy app/", pty=True)
+    mypy(ctx)
 
 
 @task
