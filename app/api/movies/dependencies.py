@@ -17,10 +17,10 @@ async def get_movies_repository(
 
 
 async def get_movies_service(
-    movie_repository: MoviesRepository = Depends(get_movies_repository),
+    movies_repository: MoviesRepository = Depends(get_movies_repository),
     s3_service: S3Service = Depends(get_s3_service),
 ) -> MoviesService:
-    return MoviesService(movie_repository, s3_service)
+    return MoviesService(movies_repository, s3_service)
 
 
 async def movie_exists(movie_id: uuid.UUID, movies_service: MoviesService = Depends(get_movies_service)) -> None:
