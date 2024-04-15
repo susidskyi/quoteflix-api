@@ -13,8 +13,8 @@ from app.core.s3_service import S3Service
 
 
 class MoviesService:
-    def __init__(self, movie_repository: MoviesRepository, s3_service: S3Service) -> None:
-        self.repository = movie_repository
+    def __init__(self, movies_repository: MoviesRepository, s3_service: S3Service) -> None:
+        self.repository = movies_repository
         self.s3_service = s3_service
 
     async def create(self, data: MovieCreateSchema) -> MovieModel:

@@ -4,7 +4,6 @@ from typing import Callable
 from unittest import mock
 
 import pytest
-import pytest_mock
 from fastapi import FastAPI, status
 from httpx import AsyncClient
 
@@ -110,7 +109,7 @@ class TestCreateMovieRoute:
         mock_movies_service.create.return_value = movie_model_data
 
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
-            user_fixture_value
+            user_fixture_value,
         )
         result = await async_client.post(
             app_with_dependency_overrides.url_path_for("movies:create-movie"),
@@ -257,7 +256,7 @@ class TestUpdateMovieRoute:
         mock_movies_service.update.return_value = movie_model_data
         app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
-            user_fixture_value
+            user_fixture_value,
         )
 
         result = await async_client.put(
@@ -338,7 +337,7 @@ class TestDeleteMovieRoute:
         user_fixture_value: str | None = request.getfixturevalue(user)
         app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
-            user_fixture_value
+            user_fixture_value,
         )
         mock_movies_service.delete.return_value = None
 
@@ -425,7 +424,7 @@ class TestUpdateMovieStatusRoute:
         user_fixture_value: str | None = request.getfixturevalue(user)
         app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
-            user_fixture_value
+            user_fixture_value,
         )
         mock_movies_service.update_status.return_value = None
 

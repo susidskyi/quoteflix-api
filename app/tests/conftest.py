@@ -411,18 +411,24 @@ def check_phrase_exists() -> Callable[[bool], None]:
 
 
 @pytest.fixture()
-def _setup_aws_credentials() -> None:
+def aws_region() -> str:
+    return "eu-central-1"
+
+
+@pytest.fixture()
+def _setup_aws_credentials(aws_region: str) -> None:
     """Mocked AWS Credentials for moto."""
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_ENDPOINT_URL"] = "http://motoserver:5000"
+    os.environ["AWS_DEFAULT_REGION"] = aws_region
 
 
 @pytest.fixture()
 def s3_session(_setup_aws_credentials: None) -> aioboto3.Session:
-    return aioboto3.Session(region_name="eu-central-1")
+    return aioboto3.Session()
 
 
 @pytest.fixture()
@@ -431,7 +437,7 @@ def bucket_test_name() -> str:
 
 
 @pytest_asyncio.fixture()
-async def _setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str) -> None:
+async def _setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str, aws_region: str) -> None:
     """
     Delete the bucket if it alread exists and create fresh bucket for tests
     """
@@ -454,9 +460,7 @@ async def _setup_bucket(s3_session: aioboto3.Session, bucket_test_name: str) -> 
         except s3_client.exceptions.NoSuchBucket:
             pass
 
-        location = {
-            "LocationConstraint": "eu-central-1",  # TODO: replace eu-center-1 with environment variable
-        }
+        location = {"LocationConstraint": aws_region}
         await s3_client.create_bucket(
             Bucket=bucket_test_name,
             CreateBucketConfiguration=location,

@@ -186,7 +186,7 @@ class ScenesUploadService:
 
         movie_tmp_path = os.path.join(tmp_output_dir, movie_filename)
 
-        async with aiofiles.open(movie_tmp_path, "wb") as f:  # TODO: addd async
+        async with aiofiles.open(movie_tmp_path, "wb") as f:
             while chunk := await movie_file.read(1024 * 1024 * 100):
                 await f.write(chunk)
 

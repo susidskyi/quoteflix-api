@@ -53,6 +53,17 @@ def ci(ctx):
 
 
 @task
+def checks(ctx):
+    mypy(ctx)
+
+
+@task
+def ci(ctx):
+    checks(ctx)
+    tests(ctx, check_coverage=True)
+
+
+@task
 def migrate(ctx):
     ctx.run("{RUN_COMMAND} run api-ops alembic upgrade head")
 
