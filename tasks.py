@@ -65,7 +65,7 @@ def ci(ctx):
 
 @task
 def migrate(ctx):
-    ctx.run("{RUN_COMMAND} run api-ops alembic upgrade head")
+    ctx.run(f"{RUN_COMMAND} run api-ops alembic upgrade head", pty=True)
 
 
 @task
