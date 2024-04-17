@@ -11,6 +11,7 @@ from app.core.validators import FileValidator
 
 
 class PhraseSchema(BaseModel):
+    id: uuid.UUID
     model_config = ConfigDict(from_attributes=True)
     movie_id: uuid.UUID
     full_text: str
