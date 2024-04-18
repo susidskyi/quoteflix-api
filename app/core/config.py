@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # Core
     debug_logs: bool = False
-    stage: str
+    environment: str
     secret: str
     scenes_tmp_path: str
 

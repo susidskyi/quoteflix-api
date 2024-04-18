@@ -29,7 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
         await sessionmanager.close()
 
 
-docs_url = "/docs" if settings.stage != "production" else None
+docs_url = "/docs" if settings.environment != "production" else None
 origins = [
     "http://localhost",
     "http://localhost:8080",

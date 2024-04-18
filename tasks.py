@@ -1,6 +1,6 @@
 from invoke import task
 
-RUN_COMMAND = "docker compose"
+RUN_COMMAND = "docker compose -f docker-compose.yaml"
 
 
 @task(incrementable=["verbose"])
