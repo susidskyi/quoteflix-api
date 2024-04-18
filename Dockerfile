@@ -1,32 +1,48 @@
-# The builder image, used to build the virtual environment
 FROM python:3.12 as builder
 
-ENV PYTHONUNBUFFERED=1 \
-    POETRY_VERSION=1.8.2 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-RUN pip install poetry==${POETRY_VERSION}
+COPY ./scripts/start.sh /start.sh
+RUN chmod +x /start.sh
 
-WORKDIR /code
+COPY ./scripts/start-reload.sh /start-reload.sh
+RUN chmod +x /start-reload.sh
 
-COPY pyproject.toml poetry.lock ./
-RUN touch README.md
+COPY ./scripts/prestart.sh /prestart.sh
 
-RUN poetry install && rm -rf ${POETRY_CACHE_DIR}
+COPY ./app /app
+WORKDIR /app/
+
+ENV PYTHONPATH=/app
+
+EXPOSE 80
 
 
-# The runtime image, used to just run the code provided its virtual environment
-FROM python:3.12 as runtime
+FROM builder as runtime
 
-ENV VIRTUAL_ENV=/code/.venv \
-    PATH="/code/.venv/bin:$PATH" \
-    PYTHONPATH=/code
+WORKDIR /app/
 
-RUN apt update && apt install ffmpeg -y
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python && \
+    cd /usr/local/bin && \
+    ln -s /opt/poetry/bin/poetry && \
+    poetry config virtualenvs.create false && \
+    apt update && apt install ffmpeg -y
 
-WORKDIR /code
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# Copy poetry.lock* in case it doesn't exist in the repo
+COPY ./pyproject.toml ./poetry.lock* /app/
+
+# Allow installing dev dependencies to run tests
+ARG INSTALL_DEV=false
+RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --only main ; fi"
+
+ENV PYTHONPATH=/app
+
+COPY ./scripts/ /app/
+
+COPY ./alembic.ini /app/
+
+COPY ./app /app/app
+

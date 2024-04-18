@@ -1,74 +1,64 @@
 version: '3.8'
 
-
 services:
   db:
-    image: postgres:16-alpine
-    container_name: quoteflix-db
-    env_file: .env
-    environment:
-      POSTGRES_PASSWORD: quoteflix
-      POSTGRES_USER: quoteflix
-      POSTGRES_DB: quoteflix
-    volumes:
-    - db-data:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
+    image: postgres:16
     restart: unless-stopped
-
-  test-db:
-    image: postgres:16-alpine
-    container_name: quoteflix-test-db
-    env_file: .env
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
     environment:
-      POSTGRES_PASSWORD: quoteflix
-      POSTGRES_USER: quoteflix-test
-      POSTGRES_DB: quoteflix-test
-    ports:
-    - 5433:5432
-    volumes:
-    - test-db-data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-  api-ops:
-    build:
-      context: .
-    container_name: quoteflix-api-ops
-    env_file: .env
-    command: "echo 'done'"
-    volumes:
-    - ./app:/code/app
-    - ./alembic.ini:/code/alembic.ini
-    ports:
-    - 8001:8000
-    restart: "no"
-    depends_on:
-      - db
-      - test-db
-      - motoserver
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
 
   api:
+    restart: unless-stopped
+    networks:
+      - traefik-public
+      - default
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DEBUG_LOGS=${DEBUG_LOGS}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - S3_BUCKET=${S3_BUCKET}
+      - SECRET=${SECRET}
+      - SCENES_TMP_PATH=${SCENES_TMP_PATH}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION_NAME=${AWS_REGION_NAME}
+      - MOVIES_S3_PATH=${MOVIES_S3_PATH}
+      - DOMAIN=${DOMAIN}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+
+      - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.server.port=80
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=Host(`${DOMAIN?Variable not set}`, `www.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.entrypoints=http
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.rule=Host(`${DOMAIN?Variable not set}`, `www.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
+
     build:
       context: .
-    container_name: quoteflix-api
-    env_file: .env
-    command: uvicorn app.main:app --reload --host 0.0.0.0
-    volumes:
-    - ./app:/code/app
-    - ./alembic.ini:/code/alembic.ini
-    ports:
-    - 8000:8000
-    restart: unless-stopped
-    depends_on:
-    - db
+      args:
+        - INSTALL_DEV=${INSTALL_DEV-false}
+    command: /start.sh
 
-  motoserver:
-    image: motoserver/moto:latest
-    ports:
-      - "5000:5000"
-    environment:
-      - MOTO_PORT=5000 
+networks:
+  traefik-public:
+    external: true
 
 volumes:
-  db-data:
-  test-db-data:
+  app-db-data:
