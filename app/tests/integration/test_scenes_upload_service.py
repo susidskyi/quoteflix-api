@@ -54,7 +54,7 @@ class TestScenesUploadService:
         scenes_upload_service: ScenesUploadService,
         scene_file_buffered_bytes: io.BytesIO,
     ):
-        result = await scenes_upload_service._get_scene_file("app/tests/data", "scene.mp4")
+        result = await scenes_upload_service._get_scene_file("tests/data", "scene.mp4")
 
         assert result.read() == scene_file_buffered_bytes.read()
 
@@ -79,7 +79,7 @@ class TestScenesUploadService:
             "_get_scene_file",
             return_value=scene_file_buffered_bytes,
         )
-        tmp_output_dir = "app/tests/data"
+        tmp_output_dir = "tests/data"
         scene_filename = f"{phrase_model_data.id}.mp4"
         scene_s3_key = os.path.join("movies", str(random_movie_id), str(scene_filename))
 

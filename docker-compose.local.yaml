@@ -37,20 +37,6 @@ services:
       # allow running it locally
       - traefik.http.middlewares.https-redirect.contenttype.autodetect=false
 
-  test-db:
-    image: postgres:16-alpine
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_PASSWORD=${TEST_POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_DB=${TEST_POSTGRES_DB?Variable not set}
-      - POSTGRES_USER=${TEST_POSTGRES_USER?Variable not set}
-    ports:
-      - '5433:5432'
-    restart: unless-stopped
-    depends_on:
-      - motoserver
-
   db:
     restart: unless-stopped
     ports:
@@ -70,13 +56,6 @@ services:
       context: .
       args:
         INSTALL_DEV: ${INSTALL_DEV-true}
-
-  motoserver:
-    image: 'motoserver/moto:latest'
-    ports:
-      - '5000:5000'
-    environment:
-      - MOTO_PORT=5000
 
 
 networks:
