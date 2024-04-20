@@ -66,6 +66,9 @@ services:
       # any other service that needs to be publicly available with HTTPS
       - traefik-public
 
+  api:
+    image: ${IMAGE_NAME?Variable not set}
+
 volumes:
   # Create a volume to store the certificates, even if the container is recreated
   traefik-public-certificates:
