@@ -2,7 +2,6 @@ from invoke import task
 
 RUN_COMMAND = "docker compose -f docker-compose.yaml -f docker-compose.local.yaml"
 
-
 @task(incrementable=["verbose"])
 def tests(ctx, check_coverage=False, path="tests/", verbose=0):
     check_coverage_command = ""
