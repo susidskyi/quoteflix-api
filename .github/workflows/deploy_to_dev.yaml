@@ -20,11 +20,11 @@ jobs:
           key: ${{ secrets.DEV_KEY }}
           port: ${{ secrets.DEV_PORT }}
           script: |
-            cd /var/www/${GITHUB_REPOSITORY#*/}
+            cd /var/www/quoteflix-api/
             git fetch
             git checkout --force ${GITHUB_SHA}
             export USERNAME=${{ secrets.TRAEFIK_USERNAME }}
             export PASSWORD=${{ secrets.TRAEFIK_PASSWORD }}
             export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
-            cp /var/www/environment/.env /var/www/${GITHUB_REPOSITORY#*/}/.env
+            cp /var/www/environment/.env /var/www/quoteflix-api/.env
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up --remove-orphans -d --build --force-recreate
