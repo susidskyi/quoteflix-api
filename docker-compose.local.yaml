@@ -51,7 +51,6 @@ services:
     command: /start-reload.sh
     depends_on:
       - db
-      - test-db
     build: 
       context: .
       args:

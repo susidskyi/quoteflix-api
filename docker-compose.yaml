@@ -15,6 +15,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
 
   api:
+    image: ${IMAGE_NAME?Variable not set}
     restart: unless-stopped
     networks:
       - traefik-public
