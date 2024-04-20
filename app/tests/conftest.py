@@ -537,7 +537,7 @@ def mock_scenes_upload_service() -> mock.AsyncMock:
 
 @pytest.fixture()
 def subtitle_file() -> UploadFile:
-    with open("app/tests/data/subtitles.srt", "rb") as f:
+    with open("tests/data/subtitles.srt", "rb") as f:
         return UploadFile(
             file=io.BytesIO(f.read()),
             filename="subtitles.srt",
@@ -548,7 +548,7 @@ def subtitle_file() -> UploadFile:
 
 @pytest.fixture()
 def movie_file() -> UploadFile:
-    with open("app/tests/data/movie.mp4", "rb") as f:
+    with open("tests/data/movie.mp4", "rb") as f:
         return UploadFile(
             file=io.BytesIO(f.read()),
             filename="movie.mp4",
@@ -569,7 +569,7 @@ def subtitle_item() -> SubtitleItem:
 
 @pytest.fixture()
 def scene_file_buffered_bytes() -> io.BytesIO:
-    with open("app/tests/data/scene.mp4", "rb") as f:
+    with open("tests/data/scene.mp4", "rb") as f:
         return io.BytesIO(f.read())
 
 

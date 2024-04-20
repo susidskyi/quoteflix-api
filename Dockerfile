@@ -43,6 +43,3 @@ ENV PYTHONPATH=/app
 COPY ./scripts/ /app/
 
 COPY ./alembic.ini /app/
-
-COPY ./app /app/app
-

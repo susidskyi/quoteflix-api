@@ -1,16 +1,17 @@
 from invoke import task
 
-RUN_COMMAND = "docker compose -f docker-compose.yaml -f docker-compose.override.yaml"
-
+RUN_COMMAND = "docker compose -f docker-compose.yaml -f docker-compose.local.yaml"
 
 @task(incrementable=["verbose"])
-def tests(ctx, check_coverage=False, path="app/", verbose=0):
+def tests(ctx, check_coverage=False, path="tests/", verbose=0):
     check_coverage_command = ""
 
     if check_coverage:
-        check_coverage_command = "--cov  --cov-fail-under=85"
+        check_coverage_command = "--cov  --cov-fail-under=90"
 
-    command = f"{RUN_COMMAND} run api pytest --color=yes {check_coverage_command} {path} "
+    command = (
+        f"docker compose -f docker-compose.tests.yaml run api-test pytest --color=yes {check_coverage_command} {path} "
+    )
 
     if verbose > 0:
         command += "-" + "v" * verbose
