@@ -39,13 +39,17 @@ services:
 
   test-db:
     image: postgres:16-alpine
+    env_file:
+      - .env
     environment:
       - POSTGRES_PASSWORD=${TEST_POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_DB=${TEST_POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_DB=${TEST_POSTGRES_DB?Variable not set}
       - POSTGRES_USER=${TEST_POSTGRES_USER?Variable not set}
     ports:
       - '5433:5432'
     restart: unless-stopped
+    depends_on:
+      - motoserver
 
   db:
     restart: unless-stopped
@@ -59,6 +63,9 @@ services:
       - '8888:8888'
     restart: unless-stopped
     command: /start-reload.sh
+    depends_on:
+      - db
+      - test-db
     build: 
       context: .
       args:
