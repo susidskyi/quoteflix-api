@@ -67,7 +67,7 @@ services:
       - traefik-public
 
   api:
-    image: ${IMAGE_NAME?Variable not set}
+    image: luxxxer1109/quoteflix
 
 volumes:
   # Create a volume to store the certificates, even if the container is recreated
