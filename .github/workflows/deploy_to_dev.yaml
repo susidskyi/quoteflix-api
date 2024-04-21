@@ -15,7 +15,7 @@ jobs:
       - name: Build and run
         uses: appleboy/ssh-action@v1.0.3
         env:
-          SHA: ${GITHUB_SHA}
+          SHA: ${{ github.sha }}
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
