@@ -23,8 +23,8 @@ jobs:
           script: |
             cd /var/www/quoteflix-api/
             git fetch
-            echo ${GITHUB_SHA}
-            git reset --hard ${GITHUB_SHA}
+            echo "123 ${GITHUB_SHA}"
+            git reset --hard ${GITHUB_SHA} --verbose
             export USERNAME=${{ secrets.TRAEFIK_USERNAME }}
             export PASSWORD=${{ secrets.TRAEFIK_PASSWORD }}
             export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
