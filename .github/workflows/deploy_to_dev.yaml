@@ -21,6 +21,7 @@ jobs:
       - name: Build and run
         uses: appleboy/ssh-action@v1.0.3
         with:
+          context: .
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.DEV_KEY }}
