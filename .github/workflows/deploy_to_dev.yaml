@@ -14,16 +14,20 @@ jobs:
 
       - name: Build and run
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          SHA: ${GITHUB_SHA}
         with:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.DEV_KEY }}
           port: ${{ secrets.DEV_PORT }}
+          envs: SHA
+          script_stop: true
           script: |
             cd /var/www/quoteflix-api/
+            echo "$SHA"
             git fetch
-            echo "123 ${{ github.ref }}"
-            git reset --hard origin/${{ github.ref }}
+            git reset --hard $SHA
             export USERNAME=${{ secrets.TRAEFIK_USERNAME }}
             export PASSWORD=${{ secrets.TRAEFIK_PASSWORD }}
             export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
