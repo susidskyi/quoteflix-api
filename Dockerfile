@@ -11,7 +11,7 @@ RUN chmod +x /start-reload.sh
 
 COPY ./scripts/prestart.sh /prestart.sh
 
-COPY ./app /app
+COPY ./app /app/app
 WORKDIR /app/
 
 ENV PYTHONPATH=/app
