@@ -32,5 +32,6 @@ jobs:
             export PASSWORD=${{ secrets.TRAEFIK_PASSWORD }}
             export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
             cp /var/www/environment/.env /var/www/quoteflix-api/.env
+            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml down --rmi all
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml pull
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up --remove-orphans -d --build --force-recreate
