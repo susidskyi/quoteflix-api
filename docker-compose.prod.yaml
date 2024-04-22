@@ -41,6 +41,7 @@ services:
       # Mount the volume to store the certificates
       - traefik-public-certificates:/certificates
     command:
+
       # Enable Docker in Traefik, so that it reads labels from Docker services
       - --providers.docker
       # Do not expose all Docker services, only the ones explicitly exposed
@@ -53,6 +54,8 @@ services:
       - --certificatesresolvers.le.acme.email=${EMAIL?Variable not set}
       # Store the Let's Encrypt certificates in the mounted volume
       - --certificatesresolvers.le.acme.storage=/certificates/acme.json
+      - --certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesresolvers.cfresolver.acme.dnschallenge.provider=cloudflare
       # Use the TLS Challenge for Let's Encrypt
       - --certificatesresolvers.le.acme.httpChallenge=true
       - --certificatesresolvers.le.acme.httpChallenge.entrypoint=https
