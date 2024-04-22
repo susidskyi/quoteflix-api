@@ -15,8 +15,8 @@ jobs:
     - name: Setup environment
       run: cp .env.test .env
 
-    - name: Test docker build
+    - name: Build
       run: docker compose -f docker-compose.tests.yaml build
 
-    - name: Run Tests
+    - name: Test
       run: docker compose -f docker-compose.tests.yaml run --rm api-test pytest --cov --cov-fail-under=90
