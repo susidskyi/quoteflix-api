@@ -49,6 +49,6 @@ app.add_middleware(
 )
 
 # Routers
-app.include_router(users_router)
-app.include_router(movies_router)
-app.include_router(phrases_router)
+app.include_router(users_router, prefix="/api")
+app.include_router(movies_router, prefix="/api")
+app.include_router(phrases_router, prefix="/api")
