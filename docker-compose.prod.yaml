@@ -57,7 +57,7 @@ services:
       - --certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
       # Use the TLS Challenge for Let's Encrypt
       - --certificatesresolvers.le.acme.httpChallenge=true
-      - --certificatesresolvers.le.acme.httpChallenge.entrypoint=https
+      - --certificatesresolvers.le.acme.httpChallenge.entrypoint=http
       # Enable the access log, with HTTP requests
       - --accesslog
       # Enable the Traefik log, for configurations and errors
