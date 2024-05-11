@@ -75,6 +75,8 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.entrypoints=https
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls=true
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
 
 volumes:
   # Create a volume to store the certificates, even if the container is recreated
