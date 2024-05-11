@@ -26,6 +26,8 @@ jobs:
           script: |
             cd /var/www/flickphrase-api/
             echo "$SHA"
+            eval `ssh-agent -s`
+            ssh-add ~/.ssh/pet
             git fetch
             git reset --hard $SHA
             export USERNAME=${{ secrets.TRAEFIK_USERNAME }}
