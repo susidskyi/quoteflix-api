@@ -1,6 +1,6 @@
 services:
   motoserver:
-    image: motoserver/moto:latest
+    image: motoserver/moto:3.1.1
     ports:
       - '5000:5000'
     environment:
@@ -33,3 +33,6 @@ services:
       args:
         - INSTALL_DEV=${INSTALL_DEV-true}
     command: echo "noop"
+
+volumes:
+  test_db_data:

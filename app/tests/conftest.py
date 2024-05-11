@@ -598,7 +598,7 @@ def mock_presigned_url_service() -> mock.AsyncMock:
 
 @pytest.fixture()
 def mock_presigned_url_value() -> str:
-    return "https://quoteflix.s3.aws/key"
+    return "https://flickphrase.s3.aws/key"
 
 
 """

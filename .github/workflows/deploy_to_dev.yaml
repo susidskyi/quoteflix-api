@@ -24,14 +24,14 @@ jobs:
           envs: SHA
           script_stop: true
           script: |
-            cd /var/www/quoteflix-api/
+            cd /var/www/flickphrase-api/
             echo "$SHA"
             git fetch
             git reset --hard $SHA
             export USERNAME=${{ secrets.TRAEFIK_USERNAME }}
             export PASSWORD=${{ secrets.TRAEFIK_PASSWORD }}
             export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
-            cp /var/www/environment/.env /var/www/quoteflix-api/.env
+            cp /var/www/environment/.env.backend /var/www/flickphrase-api/.env
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml down --rmi all
             docker network inspect traefik-public  >/dev/null 2>&1 || docker network create traefik-public
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml pull
