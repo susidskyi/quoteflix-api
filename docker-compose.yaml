@@ -3,21 +3,8 @@ services:
     restart: unless-stopped
     networks:
       - traefik-public
-      - default
     env_file:
       - .env
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - DEBUG_LOGS=${DEBUG_LOGS}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - S3_BUCKET=${S3_BUCKET}
-      - SECRET=${SECRET}
-      - SCENES_TMP_PATH=${SCENES_TMP_PATH}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION_NAME=${AWS_REGION_NAME}
-      - MOVIES_S3_PATH=${MOVIES_S3_PATH}
-      - DOMAIN=${DOMAIN}
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
