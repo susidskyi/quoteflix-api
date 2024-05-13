@@ -30,9 +30,9 @@ jobs:
             ssh-add ~/.ssh/pet
             git fetch
             git reset --hard $SHA
-            export USERNAME=${{ secrets.TRAEFIK_USERNAME }}
-            export PASSWORD=${{ secrets.TRAEFIK_PASSWORD }}
-            export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
+            export USERNAME='${{ secrets.TRAEFIK_USERNAME }}'
+            export PASSWORD='${{ secrets.TRAEFIK_PASSWORD }}'
+            export HASHED_PASSWORD=$(openssl passwd -apr1 ${PASSWORD})
             cp /var/www/environment/.env.backend /var/www/flickphrase-api/.env
             echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml down --rmi all
