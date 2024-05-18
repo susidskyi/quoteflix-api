@@ -27,8 +27,9 @@ services:
       - traefik.http.routers.traefik-dashboard-https.service=api@internal
       # https-redirect middleware to redirect HTTP to HTTPS
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
-      - traefik.http.middlewares.headers.customresponseheaders.X-Robots-Tag=${ROBOTS_HEADER?Variable not set}
       - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
+      # CustomHeaders middleware
+      - traefik.http.middlewares.customheaders.headers.customresponseheaders.X-Robots-Tag=${ROBOTS_HEADER?Variable not set}
       # traefik-http set up only to use the middleware to redirect to https
       - traefik.http.routers.traefik-dashboard-http.middlewares=https-redirect
       # admin-auth middleware with HTTP Basic auth
@@ -36,6 +37,8 @@ services:
       - traefik.http.middlewares.admin-auth.basicauth.users=${USERNAME?Variable not set}:${HASHED_PASSWORD?Variable not set}
       # Enable HTTP Basic auth, using the middleware created above
       - traefik.http.routers.traefik-dashboard-https.middlewares=admin-auth
+      # Use custom headers middleware
+      - traefik.http.routers.traefik-dashboard-https.middlewares=customheaders
     volumes:
       # Add Docker as a mounted volume, so that Traefik can read the labels of other services
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -78,6 +81,7 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.entrypoints=https
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls=true
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.middlewares=customheaders
     networks:
       - traefik-public
 
