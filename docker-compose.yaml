@@ -14,6 +14,8 @@ services:
       args:
         - INSTALL_DEV=${INSTALL_DEV-false}
     command: /start.sh
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   app-db-data:
