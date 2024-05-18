@@ -1,8 +1,6 @@
 services:
   api:
     restart: unless-stopped
-    networks:
-      - traefik-public
     env_file:
       - .env
     labels:
@@ -16,10 +14,6 @@ services:
       args:
         - INSTALL_DEV=${INSTALL_DEV-false}
     command: /start.sh
-
-networks:
-  traefik-public:
-    external: true
 
 volumes:
   app-db-data:
