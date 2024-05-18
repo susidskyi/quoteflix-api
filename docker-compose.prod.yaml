@@ -27,6 +27,7 @@ services:
       - traefik.http.routers.traefik-dashboard-https.service=api@internal
       # https-redirect middleware to redirect HTTP to HTTPS
       - traefik.http.middlewares.https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.headers.customresponseheaders.X-Robots-Tag=${ROBOTS_HEADER?Variable not set}
       - traefik.http.middlewares.https-redirect.redirectscheme.permanent=true
       # traefik-http set up only to use the middleware to redirect to https
       - traefik.http.routers.traefik-dashboard-http.middlewares=https-redirect
