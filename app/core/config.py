@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     database_url: PostgresDsn
     test_database_url: PostgresDsn
 
-    # AWS
+    # AWS | CloudFlare
     s3_bucket: str
+    s3_endpoint_url: str
     aws_access_key_id: str
     aws_secret_access_key: str
     aws_region_name: str
