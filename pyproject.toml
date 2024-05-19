@@ -27,15 +27,17 @@ srt = "3.5.3"
 types-aiobotocore-s3 = "2.13.0"
 aiofiles = "23.2.1"
 types-aiofiles = "23.2.0.20240403"
-logfire = "0.32.1"
+logfire = "0.33.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "1.10.0"
 pre-commit = "3.7.1"
-pytest = "8.2.0"
 ruff = "0.4.4"
 invoke = "2.2.0"
-pytest-asyncio = "0.23.6"
+
+[tool.poetry.group.test.dependencies]
+pytest = "8.2.0"
+pytest-asyncio = "0.23.7"
 pytest-cov = "5.0.0"
 pytest-mock = "3.14.0"
 moto = {version = "5.0.7", extras = ["s3", "server"]}

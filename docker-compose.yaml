@@ -12,7 +12,7 @@ services:
     build:
       context: .
       args:
-        - INSTALL_DEV=${INSTALL_DEV-false}
+        - ENVIRONMENT=${ENVIRONMENT-local}
     command: /start.sh
     extra_hosts:
       - "host.docker.internal:host-gateway"

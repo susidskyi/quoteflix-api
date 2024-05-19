@@ -29,8 +29,16 @@ WORKDIR /app/
 COPY ./pyproject.toml ./poetry.lock* /app/
 
 # Allow installing dev dependencies to run tests
-ARG INSTALL_DEV=false
-RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install; else poetry install --only main ; fi"
+ARG ENVIRONMENT='production'
+RUN bash -c " \
+    if [ \$ENVIRONMENT == 'dev' ]; then \
+        poetry install --only main,dev; \
+    elif [ \$ENVIRONMENT == 'production' ]; then \
+        poetry install --only main; \
+    else \
+        poetry install; \
+    fi \
+"
 
 COPY ./app /app/app
 

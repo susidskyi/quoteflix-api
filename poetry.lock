@@ -1709,13 +1709,13 @@ files = [
 
 [[package]]
 name = "logfire"
-version = "0.32.1"
+version = "0.33.0"
 description = "The best Python observability tool! 🪵🔥"
 optional = false
 python-versions = "*"
 files = [
-    {file = "logfire-0.32.1-py2.py3-none-any.whl", hash = "sha256:4bab73565887e12b0f623db2261a7be55e876a537ffdbfce82b187869eb0432b"},
-    {file = "logfire-0.32.1.tar.gz", hash = "sha256:4463cd7e9a690441757700420904d05a17b05bcf23e591408c3acf6c3f87ab99"},
+    {file = "logfire-0.33.0-py2.py3-none-any.whl", hash = "sha256:d42a68df865c239d7d073f26c41e68478db4cbebf605234128ae7a07d397211f"},
+    {file = "logfire-0.33.0.tar.gz", hash = "sha256:9ee28908d6356eb01eaf20c97667f828c450e585a0a145d828c6f9cf411ec170"},
 ]
 
 [package.dependencies]
@@ -2694,13 +2694,13 @@ dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments
 
 [[package]]
 name = "pytest-asyncio"
-version = "0.23.6"
+version = "0.23.7"
 description = "Pytest support for asyncio"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pytest-asyncio-0.23.6.tar.gz", hash = "sha256:ffe523a89c1c222598c76856e76852b787504ddb72dd5d9b6617ffa8aa2cde5f"},
-    {file = "pytest_asyncio-0.23.6-py3-none-any.whl", hash = "sha256:68516fdd1018ac57b846c9846b954f0393b26f094764a28c955eabb0536a4e8a"},
+    {file = "pytest_asyncio-0.23.7-py3-none-any.whl", hash = "sha256:009b48127fbe44518a547bddd25611551b0e43ccdbf1e67d12479f569832c20b"},
+    {file = "pytest_asyncio-0.23.7.tar.gz", hash = "sha256:5f5c72948f4c49e7db4f29f2521d4031f1c27f86e57b046126654083d4770268"},
 ]
 
 [package.dependencies]
@@ -4851,4 +4851,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "5cbc173dbe759a839367327c31309bcb68502fae86a202c0400faa9d961e5f71"
+content-hash = "abea5d03e8f736f3a08c1e6fbd0fce5a2d9713e498a9a56686b8ca2d05a5dc14"

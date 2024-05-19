@@ -31,7 +31,7 @@ services:
     build:
       context: .
       args:
-        - INSTALL_DEV=${INSTALL_DEV-true}
+        - ENVIRONMENT=${ENVIRONMENT-local}
     command: echo "noop"
 
 volumes:
