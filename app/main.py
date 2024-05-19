@@ -3,6 +3,7 @@ import sys
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
+import logfire
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -29,16 +30,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
         await sessionmanager.close()
 
 
-docs_url = "/docs" if settings.environment != "production" else None
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:3000",
-    "https://phraseqwe.space"
-]
+docs_url = "/docs" if settings.environment != "prod" else None
+origins = ["http://localhost", "http://localhost:8080", "http://localhost:3000", "https://phraseqwe.space"]
 
 
-app = FastAPI(lifespan=lifespan, docs_url=docs_url, redirect_slashes=False)
+app = FastAPI(lifespan=lifespan, docs_url=docs_url)
+logfire.configure(token=settings.logfire_token, send_to_logfire=settings.environment in ["dev", "prod"])
+logfire.instrument_fastapi(app)
 
 # CORS (Cross-Origin Resource Sharing)
 app.add_middleware(

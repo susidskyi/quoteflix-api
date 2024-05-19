@@ -290,6 +290,20 @@ dev = ["cogapp", "pre-commit", "pytest", "wheel"]
 tests = ["pytest"]
 
 [[package]]
+name = "asgiref"
+version = "3.8.1"
+description = "ASGI specs, helper code, and adapters"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "asgiref-3.8.1-py3-none-any.whl", hash = "sha256:3e1e3ecc849832fe52ccf2cb6686b7a55f82bb1d6aee72a58826471390335e47"},
+    {file = "asgiref-3.8.1.tar.gz", hash = "sha256:c343bd80a0bec947a9860adb4c432ffa7db769836c64238fc34bdc3fec84d590"},
+]
+
+[package.extras]
+tests = ["mypy (>=0.800)", "pytest", "pytest-asyncio"]
+
+[[package]]
 name = "asyncpg"
 version = "0.29.0"
 description = "An asyncio PostgreSQL driver"
@@ -981,19 +995,20 @@ all = ["email_validator (>=2.0.0)", "httpx (>=0.23.0)", "itsdangerous (>=1.1.0)"
 
 [[package]]
 name = "fastapi-cli"
-version = "0.0.3"
+version = "0.0.4"
 description = "Run and manage FastAPI apps from the command line with FastAPI CLI. 🚀"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "fastapi_cli-0.0.3-py3-none-any.whl", hash = "sha256:ae233115f729945479044917d949095e829d2d84f56f55ce1ca17627872825a5"},
-    {file = "fastapi_cli-0.0.3.tar.gz", hash = "sha256:3b6e4d2c4daee940fb8db59ebbfd60a72c4b962bcf593e263e4cc69da4ea3d7f"},
+    {file = "fastapi_cli-0.0.4-py3-none-any.whl", hash = "sha256:a2552f3a7ae64058cdbb530be6fa6dbfc975dc165e4fa66d224c3d396e25e809"},
+    {file = "fastapi_cli-0.0.4.tar.gz", hash = "sha256:e2e9ffaffc1f7767f488d6da34b6f5a377751c996f397902eb6abb99a67bde32"},
 ]
 
 [package.dependencies]
-fastapi = "*"
 typer = ">=0.12.3"
-uvicorn = {version = ">=0.15.0", extras = ["standard"]}
+
+[package.extras]
+standard = ["fastapi", "uvicorn[standard] (>=0.15.0)"]
 
 [[package]]
 name = "fastapi-users"
@@ -1722,6 +1737,7 @@ files = [
 executing = ">=2.0.1"
 opentelemetry-exporter-otlp-proto-http = ">=1.21.0"
 opentelemetry-instrumentation = ">=0.41b0"
+opentelemetry-instrumentation-fastapi = {version = ">=0.42b0", optional = true, markers = "extra == \"fastapi\""}
 opentelemetry-sdk = ">=1.21.0"
 protobuf = ">=4.23.4"
 rich = ">=13.4.2"
@@ -2243,6 +2259,48 @@ setuptools = ">=16.0"
 wrapt = ">=1.0.0,<2.0.0"
 
 [[package]]
+name = "opentelemetry-instrumentation-asgi"
+version = "0.45b0"
+description = "ASGI instrumentation for OpenTelemetry"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "opentelemetry_instrumentation_asgi-0.45b0-py3-none-any.whl", hash = "sha256:8be1157ed62f0db24e45fdf7933c530c4338bd025c5d4af7830e903c0756021b"},
+    {file = "opentelemetry_instrumentation_asgi-0.45b0.tar.gz", hash = "sha256:97f55620f163fd3d20323e9fd8dc3aacc826c03397213ff36b877e0f4b6b08a6"},
+]
+
+[package.dependencies]
+asgiref = ">=3.0,<4.0"
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.45b0"
+opentelemetry-semantic-conventions = "0.45b0"
+opentelemetry-util-http = "0.45b0"
+
+[package.extras]
+instruments = ["asgiref (>=3.0,<4.0)"]
+
+[[package]]
+name = "opentelemetry-instrumentation-fastapi"
+version = "0.45b0"
+description = "OpenTelemetry FastAPI Instrumentation"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "opentelemetry_instrumentation_fastapi-0.45b0-py3-none-any.whl", hash = "sha256:77d9c123a363129148f5f66d44094f3d67aaaa2b201396d94782b4a7f9ce4314"},
+    {file = "opentelemetry_instrumentation_fastapi-0.45b0.tar.gz", hash = "sha256:5a6b91e1c08a01601845fcfcfdefd0a2aecdb3c356d4a436a3210cb58c21487e"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.45b0"
+opentelemetry-instrumentation-asgi = "0.45b0"
+opentelemetry-semantic-conventions = "0.45b0"
+opentelemetry-util-http = "0.45b0"
+
+[package.extras]
+instruments = ["fastapi (>=0.58,<1.0)"]
+
+[[package]]
 name = "opentelemetry-proto"
 version = "1.24.0"
 description = "OpenTelemetry Python Proto"
@@ -2281,6 +2339,17 @@ python-versions = ">=3.8"
 files = [
     {file = "opentelemetry_semantic_conventions-0.45b0-py3-none-any.whl", hash = "sha256:a4a6fb9a7bacd9167c082aa4681009e9acdbfa28ffb2387af50c2fef3d30c864"},
     {file = "opentelemetry_semantic_conventions-0.45b0.tar.gz", hash = "sha256:7c84215a44ac846bc4b8e32d5e78935c5c43482e491812a0bb8aaf87e4d92118"},
+]
+
+[[package]]
+name = "opentelemetry-util-http"
+version = "0.45b0"
+description = "Web util for OpenTelemetry"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "opentelemetry_util_http-0.45b0-py3-none-any.whl", hash = "sha256:6628868b501b3004e1860f976f410eeb3d3499e009719d818000f24ce17b6e33"},
+    {file = "opentelemetry_util_http-0.45b0.tar.gz", hash = "sha256:4ce08b6a7d52dd7c96b7705b5b4f06fdb6aa3eac1233b3b0bfef8a0cab9a92cd"},
 ]
 
 [[package]]
@@ -4851,4 +4920,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "abea5d03e8f736f3a08c1e6fbd0fce5a2d9713e498a9a56686b8ca2d05a5dc14"
+content-hash = "97c3840f9a65ebc3925af4d5841f108095103b5f51f293a908ff12547482475f"

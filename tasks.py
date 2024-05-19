@@ -30,7 +30,7 @@ def build(ctx):
 
 @task
 def run(ctx):
-    ctx.run(f"{RUN_COMMAND} up", pty=True)
+    ctx.run(f"{RUN_COMMAND} up --remove-orphans", pty=True)
 
 
 @task(help={"message": "Message string to use with 'revision'"})
