@@ -31,7 +31,7 @@ COPY ./pyproject.toml ./poetry.lock* /app/
 # Allow installing dev dependencies to run tests
 ARG ENVIRONMENT='production'
 RUN bash -c " \
-    if [ $ENVIRONMENT == 'production' or $ENVIRONMENT == 'dev' ]; then \
+    if [ $ENVIRONMENT == 'production'] || [ $ENVIRONMENT == 'dev' ]; then \
         poetry install --only main; \
     elif [ ${ENVIRONMENT} == 'test' ]; then \
         poetry install --only main, test; \
