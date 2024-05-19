@@ -38,7 +38,7 @@ origins = [
 ]
 
 
-app = FastAPI(lifespan=lifespan, docs_url=docs_url)
+app = FastAPI(lifespan=lifespan, docs_url=docs_url, redirect_slashes=False)
 
 # CORS (Cross-Origin Resource Sharing)
 app.add_middleware(
