@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     # Limits
     max_movie_file_size: int = 5 * 1024**3  # 5 GB
     max_subtitles_file_size: int = 10 * 1024**2  # 10 MB
+    max_ffmpeg_workers: int = 5
 
 
 @lru_cache

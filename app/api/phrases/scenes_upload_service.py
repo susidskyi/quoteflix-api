@@ -196,7 +196,7 @@ class ScenesUploadService:
 
         base_ffmpeg_command = f"ffmpeg -y -i {movie_tmp_path}"
 
-        for phrases_args in itertools.batched(cmd_scenes_output_args, 5):
+        for phrases_args in itertools.batched(cmd_scenes_output_args, settings.max_ffmpeg_workers):
             output_args = " ".join(phrases_args)
             cmd = f"{base_ffmpeg_command} {output_args}"
 
