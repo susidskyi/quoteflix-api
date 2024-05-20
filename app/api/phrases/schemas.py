@@ -85,3 +85,11 @@ class SubtitleItem(BaseModel):
             raise ValueError("Start time must be less than end time")
 
         return self
+
+
+class PhraseTransferSchema(BaseModel):
+    full_text: str
+    normalized_text: str
+    start_in_movie: datetime.timedelta
+    end_in_movie: datetime.timedelta
+    scene_s3_key: str

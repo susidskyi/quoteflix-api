@@ -16,6 +16,7 @@ from app.api.phrases.schemas import (
     PhraseCreateFromMovieFilesSchema,
     PhraseCreateSchema,
     PhraseSchema,
+    PhraseTransferSchema,
     PhraseUpdateSchema,
 )
 from app.api.phrases.service import PhrasesService
@@ -155,3 +156,30 @@ async def create_phrases_from_movie_files(
         movie_file=movie_files.movie_file,
         subtitle_file=movie_files.subtitles_file,
     )
+
+
+@router.get(
+    "/export-to-json/{movie_id}",
+    name="phrases:export-phrases-to-json",
+    response_model=Sequence[PhraseTransferSchema],
+    dependencies=[Depends(current_superuser), Depends(movie_exists)],
+)
+async def export_phrases_to_json(
+    movie_id: uuid.UUID,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> Sequence[PhraseTransferSchema]:
+    return await phrases_service.export_to_json(movie_id)
+
+
+@router.post(
+    "/import-from-json/{movie_id}",
+    name="phrases:import-phrases-from-json",
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(current_superuser), Depends(movie_exists)],
+)
+async def import_phrases_from_json(
+    movie_id: uuid.UUID,
+    payload: Sequence[PhraseTransferSchema],
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> None:
+    await phrases_service.import_from_json(movie_id, payload)

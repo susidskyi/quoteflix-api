@@ -1,11 +1,12 @@
 import os
+import uuid
 from unittest import mock
 
 import pytest
 import pytest_mock
 
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
 from app.api.phrases.service import PhrasesService
 from app.api.phrases.utils import normalize_phrase_text
 from app.core.config import settings
@@ -247,3 +248,34 @@ class TestPhrasesService:
             phrase_model_data.movie_id,
         )
         mock_s3_service.delete_folder.assert_awaited_once_with(movie_s3_path)
+
+    async def test_import_from_json(
+        self,
+        mock_phrases_repository: mock.AsyncMock,
+        phrases_service: PhrasesService,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+        random_movie_id: uuid.UUID,
+    ):
+        result = await phrases_service.import_from_json(movie_id=random_movie_id, data=[phrase_transfer_schema_data])
+
+        assert result is None
+        mock_phrases_repository.import_from_json.assert_awaited_once_with(
+            random_movie_id,
+            [phrase_transfer_schema_data],
+        )
+
+    async def test_export_to_json(
+        self,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_model_data: PhraseModel,
+        phrases_service: PhrasesService,
+        random_movie_id: uuid.UUID,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+    ):
+        mock_phrases_repository.get_by_movie_id.return_value = [phrase_model_data]
+
+        result = await phrases_service.export_to_json(movie_id=random_movie_id)
+
+        assert len(result) == 1
+        assert result == [phrase_transfer_schema_data]
+        mock_phrases_repository.get_by_movie_id.assert_awaited_once_with(random_movie_id)

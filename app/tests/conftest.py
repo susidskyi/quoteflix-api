@@ -29,6 +29,7 @@ from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
     PhraseCreateSchema,
     PhraseSchema,
+    PhraseTransferSchema,
     PhraseUpdateSchema,
     SubtitleItem,
 )
@@ -362,7 +363,7 @@ def phrase_update_schema_data(
 def phrase_model_data(
     phrase_update_schema_data: PhraseUpdateSchema,
     random_phrase_id: uuid.UUID,
-):
+) -> PhraseModel:
     return PhraseModel(
         **phrase_update_schema_data.model_dump(),
         id=random_phrase_id,
@@ -385,6 +386,13 @@ def phrase_schema_data(
     phrase_fixture: PhraseModel,
 ) -> PhraseSchema:
     return PhraseSchema(**phrase_fixture.__dict__)
+
+
+@pytest.fixture()
+def phrase_transfer_schema_data(
+    phrase_model_data: PhraseModel,
+) -> PhraseTransferSchema:
+    return PhraseTransferSchema(**phrase_model_data.__dict__)
 
 
 @pytest.fixture()

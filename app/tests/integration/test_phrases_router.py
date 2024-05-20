@@ -10,7 +10,7 @@ from httpx import AsyncClient
 from app.api.movies.dependencies import movie_exists
 from app.api.phrases.dependencies import get_scenes_upload_service, phrase_exists
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseTransferSchema, PhraseUpdateSchema
 from app.api.users.models import UserModel
 from app.api.users.permissions import current_superuser
 
@@ -681,6 +681,184 @@ class TestCreatePhrasesFromMovieFiles:
                 "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
                 "subtitles_file": ("subtitles.srt", subtitle_file.file, "text/plain"),
             },
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio()
+class TestExportPhrasesToJSON:
+    async def test_export_phrases_to_json(
+        self,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+        check_movie_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        mock_phrases_service.export_to_json.return_value = [phrase_transfer_schema_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:export-phrases-to-json",
+                movie_id=random_movie_id,
+            ),
+        )
+
+        result_data = result.json()
+
+        assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
+            phrase_transfer_schema_data.model_dump(mode="json"),
+            sort_keys=True,
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+
+        mock_phrases_service.export_to_json.assert_called_once_with(random_movie_id)
+
+    async def test_export_phrases_to_json_movie_not_found(
+        self,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        check_movie_exists: Callable[[bool], None],
+        random_movie_id: uuid.UUID,
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:export-phrases-to-json",
+                movie_id=random_movie_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        mock_phrases_service.export_to_json.assert_not_awaited()
+
+    @pytest.mark.parametrize(
+        ("user", "expected_status_code"),
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_200_OK),
+        ],
+    )
+    async def test_permissions(
+        self,
+        request: pytest.FixtureRequest,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+        user: str,
+        expected_status_code: int,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+    ):
+        user_fixture_value: str | None = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value,
+        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: True
+        mock_phrases_service.export_to_json.return_value = [phrase_transfer_schema_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:export-phrases-to-json",
+                movie_id=random_movie_id,
+            ),
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio()
+class TestImportPhrasesFromJSON:
+    async def test_import_phrases_from_json(
+        self,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+        check_movie_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:import-phrases-from-json",
+                movie_id=random_movie_id,
+            ),
+            json=[phrase_transfer_schema_data.model_dump(mode="json")],
+        )
+
+        assert result.status_code == status.HTTP_202_ACCEPTED
+        mock_phrases_service.import_from_json.assert_awaited_once_with(random_movie_id, [phrase_transfer_schema_data])
+
+    async def test_import_phrases_from_json_movie_not_found(
+        self,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+        check_movie_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:import-phrases-from-json",
+                movie_id=random_movie_id,
+            ),
+            json=[phrase_transfer_schema_data.model_dump(mode="json")],
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        mock_phrases_service.import_from_json.assert_not_awaited()
+
+    @pytest.mark.parametrize(
+        ("user", "expected_status_code"),
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_202_ACCEPTED),
+        ],
+    )
+    async def test_permissions(
+        self,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+        check_movie_exists: Callable[[bool], None],
+        expected_status_code: int,
+        user: str,
+        request: pytest.FixtureRequest,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+    ):
+        user_fixture_value: str | None = request.getfixturevalue(user)
+
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value,
+        )
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:import-phrases-from-json",
+                movie_id=random_movie_id,
+            ),
+            json=[phrase_transfer_schema_data.model_dump(mode="json")],
         )
 
         assert result.status_code == expected_status_code

@@ -3,6 +3,7 @@ from invoke import task
 RUN_COMMAND = "docker compose -f docker-compose.yaml -f docker-compose.local.yaml"
 RUN_TESTS_COMMAND = "docker compose -f docker-compose.tests.yaml"
 
+
 @task(incrementable=["verbose"])
 def tests(ctx, check_coverage=False, path="tests/", verbose=0):
     check_coverage_command = ""
@@ -10,9 +11,7 @@ def tests(ctx, check_coverage=False, path="tests/", verbose=0):
     if check_coverage:
         check_coverage_command = "--cov  --cov-fail-under=90"
 
-    command = (
-        f"{RUN_TESTS_COMMAND} run --build api-test pytest --color=yes {check_coverage_command} {path} "
-    )
+    command = f"{RUN_TESTS_COMMAND} run api-test pytest --color=yes {check_coverage_command} {path} "
 
     if verbose > 0:
         command += "-" + "v" * verbose

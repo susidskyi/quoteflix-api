@@ -4,7 +4,7 @@ from typing import Sequence
 
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
 from app.api.phrases.utils import normalize_phrase_text
 from app.core.config import settings
 from app.core.presigned_url_service import PresignedURLService
@@ -79,3 +79,11 @@ class PhrasesService:
         movie_s3_path = os.path.join(settings.movies_s3_path, str(movie_id))
 
         await self.s3_service.delete_folder(movie_s3_path)
+
+    async def export_to_json(self, movie_id: uuid.UUID) -> Sequence[PhraseTransferSchema]:
+        phrases = await self.repository.get_by_movie_id(movie_id)
+
+        return [PhraseTransferSchema(**phrase.__dict__) for phrase in phrases]
+
+    async def import_from_json(self, movie_id: uuid.UUID, data: Sequence[PhraseTransferSchema]) -> None:
+        await self.repository.import_from_json(movie_id, data)

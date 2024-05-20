@@ -5,7 +5,7 @@ from sqlalchemy import delete, exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -132,4 +132,15 @@ class PhrasesRepository:
             query = delete(PhraseModel).where(PhraseModel.movie_id == movie_id)
 
             await session.execute(query)
+            await session.commit()
+
+    async def import_from_json(self, movie_id: uuid.UUID, data: Sequence[PhraseTransferSchema]) -> None:
+        phrases_data = [{"movie_id": movie_id, **phrase.model_dump()} for phrase in data]
+
+        async with self.session as session:
+            await session.scalars(
+                insert(PhraseModel).returning(PhraseModel.id),
+                phrases_data,
+            )
+
             await session.commit()

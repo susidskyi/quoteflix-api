@@ -5,7 +5,7 @@ import pytest
 from app.api.movies.models import MovieModel
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
 from app.api.phrases.utils import normalize_phrase_text
 from app.core.exceptions import RepositoryNotFoundError
 
@@ -183,3 +183,21 @@ class TestPhrasesRepository:
             phrase_fixture.movie_id,
         )
         assert len(existing_phrases) == 0
+
+    async def test_import_from_json(
+        self,
+        random_movie_id: uuid.UUID,
+        phrases_repository: PhrasesRepository,
+        movie_fixture: MovieModel,
+        phrase_transfer_schema_data: PhraseTransferSchema,
+    ):
+        await phrases_repository.import_from_json(random_movie_id, [phrase_transfer_schema_data])
+
+        result = await phrases_repository.get_by_movie_id(random_movie_id)
+
+        assert len(result) == 1
+        assert result[0].movie_id == random_movie_id
+        assert result[0].scene_s3_key == phrase_transfer_schema_data.scene_s3_key
+        assert result[0].end_in_movie == phrase_transfer_schema_data.end_in_movie
+        assert result[0].start_in_movie == phrase_transfer_schema_data.start_in_movie
+        assert result[0].normalized_text == phrase_transfer_schema_data.normalized_text
