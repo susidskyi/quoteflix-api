@@ -15,12 +15,12 @@ class Settings(BaseSettings):
     database_url: PostgresDsn
     test_database_url: PostgresDsn
 
-    # AWS | CloudFlare
+    # S3
     s3_bucket: str
     s3_endpoint_url: str
-    aws_access_key_id: str
-    aws_secret_access_key: str
-    aws_region_name: str
+    s3_access_key: str
+    s3_secret_key: str
+    s3_region_name: str
     movies_s3_path: str
 
     # Logfire

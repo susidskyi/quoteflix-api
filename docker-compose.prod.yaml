@@ -71,10 +71,13 @@ services:
       # Use the public network created to be shared between Traefik and
       # any other service that needs to be publicly available with HTTPS
       - traefik-public
+    depends_on:
+      - api
 
   api:
     image: ${IMAGE_NAME?Variable not set}
     labels:
+      - traefik.docker.network=traefik-public
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=Host(`api.${DOMAIN?Variable not set}`) && PathPrefix(`/api/`)
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.entrypoints=http
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.rule=Host(`api.${DOMAIN?Variable not set}`) && PathPrefix(`/api/`)

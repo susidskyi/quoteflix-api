@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.0.0
+    image: traefik:v3.0.1
     networks:
       - traefik-public
     volumes:
@@ -22,7 +22,7 @@ services:
       # Enable the Traefik log, for configurations and errors
       - --log
       # Enable debug logging for local development
-      - --log.level=DEBUG
+      - --log.level=WARN
       # Enable the Dashboard and API
       - --api
       # Enable the Dashboard and API in insecure mode for local development
@@ -31,7 +31,10 @@ services:
       # Enable Traefik for this service, to make it available in the public network
       - traefik.enable=true
       - traefik.constraint-label=traefik-public
-  
+      - traefik.log.level=WARN
+    depends_on:
+      - api
+
   api:
     volumes:
       - './app:/app/app'
@@ -48,9 +51,32 @@ services:
     labels:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=Host(`${DOMAIN?Variable not set}`) && PathPrefix(`/api/`)
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.entrypoints=http
+    depends_on:
+      - minio
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    command: server --console-address ":9001" /data/
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio-storage-r:/data
+    networks:
+      - traefik-public
 
 networks:
   traefik-public:
     # For local dev, don't expect an external Traefik network
     external: false
+
+volumes:
+  minio-storage-r:
