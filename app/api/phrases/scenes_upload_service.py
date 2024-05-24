@@ -66,6 +66,7 @@ class ScenesUploadService:
                 tmp_output_dir,
             )
 
+            self._tear_down_tmp_path(tmp_output_dir)
             await self.movies_service.update_status(movie_id, MovieStatus.PROCESSED)
         except Exception as e:
             await self._rollback(movie_id, tmp_output_dir)
