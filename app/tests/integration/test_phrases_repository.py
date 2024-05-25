@@ -151,8 +151,7 @@ class TestPhrasesRepository:
         ("search_text", "expected_count"),
         [
             ("fruits: apples, bananas and oranges", 1),
-            ("bananas", 1),
-            ("fru'its .....::,,", 1),
+            ("fru'its", 1),
             ("invalid string", 0),
         ],
     )

@@ -13,6 +13,7 @@ from app.api.phrases.dependencies import (
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
+    PhraseBySearchTextSchema,
     PhraseCreateFromMovieFilesSchema,
     PhraseCreateSchema,
     PhraseSchema,
@@ -40,13 +41,13 @@ async def get_all_phrases(
 @router.get(
     "/get-by-search-text",
     name="phrases:get-phrases-by-search-text",
-    response_model=Sequence[PhraseSchema],
+    response_model=Sequence[PhraseBySearchTextSchema],
     status_code=status.HTTP_200_OK,
 )
 async def get_phrases_by_search_text(
     search_text: str,
     phrases_service: PhrasesService = Depends(get_phrases_service),
-) -> Sequence[PhraseModel]:
+) -> Sequence[PhraseBySearchTextSchema]:
     return await phrases_service.get_by_search_text(search_text)
 
 

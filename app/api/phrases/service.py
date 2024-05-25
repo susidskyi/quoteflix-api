@@ -4,8 +4,13 @@ from typing import Sequence
 
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
-from app.api.phrases.utils import normalize_phrase_text
+from app.api.phrases.schemas import (
+    PhraseBySearchTextSchema,
+    PhraseCreateSchema,
+    PhraseTransferSchema,
+    PhraseUpdateSchema,
+)
+from app.api.phrases.utils import get_matched_phrase, normalize_phrase_text
 from app.core.config import settings
 from app.core.presigned_url_service import PresignedURLService
 from app.core.s3_service import S3Service
@@ -66,12 +71,18 @@ class PhrasesService:
         await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
         return phrases
 
-    async def get_by_search_text(self, search_text: str) -> Sequence[PhraseModel]:
+    async def get_by_search_text(self, search_text: str) -> Sequence[PhraseBySearchTextSchema]:
         normalized_search_text = normalize_phrase_text(search_text)
         phrases = await self.repository.get_by_search_text(normalized_search_text)
         await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
 
-        return phrases
+        return [
+            PhraseBySearchTextSchema(
+                **phrase.__dict__,
+                matched_phrase=get_matched_phrase(phrase.full_text, normalized_search_text),
+            )
+            for phrase in phrases
+        ]
 
     async def delete_by_movie_id(self, movie_id: uuid.UUID) -> None:
         await self.repository.delete_by_movie_id(movie_id)

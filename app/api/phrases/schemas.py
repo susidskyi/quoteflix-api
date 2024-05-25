@@ -18,6 +18,13 @@ class PhraseSchema(BaseModel):
     scene_s3_key: str | None
 
 
+class PhraseBySearchTextSchema(BaseModel):
+    id: uuid.UUID
+    full_text: str
+    scene_s3_key: str | None
+    matched_phrase: str
+
+
 class PhraseCreateUpdateSchema(BaseModel, abc.ABC):
     movie_id: uuid.UUID
     full_text: str

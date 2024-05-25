@@ -6,7 +6,12 @@ import pytest
 import pytest_mock
 
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import (
+    PhraseBySearchTextSchema,
+    PhraseCreateSchema,
+    PhraseTransferSchema,
+    PhraseUpdateSchema,
+)
 from app.api.phrases.service import PhrasesService
 from app.api.phrases.utils import normalize_phrase_text
 from app.core.config import settings
@@ -206,6 +211,7 @@ class TestPhrasesService:
         phrases_service: PhrasesService,
         mock_phrases_repository: mock.AsyncMock,
         phrase_model_data: PhraseModel,
+        phrase_by_search_text_schema_data: PhraseBySearchTextSchema,
         search_text: str,
     ):
         mock_phrases_repository.get_by_search_text.return_value = [phrase_model_data]
@@ -217,7 +223,7 @@ class TestPhrasesService:
         result = await phrases_service.get_by_search_text(search_text)
 
         assert len(result) == 1
-        assert phrase_model_data in result
+        assert phrase_by_search_text_schema_data in result
         mock_phrases_repository.get_by_search_text.assert_awaited_once_with(
             normalized_text,
         )

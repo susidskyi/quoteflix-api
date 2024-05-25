@@ -27,6 +27,7 @@ from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
+    PhraseBySearchTextSchema,
     PhraseCreateSchema,
     PhraseSchema,
     PhraseTransferSchema,
@@ -386,6 +387,16 @@ def phrase_schema_data(
     phrase_fixture: PhraseModel,
 ) -> PhraseSchema:
     return PhraseSchema(**phrase_fixture.__dict__)
+
+
+@pytest.fixture()
+def phrase_by_search_text_schema_data(
+    phrase_model_data: PhraseModel,
+) -> PhraseBySearchTextSchema:
+    """
+    TODO: Update matched_phrase field when search text is added
+    """
+    return PhraseBySearchTextSchema(**phrase_model_data.__dict__, matched_phrase="")
 
 
 @pytest.fixture()

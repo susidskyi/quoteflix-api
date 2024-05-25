@@ -8,8 +8,9 @@ from types_aiobotocore_s3.type_defs import ObjectIdentifierTypeDef
 from app.core.config import settings
 
 # Disable a lot of boto3 logs such as binary file data etc.
-logging.getLogger("boto3").setLevel(logging.CRITICAL)
-logging.getLogger("botocore").setLevel(logging.CRITICAL)
+logging.getLogger("boto3").setLevel(logging.ERROR)
+logging.getLogger("botocore").setLevel(logging.ERROR)
+logging.getLogger("aiobotocore").setLevel(logging.ERROR)
 
 
 class S3Service:

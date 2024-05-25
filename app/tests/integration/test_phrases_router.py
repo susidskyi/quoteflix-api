@@ -10,7 +10,13 @@ from httpx import AsyncClient
 from app.api.movies.dependencies import movie_exists
 from app.api.phrases.dependencies import get_scenes_upload_service, phrase_exists
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseSchema, PhraseTransferSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import (
+    PhraseBySearchTextSchema,
+    PhraseCreateSchema,
+    PhraseSchema,
+    PhraseTransferSchema,
+    PhraseUpdateSchema,
+)
 from app.api.users.models import UserModel
 from app.api.users.permissions import current_superuser
 
@@ -477,9 +483,9 @@ class TestGetPhrasesBySearchText:
         app_with_dependency_overrides: FastAPI,
         mock_phrases_service: mock.AsyncMock,
         phrase_model_data: PhraseModel,
-        phrase_schema_data: PhraseSchema,
+        phrase_by_search_text_schema_data: PhraseBySearchTextSchema,
     ):
-        mock_phrases_service.get_by_search_text.return_value = [phrase_model_data]
+        mock_phrases_service.get_by_search_text.return_value = [phrase_by_search_text_schema_data]
 
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
@@ -492,7 +498,7 @@ class TestGetPhrasesBySearchText:
 
         assert len(result_data) == 1
         assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
-            phrase_schema_data.model_dump(mode="json"),
+            phrase_by_search_text_schema_data.model_dump(mode="json"),
             sort_keys=True,
         )
 
