@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     environment: str
     secret: str
     scenes_tmp_path: str
+    phrases_page_size: int = 3
 
     # Database
     database_url: PostgresDsn

@@ -7,6 +7,7 @@ from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
 from app.api.phrases.utils import normalize_phrase_text
+from app.core.config import settings
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -168,7 +169,7 @@ class TestPhrasesRepository:
         assert len(result_page_1.items) == 3
         assert [x.id for x in result_page_1.items] == [x.id for x in created_phrases[:3]]
         assert result_page_1.total == number_of_phrases
-        assert result_page_1.size == 3
+        assert result_page_1.size == settings.phrases_page_size
         assert result_page_1.page == 1
         assert result_page_1.pages == 3
 
@@ -179,7 +180,7 @@ class TestPhrasesRepository:
         assert len(result_page_2.items) == 3
         assert [x.id for x in result_page_2.items] == [x.id for x in created_phrases[3:6]]
         assert result_page_2.total == number_of_phrases
-        assert result_page_2.size == 3
+        assert result_page_2.size == settings.phrases_page_size
         assert result_page_2.page == 2
         assert result_page_2.pages == 3
 
@@ -190,7 +191,7 @@ class TestPhrasesRepository:
         assert len(result_page_3.items) == 1
         assert [x.id for x in result_page_3.items] == [x.id for x in created_phrases[6:7]]
         assert result_page_3.total == number_of_phrases
-        assert result_page_3.size == 3
+        assert result_page_3.size == settings.phrases_page_size
         assert result_page_3.page == 3
         assert result_page_3.pages == 3
 

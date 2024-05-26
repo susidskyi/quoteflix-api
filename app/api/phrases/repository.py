@@ -12,6 +12,7 @@ from app.api.phrases.schemas import (
     PhraseTransferSchema,
     PhraseUpdateSchema,
 )
+from app.core.config import settings
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -130,7 +131,7 @@ class PhrasesRepository:
                 select(PhraseModel).where(
                     PhraseModel.normalized_text.icontains(search_text),
                 ),
-                params=Params(page=page, size=3),
+                params=Params(page=page, size=settings.phrases_page_size),
             )
 
             return result

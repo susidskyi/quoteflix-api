@@ -221,7 +221,7 @@ class TestPhrasesService:
             items=[phrase_model_data],
             total=1,
             page=1,
-            size=3,
+            size=settings.phrases_page_size,
             pages=1,
         )
 

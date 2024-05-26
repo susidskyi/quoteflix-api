@@ -411,7 +411,7 @@ def paginated_phrases_by_search_text_schema_data(
         items=[phrase_by_search_text_schema_data],
         total=1,
         page=1,
-        size=3,
+        size=settings.phrases_page_size,
         pages=1,
     )
 
