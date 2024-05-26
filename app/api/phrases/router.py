@@ -15,7 +15,7 @@ from app.api.phrases.dependencies import (
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
-    PhraseBySearchTextSchema,
+    PaginatedPhrasesBySearchTextSchema,
     PhraseCreateFromMovieFilesSchema,
     PhraseCreateSchema,
     PhraseSchema,
@@ -44,19 +44,20 @@ async def get_all_phrases(
 @router.get(
     "/get-by-search-text",
     name="phrases:get-phrases-by-search-text",
-    response_model=Sequence[PhraseBySearchTextSchema],
+    response_model=PaginatedPhrasesBySearchTextSchema,
     status_code=status.HTTP_200_OK,
 )
 @cache(expire=1800, key_builder=key_builder_phrase_search_by_text)
 async def get_phrases_by_search_text(
     search_text: Annotated[str, Query(min_length=1)],
+    page: Annotated[int, Query(ge=1)],
     phrases_service: PhrasesService = Depends(get_phrases_service),
-) -> Sequence[PhraseBySearchTextSchema]:
+) -> PaginatedPhrasesBySearchTextSchema:
     """
     If dependencies are changed, make sure `key_builder_phrase_search_by_text`
     workds correctly. It had to be created because of issue: https://github.com/long2ice/fastapi-cache/issues/279
     """
-    return await phrases_service.get_by_search_text(search_text)
+    return await phrases_service.get_by_search_text(search_text, page)
 
 
 @router.get(

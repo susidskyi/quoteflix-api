@@ -5,6 +5,7 @@ from typing import Sequence
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import (
+    PaginatedPhrasesBySearchTextSchema,
     PhraseBySearchTextSchema,
     PhraseCreateSchema,
     PhraseTransferSchema,
@@ -71,18 +72,27 @@ class PhrasesService:
         await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
         return phrases
 
-    async def get_by_search_text(self, search_text: str) -> Sequence[PhraseBySearchTextSchema]:
+    async def get_by_search_text(self, search_text: str, page: int) -> PaginatedPhrasesBySearchTextSchema:
         normalized_search_text = normalize_phrase_text(search_text)
-        phrases = await self.repository.get_by_search_text(normalized_search_text)
-        await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
+        phrases_from_db = await self.repository.get_by_search_text(normalized_search_text, page)
 
-        return [
-            PhraseBySearchTextSchema(
-                **phrase.__dict__,
-                matched_phrase=get_matched_phrase(phrase.full_text, normalized_search_text),
-            )
-            for phrase in phrases
-        ]
+        # TODO: rewrite when match is implemented
+        phrases = PaginatedPhrasesBySearchTextSchema(
+            items=[
+                PhraseBySearchTextSchema(
+                    **phrase.__dict__,
+                    matched_phrase=get_matched_phrase(phrase.full_text, normalized_search_text),
+                )
+                for phrase in phrases_from_db.items
+            ],
+            total=phrases_from_db.total,
+            page=phrases_from_db.page,
+            size=phrases_from_db.size,
+            pages=phrases_from_db.pages,
+        )
+
+        await self.presigned_url_service.update_s3_urls_for_models(phrases.items, "scene_s3_key")
+        return phrases
 
     async def delete_by_movie_id(self, movie_id: uuid.UUID) -> None:
         await self.repository.delete_by_movie_id(movie_id)

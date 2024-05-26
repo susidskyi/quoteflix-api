@@ -147,6 +147,53 @@ class TestPhrasesRepository:
         assert len(all_phrases_in_db) == 2
         assert len(result) == 2
 
+    async def test_pagination_get_by_search_phrase(
+        self,
+        phrases_repository: PhrasesRepository,
+        movie_fixture: MovieModel,
+        phrase_create_schema_data: PhraseCreateSchema,
+    ):
+        valid_search_text = normalize_phrase_text("fru'its")
+        created_phrases = []
+        number_of_phrases = 7
+
+        for _ in range(number_of_phrases):
+            phrase = await phrases_repository.create(phrase_create_schema_data)
+            created_phrases.append(phrase)
+
+        result_page_1 = await phrases_repository.get_by_search_text(
+            valid_search_text,
+            page=1,
+        )
+        assert len(result_page_1.items) == 3
+        assert [x.id for x in result_page_1.items] == [x.id for x in created_phrases[:3]]
+        assert result_page_1.total == number_of_phrases
+        assert result_page_1.size == 3
+        assert result_page_1.page == 1
+        assert result_page_1.pages == 3
+
+        result_page_2 = await phrases_repository.get_by_search_text(
+            valid_search_text,
+            page=2,
+        )
+        assert len(result_page_2.items) == 3
+        assert [x.id for x in result_page_2.items] == [x.id for x in created_phrases[3:6]]
+        assert result_page_2.total == number_of_phrases
+        assert result_page_2.size == 3
+        assert result_page_2.page == 2
+        assert result_page_2.pages == 3
+
+        result_page_3 = await phrases_repository.get_by_search_text(
+            valid_search_text,
+            page=3,
+        )
+        assert len(result_page_3.items) == 1
+        assert [x.id for x in result_page_3.items] == [x.id for x in created_phrases[6:7]]
+        assert result_page_3.total == number_of_phrases
+        assert result_page_3.size == 3
+        assert result_page_3.page == 3
+        assert result_page_3.pages == 3
+
     @pytest.mark.parametrize(
         ("search_text", "expected_count"),
         [
@@ -155,17 +202,19 @@ class TestPhrasesRepository:
             ("invalid string", 0),
         ],
     )
-    async def test_get_by_search_text(
+    async def test_get_by_search_phrases(
         self,
         phrases_repository: PhrasesRepository,
         phrase_fixture: PhraseModel,
         search_text: str,
         expected_count: int,
     ):
-        normalized_text = normalize_phrase_text(search_text)
-        result = await phrases_repository.get_by_search_text(normalized_text)
+        result = await phrases_repository.get_by_search_text(
+            search_text=normalize_phrase_text(search_text),
+            page=1,
+        )
 
-        assert len(result) == expected_count
+        assert len(result.items) == expected_count
 
     async def test_delete_by_movie_id(
         self,

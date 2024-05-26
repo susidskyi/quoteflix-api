@@ -29,6 +29,7 @@ from app.api.phrases.models import PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
+    PaginatedPhrasesBySearchTextSchema,
     PhraseBySearchTextSchema,
     PhraseCreateSchema,
     PhraseSchema,
@@ -400,6 +401,19 @@ def phrase_by_search_text_schema_data(
     TODO: Update matched_phrase field when search text is added
     """
     return PhraseBySearchTextSchema(**phrase_model_data.__dict__, matched_phrase="")
+
+
+@pytest.fixture()
+def paginated_phrases_by_search_text_schema_data(
+    phrase_by_search_text_schema_data: PhraseBySearchTextSchema,
+):
+    return PaginatedPhrasesBySearchTextSchema(
+        items=[phrase_by_search_text_schema_data],
+        total=1,
+        page=1,
+        size=3,
+        pages=1,
+    )
 
 
 @pytest.fixture()

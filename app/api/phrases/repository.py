@@ -1,11 +1,17 @@
 import uuid
 from typing import Sequence
 
+from fastapi_pagination import Page, Params
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import delete, exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import (
+    PhraseCreateSchema,
+    PhraseTransferSchema,
+    PhraseUpdateSchema,
+)
 from app.core.exceptions import RepositoryNotFoundError
 
 
@@ -117,15 +123,17 @@ class PhrasesRepository:
 
         return phrases
 
-    async def get_by_search_text(self, search_text: str) -> Sequence[PhraseModel]:
+    async def get_by_search_text(self, search_text: str, page: int = 1) -> Page[PhraseModel]:
         async with self.session as session:
-            query = select(PhraseModel).where(
-                PhraseModel.normalized_text.icontains(search_text),
+            result: Page[PhraseModel] = await paginate(
+                session,
+                select(PhraseModel).where(
+                    PhraseModel.normalized_text.icontains(search_text),
+                ),
+                params=Params(page=page, size=3),
             )
 
-            phrases = await session.scalars(query)
-
-            return phrases.all()
+            return result
 
     async def delete_by_movie_id(self, movie_id: uuid.UUID) -> None:
         async with self.session as session:

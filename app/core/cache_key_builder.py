@@ -20,10 +20,11 @@ def key_builder_phrase_search_by_text(
     """
 
     prefix = f"{FastAPICache.get_prefix()}:{namespace}:"
-    search_text = kwargs.get("search_text")  # type: ignore
+    search_text = kwargs.get("search_text", "").strip()  # type: ignore
+    page = kwargs.get("page")  # type: ignore
 
     cache_key = hashlib.blake2b(
-        f"{func.__module__}:{func.__name__}:{args}:{search_text}".encode(),
+        f"{func.__module__}:{func.__name__}:{args}:{search_text}:{page}".encode(),
     ).hexdigest()
 
     return f"{prefix}:{cache_key}"

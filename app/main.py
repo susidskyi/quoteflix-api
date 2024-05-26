@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
+from fastapi_pagination import add_pagination
 from redis import asyncio as aioredis
 
 from app.api.movies.router import router as movies_router
@@ -41,10 +42,16 @@ origins = ["http://localhost", "http://localhost:8080", "http://localhost:3000",
 
 
 app = FastAPI(lifespan=lifespan, docs_url=docs_url)
+
+# Paginator
+add_pagination(app)
+
+# Logfire configuration
 logfire.configure(token=settings.logfire_token, send_to_logfire=settings.environment in ["dev", "prod"])
 logfire.instrument_fastapi(app)
 
 # CORS (Cross-Origin Resource Sharing)
+# TODO: investigate this
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

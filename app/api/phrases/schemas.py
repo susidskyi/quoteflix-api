@@ -1,6 +1,7 @@
 import abc
 import datetime
 import uuid
+from typing import Sequence
 
 from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
@@ -23,6 +24,14 @@ class PhraseBySearchTextSchema(BaseModel):
     full_text: str
     scene_s3_key: str | None
     matched_phrase: str
+
+
+class PaginatedPhrasesBySearchTextSchema(BaseModel):
+    items: Sequence[PhraseBySearchTextSchema]
+    total: int
+    page: int
+    size: int
+    pages: int
 
 
 class PhraseCreateUpdateSchema(BaseModel, abc.ABC):

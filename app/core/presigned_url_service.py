@@ -1,9 +1,11 @@
 import typing
 
+from pydantic import BaseModel
+
 from app.core.models import CoreModel
 from app.core.s3_service import S3Service
 
-CM = typing.TypeVar("CM", bound=CoreModel)
+CM = typing.TypeVar("CM", bound=CoreModel | BaseModel)
 
 
 class PresignedURLService:

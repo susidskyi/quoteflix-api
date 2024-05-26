@@ -4,9 +4,11 @@ from unittest import mock
 
 import pytest
 import pytest_mock
+from fastapi_pagination import Page
 
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.schemas import (
+    PaginatedPhrasesBySearchTextSchema,
     PhraseBySearchTextSchema,
     PhraseCreateSchema,
     PhraseTransferSchema,
@@ -212,23 +214,27 @@ class TestPhrasesService:
         mock_phrases_repository: mock.AsyncMock,
         phrase_model_data: PhraseModel,
         phrase_by_search_text_schema_data: PhraseBySearchTextSchema,
+        paginated_phrases_by_search_text_schema_data: PaginatedPhrasesBySearchTextSchema,
         search_text: str,
     ):
-        mock_phrases_repository.get_by_search_text.return_value = [phrase_model_data]
-        normalized_text = normalize_phrase_text(search_text)
-        mock_presigned_url_service.update_s3_urls_for_models.return_value = [
-            phrase_model_data,
-        ]
+        mock_phrases_repository.get_by_search_text.return_value = Page(
+            items=[phrase_model_data],
+            total=1,
+            page=1,
+            size=3,
+            pages=1,
+        )
 
-        result = await phrases_service.get_by_search_text(search_text)
+        result = await phrases_service.get_by_search_text(search_text, 1)
 
-        assert len(result) == 1
-        assert phrase_by_search_text_schema_data in result
+        assert result == paginated_phrases_by_search_text_schema_data
+
         mock_phrases_repository.get_by_search_text.assert_awaited_once_with(
-            normalized_text,
+            normalize_phrase_text(search_text),
+            1,
         )
         mock_presigned_url_service.update_s3_urls_for_models.assert_awaited_once_with(
-            [phrase_model_data],
+            [phrase_by_search_text_schema_data],
             "scene_s3_key",
         )
 

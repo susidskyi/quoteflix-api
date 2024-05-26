@@ -18,7 +18,8 @@ class DatabaseSessionManager:
             engine_kwargs = {}
         self._engine: AsyncEngine | None = create_async_engine(url, **engine_kwargs)
         self._sessionmaker: async_sessionmaker[AsyncSession] | None = async_sessionmaker(
-            autocommit=False, bind=self._engine
+            autocommit=False,
+            bind=self._engine,
         )
 
     async def close(self) -> None:

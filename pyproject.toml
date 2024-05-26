@@ -28,6 +28,7 @@ aiofiles = "23.2.1"
 
 logfire = {version = "0.35.0", extras=["fastapi"]}
 fastapi-cache2 = {extras = ["redis"], version = "0.2.1"}
+fastapi-pagination = "0.12.24"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "1.10.0"
