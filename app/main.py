@@ -6,6 +6,9 @@ from typing import AsyncIterator
 import logfire
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
+from redis import asyncio as aioredis
 
 from app.api.movies.router import router as movies_router
 from app.api.phrases.router import router as phrases_router
@@ -24,6 +27,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
     """
     Function that handles startup and shutdown events.
     """
+    redis = aioredis.from_url(str(settings.redis_api_cache_url))
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
     yield
     if sessionmanager._engine is not None:
         # Close the DB connection

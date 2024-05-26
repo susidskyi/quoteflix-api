@@ -9,6 +9,8 @@ import aioboto3
 import pytest
 import pytest_asyncio
 from fastapi import FastAPI, HTTPException, UploadFile, status
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -88,6 +90,7 @@ async def async_client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
 
 @pytest.fixture(scope="session")
 def app() -> FastAPI:
+    FastAPICache.init(InMemoryBackend(), prefix="fastapi-cache-test")
     return main_app
 
 

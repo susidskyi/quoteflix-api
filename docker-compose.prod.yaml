@@ -87,13 +87,25 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.middlewares=customheaders
     networks:
       - traefik-public
+    depends_on:
+      - redis
+
+  redis:
+    restart: unless-stopped
+    image: redis:7.2.5-alpine
+    networks:
+      - traefik-public
+    volumes:
+      - redis-db-data:/data
+    ports:
+      - "6380:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: 6379
 
 volumes:
-  # Create a volume to store the certificates, even if the container is recreated
   traefik-public-certificates:
 
 networks:
-  # Use the previously created public network "traefik-public", shared with other
-  # services that need to be publicly available via this Traefik
   traefik-public:
     external: true

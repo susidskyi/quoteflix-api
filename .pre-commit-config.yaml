@@ -22,7 +22,7 @@ repos:
 - repo: local
   hooks:
   - id: test
-    name: Run Tests
+    name: Run CI
     entry: inv ci
     language: system
     always_run: true

@@ -44,15 +44,12 @@ services:
     command: /start-reload.sh
     networks:
       - traefik-public
-    build: 
-      context: .
-      args:
-        ENVIRONMENT: ${ENVIRONMENT-local}
     labels:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=Host(`${DOMAIN?Variable not set}`) && PathPrefix(`/api/`)
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.entrypoints=http
     depends_on:
       - minio
+      - redis
 
   minio:
     image: minio/minio:latest
@@ -72,6 +69,19 @@ services:
       - minio-storage-r:/data
     networks:
       - traefik-public
+
+  redis:
+    restart: unless-stopped
+    image: redis:7.2.5-alpine
+    networks:
+      - traefik-public
+    volumes:
+      - redis-db-data:/data
+    ports:
+      - "6380:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: 6379
 
 networks:
   traefik-public:

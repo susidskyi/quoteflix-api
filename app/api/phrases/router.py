@@ -1,8 +1,10 @@
 import uuid
 from typing import Sequence
 
-from fastapi import Depends, status
+from fastapi import Depends, Query, status
 from fastapi.routing import APIRouter
+from fastapi_cache.decorator import cache
+from typing_extensions import Annotated
 
 from app.api.movies.dependencies import movie_exists
 from app.api.phrases.dependencies import (
@@ -22,6 +24,7 @@ from app.api.phrases.schemas import (
 )
 from app.api.phrases.service import PhrasesService
 from app.api.users.permissions import current_superuser
+from app.core.cache_key_builder import key_builder_phrase_search_by_text
 
 router = APIRouter(prefix="/phrases", tags=["phrases"])
 
@@ -44,10 +47,15 @@ async def get_all_phrases(
     response_model=Sequence[PhraseBySearchTextSchema],
     status_code=status.HTTP_200_OK,
 )
+@cache(expire=1800, key_builder=key_builder_phrase_search_by_text)
 async def get_phrases_by_search_text(
-    search_text: str,
+    search_text: Annotated[str, Query(min_length=1)],
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> Sequence[PhraseBySearchTextSchema]:
+    """
+    If dependencies are changed, make sure `key_builder_phrase_search_by_text`
+    workds correctly. It had to be created because of issue: https://github.com/long2ice/fastapi-cache/issues/279
+    """
     return await phrases_service.get_by_search_text(search_text)
 
 

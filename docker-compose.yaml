@@ -16,4 +16,4 @@ services:
       - "host.docker.internal:host-gateway"
 
 volumes:
-  app-db-data:
+  redis-db-data:

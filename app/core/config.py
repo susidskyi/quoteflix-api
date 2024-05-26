@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import PostgresDsn
+from pydantic import PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings
 
 
@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     s3_secret_key: str
     s3_region_name: str
     movies_s3_path: str
+
+    # Redis
+    redis_api_cache_url: RedisDsn
 
     # Logfire
     logfire_token: str
