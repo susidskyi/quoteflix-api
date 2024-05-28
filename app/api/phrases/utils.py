@@ -1,5 +1,4 @@
 import os
-import re
 
 from app.api.phrases.models import PhraseModel
 
@@ -43,8 +42,8 @@ def normalize_phrase_text(text: str) -> str:
 
 
 def ffmpeg_output_arg_from_phrase(phrase: PhraseModel, output_dir: str, file_extension: str) -> str:
-    start_time = phrase.start_in_movie.total_seconds()
-    end_time = phrase.end_in_movie.total_seconds()
+    start_time = phrase.start_in_movie.total_seconds() + 0.5
+    end_time = phrase.end_in_movie.total_seconds() + 0.5
 
     file_name = f"{phrase.id}{file_extension}"
     file_path = os.path.join(output_dir, file_name)

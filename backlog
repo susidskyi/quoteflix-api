@@ -2,3 +2,6 @@ Movie analytics: its all phrases length, phrases number, unique phrases
 Fix phrases after review and query only phrases with problem
 Match phrases algorithm
 Check if really need presign_urls everywhere
+Investigate Cross-Origins and middlewares
+Move to background_tasks heavy or not important code 
+Add tests for Issues
