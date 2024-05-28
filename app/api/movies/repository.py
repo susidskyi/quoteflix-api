@@ -79,11 +79,7 @@ class MoviesRepository:
             if not await self.exists(movie_id):
                 raise RepositoryNotFoundError(f"Movie not found: id={movie_id}")
 
-            query = (
-                update(MovieModel)
-                .where(MovieModel.id == movie_id)
-                .values(status=status)
-            )
+            query = update(MovieModel).where(MovieModel.id == movie_id).values(status=status)
             await session.execute(query)
 
             await session.commit()

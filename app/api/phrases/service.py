@@ -61,9 +61,11 @@ class PhrasesService:
 
         return phrase
 
-    async def get_by_movie_id(self, movie_id: uuid.UUID) -> Sequence[PhraseModel]:
+    async def get_by_movie_id(self, movie_id: uuid.UUID, presign_urls: bool = True) -> Sequence[PhraseModel]:
         phrases = await self.repository.get_by_movie_id(movie_id)
-        await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
+
+        if presign_urls:
+            await self.presigned_url_service.update_s3_urls_for_models(phrases, "scene_s3_key")
 
         return phrases
 

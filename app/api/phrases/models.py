@@ -23,3 +23,10 @@ class PhraseModel(CoreModel, IDModelMixin, DateTimeModelMixin):
     is_active: Mapped[bool] = mapped_column(default=True)
 
     movie: Mapped[MovieModel] = relationship(back_populates="phrases")
+
+    @property
+    def duration(self) -> datetime.timedelta:
+        """
+        TODO: add test ad return in miliseconds
+        """
+        return self.end_in_movie - self.start_in_movie
