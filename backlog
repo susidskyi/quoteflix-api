@@ -5,3 +5,13 @@ Check if really need presign_urls everywhere
 Investigate Cross-Origins and middlewares
 Move to background_tasks heavy or not important code 
 Add tests for Issues
+Check naming routes
+Check DB queries and retrieve only needed fields to optimize it
+Filter issues by active/inactive
+Add analytics to count phrases searches etc.
+Use import typing everywhere
+Replace all get-by with filter
+Start using * \ in args
+Investigate using 'phrase', 'movie' in places where it's not needed (router, service, repository)
+Investigate if we need to cast Model To Scheme in routers.
+Squash migrations
