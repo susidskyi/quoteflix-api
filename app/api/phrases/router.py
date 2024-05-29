@@ -1,7 +1,7 @@
 import uuid
 from typing import Sequence
 
-from fastapi import Depends, Query, status
+from fastapi import BackgroundTasks, Depends, Query, Request, status
 from fastapi.routing import APIRouter
 from fastapi_cache.decorator import cache
 from typing_extensions import Annotated
@@ -11,13 +11,15 @@ from app.api.phrases.dependencies import (
     get_phrases_service,
     get_scenes_upload_service,
     phrase_exists,
+    phrase_issue_exists,
 )
-from app.api.phrases.models import PhraseModel
+from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
     PaginatedPhrasesBySearchTextSchema,
     PhraseCreateFromMovieFilesSchema,
     PhraseCreateSchema,
+    PhraseIssueSchema,
     PhraseSchema,
     PhraseTransferSchema,
     PhraseUpdateSchema,
@@ -84,6 +86,19 @@ async def delete_phrases_by_movie_id(
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> None:
     await phrases_service.delete_by_movie_id(movie_id)
+
+
+@router.get(
+    "/issues",
+    name="phrases:get-phrases-issues",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(current_superuser)],
+    response_model=Sequence[PhraseIssueSchema],
+)
+async def get_phrases_issues(
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> Sequence[PhraseIssueModel]:
+    return await phrases_service.get_all_issues()
 
 
 @router.get(
@@ -193,3 +208,63 @@ async def import_phrases_from_json(
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> None:
     await phrases_service.import_from_json(movie_id, payload)
+
+
+@router.delete(
+    "/issues/{issue_id}",
+    name="phrases:delete-phrase-issue",
+    dependencies=[Depends(current_superuser), Depends(phrase_issue_exists)],
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_phrase_issue(
+    issue_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> None:
+    background_tasks.add_task(phrases_service.delete_issue, issue_id)
+
+
+@router.post(
+    "/{phrase_id}/issues",
+    name="phrases:create-phrase-issue",
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(phrase_exists)],
+)
+async def create_phrase_issue(
+    request: Request,
+    phrase_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> None:
+    issuer = request.client
+    issuer_ip = issuer.host if issuer else "Unknown"
+
+    background_tasks.add_task(phrases_service.create_issue, phrase_id, issuer_ip)
+
+
+@router.get(
+    "/{phrase_id}/issues",
+    name="phrases:get-phrase-issues",
+    status_code=status.HTTP_200_OK,
+    response_model=Sequence[PhraseIssueSchema],
+    dependencies=[Depends(phrase_exists), Depends(current_superuser)],
+)
+async def get_issues_by_phrase_id(
+    phrase_id: uuid.UUID,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> Sequence[PhraseIssueModel]:
+    return await phrases_service.get_issues_by_phrase_id(phrase_id)
+
+
+@router.delete(
+    "/{phrase_id}/issues",
+    name="phrases:delete-phrase-issues",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(phrase_exists), Depends(current_superuser)],
+)
+async def delete_phrase_issues(
+    phrase_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> None:
+    background_tasks.add_task(phrases_service.delete_issues_by_phrase_id, phrase_id)

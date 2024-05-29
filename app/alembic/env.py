@@ -6,9 +6,8 @@ from asyncpg import Connection
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.api.issues.models import PhraseIssueReport  # noqa: F401
 from app.api.movies.models import MovieModel  # noqa: F401
-from app.api.phrases.models import PhraseModel  # noqa: F401
+from app.api.phrases.models import PhraseIssueModel, PhraseModel  # noqa: F401
 from app.api.users.models import UserModel  # noqa: F401
 from app.core.config import settings
 from app.core.models import CoreModel

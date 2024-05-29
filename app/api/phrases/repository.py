@@ -5,8 +5,9 @@ from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import delete, exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
-from app.api.phrases.models import PhraseModel
+from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.schemas import (
     PhraseCreateSchema,
     PhraseTransferSchema,
@@ -153,3 +154,60 @@ class PhrasesRepository:
             )
 
             await session.commit()
+
+    async def create_issue(self, phrase_id: uuid.UUID, issuer_ip: str) -> None:
+        async with self.session as session:
+            issue_exists_stmt = select(
+                exists().where(PhraseIssueModel.issuer_ip == issuer_ip, PhraseIssueModel.phrase_id == phrase_id),
+            )
+            issue_exists = await session.scalar(issue_exists_stmt)
+
+            if not issue_exists:
+                issue = PhraseIssueModel(
+                    phrase_id=phrase_id,
+                    issuer_ip=issuer_ip,
+                )
+
+                session.add(issue)
+                await session.commit()
+
+    async def get_issues_by_phrase_id(self, phrase_id: uuid.UUID) -> Sequence[PhraseIssueModel]:
+        async with self.session as session:
+            issues_stmt = (
+                select(PhraseIssueModel)
+                .where(PhraseIssueModel.phrase_id == phrase_id)
+                .options(joinedload(PhraseIssueModel.phrase))
+            )
+
+            issues = await session.scalars(issues_stmt)
+
+            return issues.all()
+
+    async def get_all_issues(self) -> Sequence[PhraseIssueModel]:
+        async with self.session as session:
+            issues_stmt = select(PhraseIssueModel).options(joinedload(PhraseIssueModel.phrase))
+            issues = await session.scalars(issues_stmt)
+
+            return issues.all()
+
+    async def delete_issue(self, issue_id: uuid.UUID) -> None:
+        async with self.session as session:
+            stmt = delete(PhraseIssueModel).where(PhraseIssueModel.id == issue_id)
+
+            await session.execute(stmt)
+            await session.commit()
+
+    async def delete_issues_by_phrase_id(self, phrase_id: uuid.UUID) -> None:
+        async with self.session as session:
+            stmt = delete(PhraseIssueModel).where(PhraseIssueModel.phrase_id == phrase_id)
+
+            await session.execute(stmt)
+            await session.commit()
+
+    async def issue_exists(self, issue_id: uuid.UUID) -> bool:
+        async with self.session as session:
+            stmt = select(exists().where(PhraseIssueModel.id == issue_id))
+
+            result = await session.scalar(stmt)
+
+            return bool(result)

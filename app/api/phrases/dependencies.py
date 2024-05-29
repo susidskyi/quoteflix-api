@@ -46,3 +46,11 @@ async def phrase_exists(
 ) -> None:
     if not await phrases_service.exists(phrase_id):
         raise HTTPException(status_code=404, detail="Phrase not found")
+
+
+async def phrase_issue_exists(
+    issue_id: uuid.UUID,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> None:
+    if not await phrases_service.issue_exists(issue_id):
+        raise HTTPException(status_code=404, detail="Phrase Issue not found")

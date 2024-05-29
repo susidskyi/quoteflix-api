@@ -1,4 +1,5 @@
 import datetime
+import typing
 import uuid
 
 from sqlalchemy import ForeignKey, String
@@ -23,6 +24,9 @@ class PhraseModel(CoreModel, IDModelMixin, DateTimeModelMixin):
     is_active: Mapped[bool] = mapped_column(default=True)
 
     movie: Mapped[MovieModel] = relationship(back_populates="phrases")
+    issues: Mapped[typing.List["PhraseIssueModel"]] = relationship(
+        back_populates="phrase",
+    )
 
     @property
     def duration(self) -> datetime.timedelta:
@@ -30,3 +34,13 @@ class PhraseModel(CoreModel, IDModelMixin, DateTimeModelMixin):
         TODO: add test ad return in miliseconds
         """
         return self.end_in_movie - self.start_in_movie
+
+
+class PhraseIssueModel(CoreModel, IDModelMixin, DateTimeModelMixin):
+    __tablename__ = "phrases_issues"
+
+    issuer_ip: Mapped[str]
+    is_active: Mapped[bool] = mapped_column(default=True)
+    phrase_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("phrases.id", ondelete="CASCADE"))
+
+    phrase: Mapped[PhraseModel] = relationship(back_populates="issues")

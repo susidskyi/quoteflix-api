@@ -15,3 +15,4 @@ Start using * \ in args
 Investigate using 'phrase', 'movie' in places where it's not needed (router, service, repository)
 Investigate if we need to cast Model To Scheme in routers.
 Squash migrations
+Check time types responses

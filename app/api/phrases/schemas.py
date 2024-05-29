@@ -12,8 +12,9 @@ from app.core.validators import FileValidator
 
 
 class PhraseSchema(BaseModel):
-    id: uuid.UUID
     model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
     movie_id: uuid.UUID
     full_text: str
     scene_s3_key: str | None
@@ -109,3 +110,10 @@ class PhraseTransferSchema(BaseModel):
     start_in_movie: datetime.timedelta
     end_in_movie: datetime.timedelta
     scene_s3_key: str
+
+
+class PhraseIssueSchema(BaseModel):
+    id: uuid.UUID
+    issuer_ip: str
+    phrase: PhraseSchema
+    created_at: datetime.datetime

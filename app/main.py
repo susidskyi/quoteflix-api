@@ -12,7 +12,6 @@ from fastapi_pagination import add_pagination
 from redis import asyncio as aioredis
 
 from app.api.analytics.router import router as analytics_router
-from app.api.issues.router import router as issues_router
 from app.api.movies.router import router as movies_router
 from app.api.phrases.router import router as phrases_router
 from app.api.users.router import router as users_router
@@ -67,4 +66,3 @@ app.include_router(users_router, prefix="/api")
 app.include_router(movies_router, prefix="/api")
 app.include_router(phrases_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
-app.include_router(issues_router, prefix="/api")

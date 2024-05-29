@@ -2,7 +2,7 @@ import os
 import uuid
 from typing import Sequence
 
-from app.api.phrases.models import PhraseModel
+from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import (
     PaginatedPhrasesBySearchTextSchema,
@@ -110,3 +110,21 @@ class PhrasesService:
 
     async def import_from_json(self, movie_id: uuid.UUID, data: Sequence[PhraseTransferSchema]) -> None:
         await self.repository.import_from_json(movie_id, data)
+
+    async def issue_exists(self, issue_id: uuid.UUID) -> bool:
+        return await self.repository.issue_exists(issue_id)
+
+    async def get_all_issues(self) -> Sequence[PhraseIssueModel]:
+        return await self.repository.get_all_issues()
+
+    async def delete_issue(self, issue_id: uuid.UUID) -> None:
+        await self.repository.delete_issue(issue_id)
+
+    async def create_issue(self, phrase_id: uuid.UUID, issuer_ip: str) -> None:
+        await self.repository.create_issue(phrase_id, issuer_ip)
+
+    async def get_issues_by_phrase_id(self, phrase_id: uuid.UUID) -> Sequence[PhraseIssueModel]:
+        return await self.repository.get_issues_by_phrase_id(phrase_id)
+
+    async def delete_issues_by_phrase_id(self, phrase_id: uuid.UUID) -> None:
+        await self.repository.delete_issues_by_phrase_id(phrase_id)
