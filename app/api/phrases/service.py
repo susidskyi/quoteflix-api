@@ -8,6 +8,7 @@ from app.api.phrases.schemas import (
     PaginatedPhrasesBySearchTextSchema,
     PhraseBySearchTextSchema,
     PhraseCreateSchema,
+    PhraseIssueCreateSchema,
     PhraseTransferSchema,
     PhraseUpdateSchema,
 )
@@ -120,8 +121,8 @@ class PhrasesService:
     async def delete_issue(self, issue_id: uuid.UUID) -> None:
         await self.repository.delete_issue(issue_id)
 
-    async def create_issue(self, phrase_id: uuid.UUID, issuer_ip: str) -> None:
-        await self.repository.create_issue(phrase_id, issuer_ip)
+    async def create_issue(self, phrase_issue_data: PhraseIssueCreateSchema) -> None:
+        await self.repository.create_issue(phrase_issue_data)
 
     async def get_issues_by_phrase_id(self, phrase_id: uuid.UUID) -> Sequence[PhraseIssueModel]:
         return await self.repository.get_issues_by_phrase_id(phrase_id)

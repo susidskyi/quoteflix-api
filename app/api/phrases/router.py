@@ -19,6 +19,7 @@ from app.api.phrases.schemas import (
     PaginatedPhrasesBySearchTextSchema,
     PhraseCreateFromMovieFilesSchema,
     PhraseCreateSchema,
+    PhraseIssueCreateSchema,
     PhraseIssueSchema,
     PhraseSchema,
     PhraseTransferSchema,
@@ -239,7 +240,11 @@ async def create_phrase_issue(
     issuer = request.client
     issuer_ip = issuer.host if issuer else "Unknown"
 
-    background_tasks.add_task(phrases_service.create_issue, phrase_id, issuer_ip)
+    phrase_issue_data = PhraseIssueCreateSchema(
+        issuer_ip=issuer_ip,
+        phrase_id=phrase_id,
+    )
+    background_tasks.add_task(phrases_service.create_issue, phrase_issue_data)
 
 
 @router.get(

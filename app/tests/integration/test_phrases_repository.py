@@ -3,9 +3,15 @@ import uuid
 import pytest
 
 from app.api.movies.models import MovieModel
-from app.api.phrases.models import PhraseModel
+from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.repository import PhrasesRepository
-from app.api.phrases.schemas import PhraseCreateSchema, PhraseTransferSchema, PhraseUpdateSchema
+from app.api.phrases.schemas import (
+    PhraseCreateSchema,
+    PhraseIssueCreateSchema,
+    PhraseIssueSchema,
+    PhraseTransferSchema,
+    PhraseUpdateSchema,
+)
 from app.api.phrases.utils import normalize_phrase_text
 from app.core.config import settings
 from app.core.exceptions import RepositoryNotFoundError
@@ -250,3 +256,84 @@ class TestPhrasesRepository:
         assert result[0].end_in_movie == phrase_transfer_schema_data.end_in_movie
         assert result[0].start_in_movie == phrase_transfer_schema_data.start_in_movie
         assert result[0].normalized_text == phrase_transfer_schema_data.normalized_text
+
+    async def test_create_phrase_issue_ok(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
+        phrase_issue_create_schema_data: PhraseIssueCreateSchema,
+    ):
+        await phrases_repository.create_issue(phrase_issue_create_schema_data)
+
+        all_issues = await phrases_repository.get_all_issues()
+
+        assert len(all_issues) == 1
+        assert all_issues[0].phrase_id == phrase_issue_create_schema_data.phrase_id
+        assert all_issues[0].issuer_ip == phrase_issue_create_schema_data.issuer_ip
+
+        # Check if the same issue was not created
+        await phrases_repository.create_issue(phrase_issue_create_schema_data)
+
+        assert len(all_issues) == 1
+        assert all_issues[0].phrase_id == phrase_issue_create_schema_data.phrase_id
+        assert all_issues[0].issuer_ip == phrase_issue_create_schema_data.issuer_ip
+
+    async def test_get_all_issues(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_issue_fixture: PhraseIssueModel,
+        phrase_issue_model_data: PhraseIssueModel,
+    ):
+        all_issues = await phrases_repository.get_all_issues()
+
+        assert [phrase_issue_model_data] == all_issues
+
+    async def test_get_issues_by_phrase_id(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_issue_fixture: PhraseIssueModel,
+        phrase_issue_model_data: PhraseIssueModel,
+        random_phrase_id: uuid.UUID,
+    ):
+        phrase_issues = await phrases_repository.get_issues_by_phrase_id(random_phrase_id)
+
+        assert phrase_issues == [phrase_issue_model_data]
+
+    async def test_delete_issue(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_issue_fixture: PhraseIssueModel,
+        random_phrase_issue_id: uuid.UUID,
+    ):
+        existing_issues = await phrases_repository.get_all_issues()
+        assert len(existing_issues) == 1
+
+        await phrases_repository.delete_issue(random_phrase_issue_id)
+        existing_issues = await phrases_repository.get_all_issues()
+        assert len(existing_issues) == 0
+
+    async def test_issue_exists(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_issue_fixture: PhraseIssueModel,
+        random_phrase_issue_id: uuid.UUID,
+    ):
+        exists = await phrases_repository.issue_exists(random_phrase_issue_id)
+        assert exists is True
+
+        invalid_uuid = uuid.uuid4()
+        exists = await phrases_repository.issue_exists(invalid_uuid)
+        assert exists is False
+
+    async def test_delete_issues_by_phrase_id(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_issue_fixture: PhraseIssueModel,
+        random_phrase_id: uuid.UUID,
+    ):
+        existing_issues = await phrases_repository.get_issues_by_phrase_id(random_phrase_id)
+        assert len(existing_issues) == 1
+
+        await phrases_repository.delete_issues_by_phrase_id(random_phrase_id)
+        existing_issues = await phrases_repository.get_issues_by_phrase_id(random_phrase_id)
+        assert len(existing_issues) == 0

@@ -10,6 +10,7 @@ from sqlalchemy.orm import joinedload
 from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.schemas import (
     PhraseCreateSchema,
+    PhraseIssueCreateSchema,
     PhraseTransferSchema,
     PhraseUpdateSchema,
 )
@@ -155,18 +156,18 @@ class PhrasesRepository:
 
             await session.commit()
 
-    async def create_issue(self, phrase_id: uuid.UUID, issuer_ip: str) -> None:
+    async def create_issue(self, phrase_issue_data: PhraseIssueCreateSchema) -> None:
         async with self.session as session:
             issue_exists_stmt = select(
-                exists().where(PhraseIssueModel.issuer_ip == issuer_ip, PhraseIssueModel.phrase_id == phrase_id),
+                exists().where(
+                    PhraseIssueModel.issuer_ip == phrase_issue_data.issuer_ip,
+                    PhraseIssueModel.phrase_id == phrase_issue_data.phrase_id,
+                ),
             )
             issue_exists = await session.scalar(issue_exists_stmt)
 
             if not issue_exists:
-                issue = PhraseIssueModel(
-                    phrase_id=phrase_id,
-                    issuer_ip=issuer_ip,
-                )
+                issue = PhraseIssueModel(**phrase_issue_data.model_dump())
 
                 session.add(issue)
                 await session.commit()

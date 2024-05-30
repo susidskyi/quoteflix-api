@@ -117,3 +117,8 @@ class PhraseIssueSchema(BaseModel):
     issuer_ip: str
     phrase: PhraseSchema
     created_at: datetime.datetime
+
+
+class PhraseIssueCreateSchema(BaseModel):
+    issuer_ip: str
+    phrase_id: uuid.UUID

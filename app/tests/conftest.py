@@ -1,6 +1,7 @@
 import datetime
 import io
 import os
+import socket
 import uuid
 from typing import AsyncGenerator, AsyncIterator, Callable
 from unittest import mock
@@ -25,13 +26,15 @@ from app.api.movies.repository import MoviesRepository
 from app.api.movies.schemas import MovieCreateSchema, MovieSchema, MovieUpdateSchema
 from app.api.movies.service import MoviesService
 from app.api.phrases.dependencies import get_phrases_service
-from app.api.phrases.models import PhraseModel
+from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.schemas import (
     PaginatedPhrasesBySearchTextSchema,
     PhraseBySearchTextSchema,
     PhraseCreateSchema,
+    PhraseIssueCreateSchema,
+    PhraseIssueSchema,
     PhraseSchema,
     PhraseTransferSchema,
     PhraseUpdateSchema,
@@ -106,6 +109,12 @@ def app_with_dependency_overrides(
     app.dependency_overrides[get_phrases_service] = lambda: mock_phrases_service
 
     return app
+
+
+@pytest.fixture(scope="session")
+def server_ip() -> str:
+    hostname = socket.gethostname()
+    return socket.gethostbyname(hostname)
 
 
 """
@@ -430,6 +439,54 @@ def check_phrase_exists() -> Callable[[bool], None]:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     return _raise_exception
+
+
+@pytest.fixture()
+def random_phrase_issue_id() -> uuid.UUID:
+    return uuid.uuid4()
+
+
+@pytest.fixture()
+def phrase_issue_create_schema_data(
+    random_phrase_id: uuid.UUID,
+    random_phrase_issue_id: uuid.UUID,
+    server_ip: str,
+) -> PhraseIssueCreateSchema:
+    return PhraseIssueCreateSchema(issuer_ip=server_ip, phrase_id=random_phrase_id)
+
+
+@pytest.fixture()
+def phrase_issue_model_data(
+    phrase_issue_create_schema_data: PhraseIssueCreateSchema,
+    random_phrase_issue_id: uuid.UUID,
+):
+    return PhraseIssueModel(
+        **phrase_issue_create_schema_data.model_dump(),
+        id=random_phrase_issue_id,
+        created_at=datetime.datetime.now(tz=datetime.timezone.utc),
+        updated_at=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+
+
+@pytest_asyncio.fixture
+async def create_phrase_issue(db: AsyncSession) -> Callable[[PhraseIssueCreateSchema], PhraseIssueModel]:
+    async def _create_phrase_issue(phrase_issue_data: PhraseIssueModel) -> PhraseIssueModel:
+        db.add(phrase_issue_data)
+        await db.commit()
+        await db.refresh(phrase_issue_data)
+
+        return phrase_issue_data
+
+    return _create_phrase_issue
+
+
+@pytest_asyncio.fixture
+async def phrase_issue_fixture(
+    phrase_issue_model_data: PhraseIssueModel,
+    phrase_fixture: PhraseModel,
+    create_phrase_issue: Callable[[PhraseIssueCreateSchema], PhraseIssueModel],
+):
+    return await create_phrase_issue(phrase_issue_model_data)
 
 
 """

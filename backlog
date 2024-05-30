@@ -16,3 +16,5 @@ Investigate using 'phrase', 'movie' in places where it's not needed (router, ser
 Investigate if we need to cast Model To Scheme in routers.
 Squash migrations
 Check time types responses
+Create pytest tests package
+Rename Random_ID to ID
