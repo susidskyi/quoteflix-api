@@ -249,7 +249,7 @@ async def create_phrase_issue(
 
 @router.get(
     "/{phrase_id}/issues",
-    name="phrases:get-phrase-issues",
+    name="phrases:get-issues-by-phrase-id",
     status_code=status.HTTP_200_OK,
     response_model=Sequence[PhraseIssueSchema],
     dependencies=[Depends(phrase_exists), Depends(current_superuser)],
@@ -263,7 +263,7 @@ async def get_issues_by_phrase_id(
 
 @router.delete(
     "/{phrase_id}/issues",
-    name="phrases:delete-phrase-issues",
+    name="phrases:delete-issues-by-phrase-id",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(phrase_exists), Depends(current_superuser)],
 )

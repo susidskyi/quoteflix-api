@@ -4,15 +4,18 @@ from typing import Callable
 from unittest import mock
 
 import pytest
+import pytest_mock
 from fastapi import FastAPI, UploadFile, status
 from httpx import AsyncClient
 
 from app.api.movies.dependencies import movie_exists
-from app.api.phrases.dependencies import get_scenes_upload_service, phrase_exists
-from app.api.phrases.models import PhraseModel
+from app.api.phrases.dependencies import get_scenes_upload_service, phrase_exists, phrase_issue_exists
+from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.schemas import (
     PaginatedPhrasesBySearchTextSchema,
     PhraseCreateSchema,
+    PhraseIssueCreateSchema,
+    PhraseIssueSchema,
     PhraseSchema,
     PhraseTransferSchema,
     PhraseUpdateSchema,
@@ -894,6 +897,385 @@ class TestImportPhrasesFromJSON:
                 movie_id=random_movie_id,
             ),
             json=[phrase_transfer_schema_data.model_dump(mode="json")],
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio()
+class TestDeletePhraseIssue:
+    async def test_delete_phrase_issue_ok(
+        self,
+        mocker: pytest_mock.MockerFixture,
+        mock_phrases_service: mock.AsyncMock,
+        random_phrase_issue_id: uuid.UUID,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+    ):
+        background_tasks_mock = mocker.patch("fastapi.BackgroundTasks.add_task")
+
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_issue_exists] = lambda: True
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-phrase-issue",
+                issue_id=random_phrase_issue_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        assert result.content == b""
+        background_tasks_mock.assert_called_once_with(
+            mock_phrases_service.delete_issue,
+            random_phrase_issue_id,
+        )
+
+    async def test_delete_phrase_issue_does_not_exist(
+        self,
+        mocker: pytest_mock.MockerFixture,
+        check_phrase_issue_exists: Callable[[bool], None],
+        random_phrase_issue_id: uuid.UUID,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+    ):
+        background_tasks_mock = mocker.patch("fastapi.BackgroundTasks.add_task")
+
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_issue_exists] = lambda: check_phrase_issue_exists(
+            False,
+        )
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-phrase-issue",
+                issue_id=random_phrase_issue_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        background_tasks_mock.assert_not_called()
+
+    @pytest.mark.parametrize(
+        ("user", "expected_status_code"),
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_204_NO_CONTENT),
+        ],
+    )
+    async def test_permissions(
+        self,
+        random_phrase_issue_id: uuid.UUID,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+        request: pytest.FixtureRequest,
+        user: str,
+        expected_status_code: int,
+    ):
+        user_fixture_value = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value,
+        )
+        app_with_dependency_overrides.dependency_overrides[phrase_issue_exists] = lambda: True
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-phrase-issue",
+                issue_id=random_phrase_issue_id,
+            ),
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio()
+class TestCreatePhraseIssue:
+    async def test_create_phrase_issue_ok(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+        mocker: pytest_mock.MockFixture,
+        random_phrase_id: uuid.UUID,
+        server_ip: str,
+    ):
+        mock_background_tasks_app = mocker.patch("fastapi.BackgroundTasks.add_task")
+        expected_phrase_issue_data = PhraseIssueCreateSchema(
+            issuer_ip=server_ip,
+            phrase_id=random_phrase_id,
+        )
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: True
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:create-phrase-issue",
+                phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_202_ACCEPTED
+
+        mock_background_tasks_app.assert_called_once_with(
+            mock_phrases_service.create_issue,
+            expected_phrase_issue_data,
+        )
+
+    async def test_create_phrase_issue_phrase_does_not_exist(
+        self,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+        mocker: pytest_mock.MockFixture,
+        random_phrase_id: uuid.UUID,
+        check_phrase_exists: Callable[[bool], None],
+    ):
+        mock_background_tasks_app = mocker.patch("fastapi.BackgroundTasks.add_task")
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(False)
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:create-phrase-issue",
+                phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+
+        mock_background_tasks_app.assert_not_called()
+
+
+@pytest.mark.asyncio()
+class TestGetAllPhraseIssues:
+    async def test_get_all_issues_ok(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        phrase_issue_model_read_data: PhraseIssueModel,
+        phrase_issue_schema_data: PhraseIssueSchema,
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        mock_phrases_service.get_all_issues.return_value = [phrase_issue_model_read_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:get-phrases-issues",
+            ),
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        result_data = result.json()
+
+        assert json.dumps(result_data, sort_keys=True) == json.dumps(
+            [phrase_issue_schema_data.model_dump(mode="json")],
+            sort_keys=True,
+        )
+        mock_phrases_service.get_all_issues.assert_awaited_once()
+
+    @pytest.mark.parametrize(
+        ("user", "expected_status_code"),
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_200_OK),
+        ],
+    )
+    async def test_permissions(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+        request: pytest.FixtureRequest,
+        user: str,
+        expected_status_code: int,
+        mock_phrases_service: mock.AsyncMock,
+        phrase_issue_model_read_data: PhraseIssueModel,
+    ):
+        user_fixture_value = request.getfixturevalue(user)
+        mock_phrases_service.get_all_issues.return_value = [phrase_issue_model_read_data]
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value,
+        )
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:get-phrases-issues",
+            ),
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio()
+class TestGetIssuesByPhraseId:
+    async def test_get_all_issues_ok(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        phrase_issue_model_read_data: PhraseIssueModel,
+        phrase_issue_schema_data: PhraseIssueSchema,
+        random_phrase_id: uuid.UUID,
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: True
+        mock_phrases_service.get_issues_by_phrase_id.return_value = [phrase_issue_model_read_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:get-issues-by-phrase-id",
+                phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_200_OK
+        result_data = result.json()
+
+        assert json.dumps(result_data, sort_keys=True) == json.dumps(
+            [phrase_issue_schema_data.model_dump(mode="json")],
+            sort_keys=True,
+        )
+        mock_phrases_service.get_issues_by_phrase_id.assert_awaited_once_with(random_phrase_id)
+
+    async def test_get_all_issues_phrase_does_not_exist(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        phrase_issue_model_read_data: PhraseIssueModel,
+        random_phrase_id: uuid.UUID,
+        check_phrase_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(False)
+        mock_phrases_service.get_issues_by_phrase_id.return_value = [phrase_issue_model_read_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:get-issues-by-phrase-id",
+                phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        mock_phrases_service.get_issues_by_phrase_id.assert_not_awaited()
+
+    @pytest.mark.parametrize(
+        ("user", "expected_status_code"),
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_200_OK),
+        ],
+    )
+    async def test_permissions(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+        request: pytest.FixtureRequest,
+        user: str,
+        expected_status_code: int,
+        mock_phrases_service: mock.AsyncMock,
+        phrase_issue_model_read_data: PhraseIssueModel,
+        random_phrase_id: uuid.UUID,
+    ):
+        user_fixture_value = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value,
+        )
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: True
+        mock_phrases_service.get_issues_by_phrase_id.return_value = [phrase_issue_model_read_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:get-issues-by-phrase-id",
+                phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio()
+class TestDeleteIssuesByPhraseID:
+    async def test_delete_issues_by_phrase_id_ok(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        random_phrase_id: uuid.UUID,
+        mocker: pytest_mock.MockerFixture,
+    ):
+        background_tasks_add_task_mock = mocker.patch("fastapi.BackgroundTasks.add_task")
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: True
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-issues-by-phrase-id",
+                phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_204_NO_CONTENT
+        background_tasks_add_task_mock.assert_called_once_with(
+            mock_phrases_service.delete_issues_by_phrase_id,
+            random_phrase_id,
+        )
+
+    async def test_delete_issues_by_phrase_id_phrase_does_not_exist(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        random_phrase_id: uuid.UUID,
+        mocker: pytest_mock.MockerFixture,
+        check_phrase_exists: Callable[[bool], None],
+    ):
+        background_tasks_add_task_mock = mocker.patch("fastapi.BackgroundTasks.add_task")
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: check_phrase_exists(False)
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-issues-by-phrase-id",
+                phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        background_tasks_add_task_mock.assert_not_called()
+
+    @pytest.mark.parametrize(
+        ("user", "expected_status_code"),
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_204_NO_CONTENT),
+        ],
+    )
+    async def test_permissions(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+        request: pytest.FixtureRequest,
+        user: str,
+        expected_status_code: int,
+        random_phrase_id: uuid.UUID,
+    ):
+        user_fixture_value = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture_value,
+        )
+        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: True
+
+        result = await async_client.delete(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:delete-issues-by-phrase-id",
+                phrase_id=random_phrase_id,
+            ),
         )
 
         assert result.status_code == expected_status_code

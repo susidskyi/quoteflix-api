@@ -113,8 +113,7 @@ def app_with_dependency_overrides(
 
 @pytest.fixture(scope="session")
 def server_ip() -> str:
-    hostname = socket.gethostname()
-    return socket.gethostbyname(hostname)
+    return "127.0.0.1"
 
 
 """
@@ -468,6 +467,21 @@ def phrase_issue_model_data(
     )
 
 
+@pytest.fixture()
+def phrase_issue_model_read_data(
+    phrase_issue_create_schema_data: PhraseIssueCreateSchema,
+    random_phrase_issue_id: uuid.UUID,
+    phrase_model_data: PhraseModel,
+):
+    return PhraseIssueModel(
+        **phrase_issue_create_schema_data.model_dump(),
+        id=random_phrase_issue_id,
+        phrase=phrase_model_data,
+        created_at=datetime.datetime.now(tz=datetime.timezone.utc),
+        updated_at=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+
+
 @pytest_asyncio.fixture
 async def create_phrase_issue(db: AsyncSession) -> Callable[[PhraseIssueCreateSchema], PhraseIssueModel]:
     async def _create_phrase_issue(phrase_issue_data: PhraseIssueModel) -> PhraseIssueModel:
@@ -487,6 +501,22 @@ async def phrase_issue_fixture(
     create_phrase_issue: Callable[[PhraseIssueCreateSchema], PhraseIssueModel],
 ):
     return await create_phrase_issue(phrase_issue_model_data)
+
+
+@pytest.fixture()
+def check_phrase_issue_exists() -> Callable[[bool], None]:
+    def _raise_exception(exists: bool) -> None:
+        if not exists:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    return _raise_exception
+
+
+@pytest.fixture()
+def phrase_issue_schema_data(phrase_issue_model_read_data: PhraseIssueModel):
+    return PhraseIssueSchema(
+        **phrase_issue_model_read_data.__dict__,
+    )
 
 
 """
