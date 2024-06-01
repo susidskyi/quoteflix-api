@@ -19,24 +19,24 @@ pydantic-settings = "2.2.1"
 python = "^3.12"
 python-multipart = "0.0.9"
 sqlalchemy = "2.0.30"
-uvicorn = "0.29.0"
+uvicorn = "0.30.0"
 httpx = "0.27.0"
-aioboto3 = "12.4.0"
+aioboto3 = "13.0.0"
 srt = "3.5.3"
 types-aiobotocore-s3 = "2.13.0"
 aiofiles = "23.2.1"
 
-logfire = {version = "0.35.0", extras=["fastapi"]}
+logfire = {version = "0.38.0", extras=["fastapi"]}
 fastapi-cache2 = {extras = ["redis"], version = "0.2.1"}
 fastapi-pagination = "0.12.24"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "1.10.0"
 pre-commit = "3.7.1"
-ruff = "0.4.5"
+ruff = "0.4.7"
 invoke = "2.2.0"
 types-redis = "4.6.0.20240425"
-types-aioboto3 = "12.4.0"
+types-aioboto3 = "13.0.0"
 types-aiofiles = "23.2.0.20240403"
 
 [tool.poetry.group.test.dependencies]
