@@ -6,11 +6,12 @@ import pytest
 import pytest_mock
 from fastapi_pagination import Page
 
-from app.api.phrases.models import PhraseModel
+from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.schemas import (
     PaginatedPhrasesBySearchTextSchema,
     PhraseBySearchTextSchema,
     PhraseCreateSchema,
+    PhraseIssueCreateSchema,
     PhraseTransferSchema,
     PhraseUpdateSchema,
 )
@@ -291,3 +292,92 @@ class TestPhrasesService:
         assert len(result) == 1
         assert result == [phrase_transfer_schema_data]
         mock_phrases_repository.get_by_movie_id.assert_awaited_once_with(random_movie_id)
+
+    @pytest.mark.parametrize(
+        ("issue_exists", "expected_result"),
+        [
+            (True, True),
+            (False, False),
+        ],
+    )
+    async def test_issue_exists(
+        self,
+        mock_phrases_repository: mock.AsyncMock,
+        issue_exists: bool,
+        expected_result: bool,
+        phrases_service: PhrasesService,
+        random_phrase_issue_id: uuid.UUID,
+    ):
+        mock_phrases_repository.issue_exists.return_value = issue_exists
+
+        result = await phrases_service.issue_exists(random_phrase_issue_id)
+
+        assert result == expected_result
+        mock_phrases_repository.issue_exists.assert_awaited_once_with(random_phrase_issue_id)
+
+    async def test_get_all_issues(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_issue_model_data: PhraseIssueModel,
+    ):
+        mock_phrases_repository.get_all_issues.return_value = [phrase_issue_model_data]
+
+        result = await phrases_service.get_all_issues()
+
+        assert result == [phrase_issue_model_data]
+        mock_phrases_repository.get_all_issues.assert_awaited_once()
+
+    async def test_delete_issue(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        random_phrase_issue_id: uuid.UUID,
+    ):
+        mock_phrases_repository.delete_issue.return_value = None
+
+        result = await phrases_service.delete_issue(random_phrase_issue_id)
+
+        assert result is None
+        mock_phrases_repository.delete_issue.assert_awaited_once_with(random_phrase_issue_id)
+
+    async def test_create_issue(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        phrase_issue_create_schema_data: PhraseIssueCreateSchema,
+        phrase_issue_model_data: PhraseIssueModel,
+    ):
+        mock_phrases_repository.create_issue.return_value = None
+
+        result = await phrases_service.create_issue(phrase_issue_create_schema_data)
+
+        assert result is None
+        mock_phrases_repository.create_issue.assert_awaited_once_with(phrase_issue_create_schema_data)
+
+    async def test_get_issues_by_phrase(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        random_phrase_issue_id: uuid.UUID,
+        phrase_issue_model_data: PhraseIssueModel,
+    ):
+        mock_phrases_repository.get_issues_by_phrase_id.return_value = [phrase_issue_model_data]
+
+        result = await phrases_service.get_issues_by_phrase_id(random_phrase_issue_id)
+
+        assert result == [phrase_issue_model_data]
+        mock_phrases_repository.get_issues_by_phrase_id.assert_awaited_once_with(random_phrase_issue_id)
+
+    async def test_delete_issues_by_phrase_id(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        random_phrase_issue_id: uuid.UUID,
+    ):
+        mock_phrases_repository.delete_issues_by_phrase_id.return_value = None
+
+        result = await phrases_service.delete_issues_by_phrase_id(random_phrase_issue_id)
+
+        assert result is None
+        mock_phrases_repository.delete_issues_by_phrase_id.assert_awaited_once_with(random_phrase_issue_id)

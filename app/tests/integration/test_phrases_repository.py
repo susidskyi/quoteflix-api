@@ -8,7 +8,6 @@ from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import (
     PhraseCreateSchema,
     PhraseIssueCreateSchema,
-    PhraseIssueSchema,
     PhraseTransferSchema,
     PhraseUpdateSchema,
 )
