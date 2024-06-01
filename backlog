@@ -20,3 +20,5 @@ Create pytest tests package
 Rename Random_ID to ID
 Make Issue look like in DUO maybe
 Investigate ordering routes
+Check if we search only punctuations
+Set limit to search phrase
