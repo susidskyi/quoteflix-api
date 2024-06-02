@@ -4,7 +4,7 @@ import pathlib
 import pytest
 
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.utils import ffmpeg_output_arg_from_phrase, normalize_phrase_text
+from app.api.phrases.utils import ffmpeg_output_arg_from_phrase, get_matched_phrase, normalize_phrase_text
 
 
 @pytest.mark.parametrize(
@@ -43,5 +43,25 @@ def test_ffmpeg_output_arg_from_phrase(phrase_model_data: PhraseModel, tmp_path:
     expected_result = f'-ss 5.5 -filter:a "volume=1.5" -to 10.5 {expected_path}'
 
     result = ffmpeg_output_arg_from_phrase(phrase_model_data, tmp_path, ".mp4")
+
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    ("search_text", "full_phrase", "expected_result"),
+    [
+        ("i'm afraid so", "I'm afraid so, professor. The good and the bad.", "I'm afraid so"),
+        ("ah professor", "Ah, Professor, I would trust Hagrid\nwith my life.", "Ah, Professor"),
+        ("hagrid with my life", "Ah, Professor, I would trust Hagrid\nwith my life.", "Hagrid\nwith my life"),
+        ("it's safe, leaving him", "it's safe,\nleaving him with these people?", "it's safe,\nleaving him"),
+        ("they really are", "- They really are...\n- The only family he has.", "They really are"),
+    ],
+)
+def test_get_matched_phrase(
+    search_text: str,
+    full_phrase: str,
+    expected_result: str,
+):
+    result = get_matched_phrase(normalize_phrase_text(search_text), full_phrase)
 
     assert result == expected_result

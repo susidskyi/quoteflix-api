@@ -53,10 +53,14 @@ def get_matched_phrase(normalized_search_text: str, full_text: str) -> str:
 
     if len(search_words) == 1:
         pattern = f"({search_words[0]})"
-        matched_phrase = re.search(pattern, full_text, re.IGNORECASE)
+        matched_phrase = re.search(pattern, full_text, re.IGNORECASE | re.DOTALL)
     elif len(search_words) > 1:
-        group_patterns = rf'({".*".join(search_words)})'
+        pattern = rf"({search_words[0]}"
 
-        matched_phrase = re.search(group_patterns, full_text, re.IGNORECASE)
+        for word in search_words[1:]:
+            pattern += rf"[^\b{word}\b]*{word}"
+
+        pattern += ")"
+        matched_phrase = re.search(pattern, full_text, re.IGNORECASE | re.DOTALL)
 
     return matched_phrase.group(1) if matched_phrase else ""
