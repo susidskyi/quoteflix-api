@@ -10,17 +10,21 @@ from app.api.phrases.utils import ffmpeg_output_arg_from_phrase, normalize_phras
 @pytest.mark.parametrize(
     ("phrase_text", "expected_output"),
     [
-        ('This\n\nis a    \n   test   string\n\n"', "this is a test string"),
-        ("Hello, there! How are you doing?", "hello there! how are you doing?"),
-        ("ThIs StRiNg HaS UpPeRcAsE LeTtErS", "this string has uppercase letters"),
+        ('This\n\nis a    \n   test   string\n\n"', " this is a test string "),
+        ("Hello, there! How are you doing?", " hello there . how are you doing . "),
+        ("I'm afraid so, professor.\nThe good and the bad.", " i'm afraid so professor . the good and the bad . "),
+        ("36?!!Last year I had 37", " 36 . last year i had 37 "),
+        ("- They really are...\n- The only family he has.", " they really are . the only family he has . "),
+        ("Ah, Professor, I would trust Hagrid\nwith my life.", " ah professor i would trust hagrid with my life . "),
+        ("ThIs StRiNg HaS UpPeRcAsE LeTtErS", " this string has uppercase letters "),
         (
             "The quick brown fox jumps over the lazy dog! 12345",
-            "the quick brown fox jumps over the lazy dog! 12345",
+            " the quick brown fox jumps over the lazy dog . 12345 ",
         ),
-        ('Text+text,,Text: "text". Text.text', "text text text text. text. text"),
-        ("Text...some more text?", "text. some more text?"),
-        ("Кириллица, Umlaut ä, French: É", "кириллица umlaut ä french é"),
-        ("Until he's ready.", "until hes ready."),
+        ('Text+text,,Text: "text". Text.text', " text text text text . text . text "),
+        ("Text...some more text?", " text . some more text . "),
+        ("Кириллица, Umlaut ä, French: É", " кириллица umlaut ä french é "),
+        ("Until he's ready.", " until he's ready . "),
     ],
 )
 def test_normalize_phrase_text(

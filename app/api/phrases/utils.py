@@ -1,44 +1,40 @@
 import os
+import re
 
 from app.api.phrases.models import PhraseModel
 
 
-def normalize_phrase_text(text: str) -> str:
-    """
-    Normalizes text by removing extra new lines, extra spaces, and punctuation,
-    while handling Unicode characters.
-    The punctuation leaved in the text: [!.?]
-    """
+def normalize_phrase_text(phrase: str) -> str:
+    # Step 1
+    # Replacing \n with space
+    phrase = phrase.replace("\\n", " ")
 
-    # Text replaces
-    replaces_rules = (
-        ("...", "."),
-        ('".', "."),
-        ('"!', "!"),
-        ('"?', "?"),
-    )
+    # Step 2
+    # Replacing with space: #$%&()*+,/:;<=>@[\\]^_`{|}~"
+    punctuations_to_replace_with_space = r'[\#\$%&()*+,/:;<=>@\[\]^\\_`{|}~\-"]'
+    phrase = re.sub(punctuations_to_replace_with_space, " ", phrase)
 
-    # Replace text
-    for old, new in replaces_rules:
-        text = text.replace(old, new)
+    # Step 3
+    # Replace ?!. with . if they are repeated
+    phrase = re.sub(r"[?!.]+", ". ", phrase)
 
-    # Replace punctuation rules
-    punctuation_replaces_rules = (
-        ('"#$%&()*+,-/:;<=>@[\\]^_`{|}~', " "),
-        ("!?.", "{char} "),
-        ("'", ""),
-    )
+    # Step 4
+    # Remove extra spaces
+    phrase = re.sub(r"\s+", " ", phrase)
 
-    # Replace punctuations
-    for puncuation, replacement in punctuation_replaces_rules:
-        translation_table = {ord(char): replacement.format(char=char) for char in puncuation}
+    # Step 5
+    # Temporary solution (or maybe permanent):
+    # make all words surrounded with spaces. It helps to avoid
+    # results like "that" when we search for "hat" etc.
+    phrase = re.sub(r"\s*\.\s*", " . ", phrase)
 
-        text = text.translate(translation_table)
+    # Step 6
+    # Make sentence lowercase and strip spaces
+    phrase = phrase.lower().strip()
 
-    # Remove new lines and extra spaces
-    text = " ".join(text.split())
-
-    return text.lower()
+    # Step 7
+    # Add spaces on the left and right of the whole phrase
+    return " " + phrase + " "
 
 
 def ffmpeg_output_arg_from_phrase(phrase: PhraseModel, output_dir: str, file_extension: str) -> str:
@@ -51,8 +47,16 @@ def ffmpeg_output_arg_from_phrase(phrase: PhraseModel, output_dir: str, file_ext
     return f'-ss {start_time} -filter:a "volume=1.5" -to {end_time} {file_path}'
 
 
-def get_matched_phrase(full_phrase_text: str, normalized_search_text: str) -> str:
-    """
-    TODO: implement
-    """
-    return ""
+def get_matched_phrase(normalized_search_text: str, full_text: str) -> str:
+    search_words = normalized_search_text.replace(" . ", " ").strip().split()
+    matched_phrase = None
+
+    if len(search_words) == 1:
+        pattern = f"({search_words[0]})"
+        matched_phrase = re.search(pattern, full_text, re.IGNORECASE)
+    elif len(search_words) > 1:
+        group_patterns = rf'({".*".join(search_words)})'
+
+        matched_phrase = re.search(group_patterns, full_text, re.IGNORECASE)
+
+    return matched_phrase.group(1) if matched_phrase else ""

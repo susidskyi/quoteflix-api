@@ -79,12 +79,11 @@ class PhrasesService:
         normalized_search_text = normalize_phrase_text(search_text)
         phrases_from_db = await self.repository.get_by_search_text(normalized_search_text, page)
 
-        # TODO: rewrite when match is implemented
         phrases = PaginatedPhrasesBySearchTextSchema(
             items=[
                 PhraseBySearchTextSchema(
                     **phrase.__dict__,
-                    matched_phrase=get_matched_phrase(phrase.full_text, normalized_search_text),
+                    matched_phrase=get_matched_phrase(normalized_search_text, phrase.full_text),
                 )
                 for phrase in phrases_from_db.items
             ],

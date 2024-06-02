@@ -159,7 +159,7 @@ class TestPhrasesRepository:
         movie_fixture: MovieModel,
         phrase_create_schema_data: PhraseCreateSchema,
     ):
-        valid_search_text = normalize_phrase_text("fru'its")
+        valid_search_text = normalize_phrase_text("fruits")
         created_phrases = []
         number_of_phrases = 7
 
@@ -204,7 +204,7 @@ class TestPhrasesRepository:
         ("search_text", "expected_count"),
         [
             ("fruits: apples, bananas and oranges", 1),
-            ("fru'its", 1),
+            ("fruits", 1),
             ("invalid string", 0),
         ],
     )

@@ -16,7 +16,7 @@ from app.api.phrases.schemas import (
     PhraseUpdateSchema,
 )
 from app.api.phrases.service import PhrasesService
-from app.api.phrases.utils import normalize_phrase_text
+from app.api.phrases.utils import get_matched_phrase, normalize_phrase_text
 from app.core.config import settings
 
 
@@ -205,7 +205,7 @@ class TestPhrasesService:
         [
             "fruits: apples, bananas and oranges",
             "bananas",
-            "fru'its .....::,,",
+            "fruits .....::,,",
         ],
     )
     async def test_get_by_text(
@@ -218,6 +218,10 @@ class TestPhrasesService:
         paginated_phrases_by_search_text_schema_data: PaginatedPhrasesBySearchTextSchema,
         search_text: str,
     ):
+        phrase_by_search_text_schema_data.matched_phrase = get_matched_phrase(
+            normalize_phrase_text(search_text),
+            phrase_by_search_text_schema_data.full_text,
+        )
         mock_phrases_repository.get_by_search_text.return_value = Page(
             items=[phrase_model_data],
             total=1,

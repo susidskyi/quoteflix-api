@@ -350,7 +350,7 @@ def phrase_create_schema_data(random_movie_id: uuid.UUID) -> PhraseCreateSchema:
     return PhraseCreateSchema(
         movie_id=random_movie_id,
         full_text="fruits: apples, bananas and oranges",
-        normalized_text="fruits apples bananas and oranges",
+        normalized_text=" fruits apples bananas and oranges ",
         start_in_movie="00:00:30.000",
         end_in_movie="00:00:40.00000",
     )
@@ -686,7 +686,7 @@ def subtitle_item() -> SubtitleItem:
         start_time=datetime.timedelta(seconds=30),
         end_time=datetime.timedelta(seconds=40),
         text="fruits: apples, bananas and oranges",
-        normalized_text="fruits apples bananas and oranges",
+        normalized_text=" fruits apples bananas and oranges ",
     )
 
 

@@ -16,7 +16,7 @@ class PhraseModel(CoreModel, IDModelMixin, DateTimeModelMixin):
         ForeignKey("movies.id", ondelete="CASCADE"),
     )
     full_text: Mapped[str]
-    normalized_text: Mapped[str]
+    normalized_text: Mapped[str] = mapped_column(index=True)
 
     start_in_movie: Mapped[datetime.timedelta]
     end_in_movie: Mapped[datetime.timedelta]
