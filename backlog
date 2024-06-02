@@ -25,3 +25,4 @@ Set limit to search phrase
 Add index field
 Think how to manage cache locally, avoid flushall and incognito
 Work on optimizing queries
+Check if we can speed up creating scenes
