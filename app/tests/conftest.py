@@ -1,7 +1,6 @@
 import datetime
 import io
 import os
-import socket
 import uuid
 from typing import AsyncGenerator, AsyncIterator, Callable
 from unittest import mock
@@ -23,7 +22,7 @@ from sqlalchemy.ext.asyncio import (
 from app.api.movies.dependencies import get_movies_service
 from app.api.movies.models import MovieModel
 from app.api.movies.repository import MoviesRepository
-from app.api.movies.schemas import MovieCreateSchema, MovieSchema, MovieUpdateSchema
+from app.api.movies.schemas import MovieCreateSchema, MovieInSearchByPhraseTextSchema, MovieSchema, MovieUpdateSchema
 from app.api.movies.service import MoviesService
 from app.api.phrases.dependencies import get_phrases_service
 from app.api.phrases.models import PhraseIssueModel, PhraseModel
@@ -288,6 +287,22 @@ def check_movie_exists() -> Callable[[bool], None]:
     return _raise_exception
 
 
+@pytest.fixture()
+def movie_in_search_by_phrase_schema_data(movie_schema_data: MovieSchema) -> MovieInSearchByPhraseTextSchema:
+    return MovieInSearchByPhraseTextSchema(
+        **movie_schema_data.model_dump(),
+    )
+
+
+@pytest.fixture()
+def movie_in_search_by_phrase_model_data(movie_model_data: MovieModel) -> MovieModel:
+    return MovieModel(
+        id=movie_model_data.id,
+        title=movie_model_data.title,
+        year=movie_model_data.year,
+    )
+
+
 """
 ###############################################################################
 [END] Movie-app fixtures
@@ -385,6 +400,16 @@ def phrase_model_data(
     )
 
 
+@pytest.fixture()
+def phrase_search_by_phrase_model_data(
+    phrase_model_data: PhraseModel,
+    movie_in_search_by_phrase_model_data: MovieModel,
+):
+    phrase_model_new_data = phrase_model_data.__dict__
+    phrase_model_new_data.pop("_sa_instance_state")
+    return PhraseModel(**phrase_model_new_data, movie=movie_in_search_by_phrase_model_data)
+
+
 @pytest_asyncio.fixture
 async def phrase_fixture(
     create_phrase: Callable[[PhraseCreateSchema], PhraseModel],
@@ -404,11 +429,16 @@ def phrase_schema_data(
 @pytest.fixture()
 def phrase_by_search_text_schema_data(
     phrase_model_data: PhraseModel,
+    movie_in_search_by_phrase_schema_data: MovieInSearchByPhraseTextSchema,
 ) -> PhraseBySearchTextSchema:
     """
     TODO: Update matched_phrase field when search text is added
     """
-    return PhraseBySearchTextSchema(**phrase_model_data.__dict__, matched_phrase="")
+    return PhraseBySearchTextSchema(
+        **phrase_model_data.__dict__,
+        movie=movie_in_search_by_phrase_schema_data,
+        matched_phrase="",
+    )
 
 
 @pytest.fixture()

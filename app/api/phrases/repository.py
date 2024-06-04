@@ -7,6 +7,7 @@ from sqlalchemy import delete, exists, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from app.api.movies.models import MovieModel
 from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.schemas import (
     PhraseCreateSchema,
@@ -130,8 +131,12 @@ class PhrasesRepository:
         async with self.session as session:
             result: Page[PhraseModel] = await paginate(
                 session,
-                select(PhraseModel).where(
+                select(PhraseModel)
+                .where(
                     PhraseModel.normalized_text.icontains(search_text),
+                )
+                .options(
+                    joinedload(PhraseModel.movie).load_only(MovieModel.id, MovieModel.title, MovieModel.year),
                 ),
                 params=Params(page=page, size=settings.phrases_page_size),
             )

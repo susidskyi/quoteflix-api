@@ -213,7 +213,7 @@ class TestPhrasesService:
         mock_presigned_url_service: mock.AsyncMock,
         phrases_service: PhrasesService,
         mock_phrases_repository: mock.AsyncMock,
-        phrase_model_data: PhraseModel,
+        phrase_search_by_phrase_model_data: PhraseModel,
         phrase_by_search_text_schema_data: PhraseBySearchTextSchema,
         paginated_phrases_by_search_text_schema_data: PaginatedPhrasesBySearchTextSchema,
         search_text: str,
@@ -223,7 +223,7 @@ class TestPhrasesService:
             phrase_by_search_text_schema_data.full_text,
         )
         mock_phrases_repository.get_by_search_text.return_value = Page(
-            items=[phrase_model_data],
+            items=[phrase_search_by_phrase_model_data],
             total=1,
             page=1,
             size=settings.phrases_page_size,

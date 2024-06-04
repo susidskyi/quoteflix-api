@@ -6,6 +6,7 @@ from typing import Sequence
 from fastapi import UploadFile
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
+from app.api.movies.schemas import MovieInSearchByPhraseTextSchema
 from app.core.config import settings
 from app.core.constants import SUPPORTED_SUBTITLES_EXTENSIONS, SUPPORTED_VIDEO_EXTENSIONS
 from app.core.validators import FileValidator
@@ -21,10 +22,13 @@ class PhraseSchema(BaseModel):
 
 
 class PhraseBySearchTextSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: uuid.UUID
     full_text: str
     scene_s3_key: str | None
     matched_phrase: str
+    movie: MovieInSearchByPhraseTextSchema
 
 
 class PaginatedPhrasesBySearchTextSchema(BaseModel):

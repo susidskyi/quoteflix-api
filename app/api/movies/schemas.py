@@ -2,7 +2,7 @@ import abc
 import datetime
 import uuid
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.core.constants import (
     Languages,
@@ -39,3 +39,11 @@ class MovieUpdateSchema(MovieCreateUpdateBase):
 
 class MovieUpdateStatusSchema(BaseModel):
     status: MovieStatus
+
+
+class MovieInSearchByPhraseTextSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    title: str
+    year: int
