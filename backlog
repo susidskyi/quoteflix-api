@@ -26,3 +26,7 @@ Add index field
 Think how to manage cache locally, avoid flushall and incognito
 Work on optimizing queries
 Check if we can speed up creating scenes
+Add delay before phrase and after phrase when creating then (send values in request)
+Check phrases correctness: \n not more than 2-3 for example, not less than 1 second etc.
+Update PhraseSchema to return everything about phrase when get_all
+Investigate the problem why sometimes phrases are not created
