@@ -18,6 +18,9 @@ class PhraseSchema(BaseModel):
     id: uuid.UUID
     movie_id: uuid.UUID
     full_text: str
+    normalized_text: str
+    start_in_movie: datetime.timedelta
+    end_in_movie: datetime.timedelta
     scene_s3_key: str | None
 
 
@@ -28,6 +31,7 @@ class PhraseBySearchTextSchema(BaseModel):
     full_text: str
     scene_s3_key: str | None
     matched_phrase: str
+    start_in_movie: datetime.timedelta
     movie: MovieInSearchByPhraseTextSchema
 
 
