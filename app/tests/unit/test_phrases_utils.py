@@ -40,7 +40,7 @@ def test_ffmpeg_output_arg_from_phrase(phrase_model_data: PhraseModel, tmp_path:
     phrase_model_data.end_in_movie = datetime.timedelta(seconds=10)
 
     expected_path = pathlib.PurePath(tmp_path, f"{phrase_model_data.id}.mp4")
-    expected_result = f'-ss 5.5 -filter:a "volume=1.5" -to 10.5 {expected_path}'
+    expected_result = f'-ss 5.0 -filter:a "volume=1.5" -to 10.0 {expected_path}'
 
     result = ffmpeg_output_arg_from_phrase(phrase_model_data, tmp_path, ".mp4")
 

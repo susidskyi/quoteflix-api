@@ -1,7 +1,7 @@
 import uuid
 from typing import Sequence
 
-from fastapi import BackgroundTasks, Depends, Query, Request, status
+from fastapi import BackgroundTasks, Depends, Form, Query, Request, status
 from fastapi.routing import APIRouter
 from fastapi_cache.decorator import cache
 from typing_extensions import Annotated
@@ -169,6 +169,8 @@ async def create_phrases_from_movie_files(
     movie_files: PhraseCreateFromMovieFilesSchema = Depends(
         PhraseCreateFromMovieFilesSchema.depends,
     ),
+    start_in_movie_shift: Annotated[float, Form()] = 0,
+    end_in_movie_shift: Annotated[float, Form()] = 0,
     scenes_upload_service: ScenesUploadService = Depends(get_scenes_upload_service),
 ) -> None:
     """
@@ -177,10 +179,13 @@ async def create_phrases_from_movie_files(
     https://github.com/tiangolo/fastapi/issues/10857
     When it's resolved, this will be rewritten to `background_tasks.add_task`
     """
+
     await scenes_upload_service.upload_and_process_files(
         movie_id=movie_id,
         movie_file=movie_files.movie_file,
-        subtitle_file=movie_files.subtitles_file,
+        subtitles_file=movie_files.subtitles_file,
+        start_in_movie_shift=start_in_movie_shift,
+        end_in_movie_shift=end_in_movie_shift,
     )
 
 

@@ -1,3 +1,4 @@
+import datetime
 import io
 import os
 import uuid
@@ -19,14 +20,40 @@ class TestScenesUploadService:
         mocker: pytest_mock.MockerFixture,
         scenes_upload_service: ScenesUploadService,
         subtitle_item: SubtitleItem,
-        subtitle_file: UploadFile,
+        subtitles_file: UploadFile,
     ):
         expected_subtitle_items = [subtitle_item]
         mock_normalize_phrase_text = mocker.patch(
             "app.api.phrases.scenes_upload_service.normalize_phrase_text",
             return_value=subtitle_item.normalized_text,
         )
-        result_subtitle_items = await scenes_upload_service._parse_subtitles_file(subtitle_file)
+        result_subtitle_items = await scenes_upload_service._parse_subtitles_file(subtitles_file, 0, 0)
+
+        assert result_subtitle_items == expected_subtitle_items
+
+        mock_normalize_phrase_text.assert_called_once_with(subtitle_item.text)
+
+    async def test_parse_subtitles_file_with_time_shifts(
+        self,
+        mocker: pytest_mock.MockerFixture,
+        scenes_upload_service: ScenesUploadService,
+        subtitle_item: SubtitleItem,
+        subtitles_file: UploadFile,
+    ):
+        expected_subtitle_items = [
+            SubtitleItem(
+                text=subtitle_item.text,
+                normalized_text=subtitle_item.normalized_text,
+                start_time=subtitle_item.start_time - datetime.timedelta(seconds=10),
+                end_time=subtitle_item.end_time - datetime.timedelta(seconds=10),
+            ),
+        ]
+
+        mock_normalize_phrase_text = mocker.patch(
+            "app.api.phrases.scenes_upload_service.normalize_phrase_text",
+            return_value=subtitle_item.normalized_text,
+        )
+        result_subtitle_items = await scenes_upload_service._parse_subtitles_file(subtitles_file, -10, -10)
 
         assert result_subtitle_items == expected_subtitle_items
 

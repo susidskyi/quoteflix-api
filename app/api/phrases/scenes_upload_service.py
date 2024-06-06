@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import io
 import itertools
 import logging
@@ -31,7 +32,7 @@ logger.setLevel(logging.INFO)
 
 class ScenesUploadService:
     """
-    Some day I'll use celery for this :D
+    Some day I'll use celery for this
     """
 
     def __init__(
@@ -48,7 +49,9 @@ class ScenesUploadService:
         self,
         movie_id: uuid.UUID,
         movie_file: UploadFile,
-        subtitle_file: UploadFile,
+        subtitles_file: UploadFile,
+        start_in_movie_shift: float,
+        end_in_movie_shift: float,
     ) -> None:
         """
         Uploads movie file and subtitle file to s3 and creates scenes for each phrase
@@ -58,7 +61,11 @@ class ScenesUploadService:
         try:
             await self.movies_service.update_status(movie_id, MovieStatus.PROCESSING)
 
-            subtitle_items = await self._parse_subtitles_file(subtitle_file)
+            subtitle_items = await self._parse_subtitles_file(
+                subtitles_file,
+                start_in_movie_shift,
+                end_in_movie_shift,
+            )
             await self._process_subtitles_and_create_scenes(
                 movie_id,
                 movie_file,
@@ -75,6 +82,8 @@ class ScenesUploadService:
     async def _parse_subtitles_file(
         self,
         subtitles_file: UploadFile,
+        start_in_movie_shift: float,
+        end_in_movie_shift: float,
     ) -> Sequence[SubtitleItem]:
         """
         Parses subtitles file and returns list of SubtitleItems
@@ -84,6 +93,20 @@ class ScenesUploadService:
         contents = await subtitles_file.read()
 
         for sub in srt.parse(contents.decode("utf-8")):
+            if start_in_movie_shift != 0:
+                delta = datetime.timedelta(seconds=abs(start_in_movie_shift))
+                if start_in_movie_shift > 0:
+                    sub.start += delta
+                else:
+                    sub.start -= delta
+
+            if end_in_movie_shift != 0:
+                delta = datetime.timedelta(seconds=abs(end_in_movie_shift))
+                if end_in_movie_shift > 0:
+                    sub.end += delta
+                else:
+                    sub.end -= delta
+
             subtitle_items.append(
                 SubtitleItem(
                     start_time=sub.start,
@@ -93,7 +116,7 @@ class ScenesUploadService:
                 ),
             )
 
-        return subtitle_items
+        return subtitle_items[:50]
 
     async def _create_phrases(
         self,

@@ -11,7 +11,7 @@ import pytest_asyncio
 from fastapi import FastAPI, HTTPException, UploadFile, status
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
-from httpx import ASGITransport, AsyncClient
+from httpx import ASGITransport, AsyncClient, Headers
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -689,24 +689,44 @@ def mock_scenes_upload_service() -> mock.AsyncMock:
 
 
 @pytest.fixture()
-def subtitle_file() -> UploadFile:
+def subtitles_file_name() -> str:
+    return "subtitles.srt"
+
+
+@pytest.fixture()
+def subtitles_file(subtitles_file_name: str) -> UploadFile:
     with open("tests/data/subtitles.srt", "rb") as f:
         return UploadFile(
             file=io.BytesIO(f.read()),
-            filename="subtitles.srt",
-            size=69,
-            headers={"Content-Type": "text/plain"},
+            filename=subtitles_file_name,
+            size=68,
+            headers=Headers(
+                {
+                    "content-disposition": f'form-data; name="subtitles_file"; filename="{subtitles_file_name}"',
+                    "content-type": "text/plain",
+                },
+            ),
         )
 
 
 @pytest.fixture()
-def movie_file() -> UploadFile:
+def movie_file_name() -> str:
+    return "movie.mp4"
+
+
+@pytest.fixture()
+def movie_file(movie_file_name: str) -> UploadFile:
     with open("tests/data/movie.mp4", "rb") as f:
         return UploadFile(
             file=io.BytesIO(f.read()),
-            filename="movie.mp4",
+            filename=movie_file_name,
             size=1055736,
-            headers={"Content-Type": "video/mp4"},
+            headers=Headers(
+                {
+                    "content-disposition": f'form-data; name="movie_file"; filename="{movie_file_name}"',
+                    "content-type": "video/mp4",
+                },
+            ),
         )
 
 

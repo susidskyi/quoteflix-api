@@ -632,7 +632,7 @@ class TestCreatePhrasesFromMovieFiles:
         check_movie_exists: Callable[[bool], None],
         mock_scenes_upload_service: mock.AsyncMock,
         movie_file: UploadFile,
-        subtitle_file: UploadFile,
+        subtitles_file: UploadFile,
     ):
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
@@ -647,12 +647,58 @@ class TestCreatePhrasesFromMovieFiles:
             ),
             files={
                 "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
-                "subtitles_file": ("subtitles.srt", subtitle_file.file, "text/plain"),
+                "subtitles_file": ("subtitles.srt", subtitles_file.file, "text/plain"),
             },
         )
 
+        upload_and_process_files_kwargs = mock_scenes_upload_service.upload_and_process_files.await_args_list[0].kwargs
+
         assert result.status_code == status.HTTP_202_ACCEPTED
-        mock_scenes_upload_service.upload_and_process_files.assert_awaited_once()
+        assert upload_and_process_files_kwargs["movie_id"] == random_movie_id
+        assert upload_and_process_files_kwargs["movie_file"].filename == movie_file.filename
+        assert upload_and_process_files_kwargs["subtitles_file"].filename == subtitles_file.filename
+        assert upload_and_process_files_kwargs["start_in_movie_shift"] == 0
+        assert upload_and_process_files_kwargs["end_in_movie_shift"] == 0
+
+    async def test_create_phrases_from_movie_files_with_time_shifts(
+        self,
+        async_client: AsyncClient,
+        app_with_dependency_overrides: FastAPI,
+        random_movie_id: uuid.UUID,
+        check_movie_exists: Callable[[bool], None],
+        mock_scenes_upload_service: mock.AsyncMock,
+        movie_file: UploadFile,
+        subtitles_file: UploadFile,
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        app_with_dependency_overrides.dependency_overrides[get_scenes_upload_service] = (
+            lambda: mock_scenes_upload_service
+        )
+
+        result = await async_client.post(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:create-phrases-from-movie-files",
+                movie_id=random_movie_id,
+            ),
+            data={
+                "start_in_movie_shift": 1,
+                "end_in_movie_shift": 1,
+            },
+            files={
+                "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
+                "subtitles_file": ("subtitles.srt", subtitles_file.file, "text/plain"),
+            },
+        )
+
+        upload_and_process_files_kwargs = mock_scenes_upload_service.upload_and_process_files.await_args_list[0].kwargs
+
+        assert result.status_code == status.HTTP_202_ACCEPTED
+        assert upload_and_process_files_kwargs["movie_id"] == random_movie_id
+        assert upload_and_process_files_kwargs["movie_file"].filename == movie_file.filename
+        assert upload_and_process_files_kwargs["subtitles_file"].filename == subtitles_file.filename
+        assert upload_and_process_files_kwargs["start_in_movie_shift"] == 1
+        assert upload_and_process_files_kwargs["end_in_movie_shift"] == 1
 
     async def test_create_phrases_from_movie_files_not_found(
         self,
@@ -661,7 +707,7 @@ class TestCreatePhrasesFromMovieFiles:
         app_with_dependency_overrides: FastAPI,
         check_movie_exists: Callable[[bool], None],
         movie_file: UploadFile,
-        subtitle_file: UploadFile,
+        subtitles_file: UploadFile,
         mock_scenes_upload_service: mock.AsyncMock,
     ):
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
@@ -677,7 +723,7 @@ class TestCreatePhrasesFromMovieFiles:
             ),
             files={
                 "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
-                "subtitles_file": ("subtitles.srt", subtitle_file.file, "text/plain"),
+                "subtitles_file": ("subtitles.srt", subtitles_file.file, "text/plain"),
             },
         )
 
@@ -702,7 +748,7 @@ class TestCreatePhrasesFromMovieFiles:
         user: str,
         expected_status_code: int,
         movie_file: UploadFile,
-        subtitle_file: UploadFile,
+        subtitles_file: UploadFile,
     ):
         user_fixture_value: str | None = request.getfixturevalue(user)
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
@@ -717,7 +763,7 @@ class TestCreatePhrasesFromMovieFiles:
             ),
             files={
                 "movie_file": ("movie.mp4", movie_file.file, "video/mp4"),
-                "subtitles_file": ("subtitles.srt", subtitle_file.file, "text/plain"),
+                "subtitles_file": ("subtitles.srt", subtitles_file.file, "text/plain"),
             },
         )
 
