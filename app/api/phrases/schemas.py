@@ -113,6 +113,7 @@ class SubtitleItem(BaseModel):
 
 
 class PhraseTransferSchema(BaseModel):
+    id: uuid.UUID
     full_text: str
     normalized_text: str
     start_in_movie: datetime.timedelta

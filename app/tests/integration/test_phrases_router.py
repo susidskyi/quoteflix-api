@@ -794,6 +794,7 @@ class TestExportPhrasesToJSON:
 
         result_data = result.json()
         assert result.status_code == status.HTTP_200_OK
+        assert result_data[0].get("id") == str(phrase_model_data.id)
         assert result_data[0].get("full_text") == phrase_model_data.full_text
         assert result_data[0].get("normalized_text") == phrase_model_data.normalized_text
         assert result_data[0].get("scene_s3_key") == phrase_model_data.scene_s3_key
@@ -827,6 +828,7 @@ class TestExportPhrasesToJSON:
 
         result_data = result.json()
         assert result.status_code == status.HTTP_200_OK
+        assert result_data[0].get("id") == str(phrase_model_data.id)
         assert result_data[0].get("full_text") == phrase_model_data.full_text
         assert result_data[0].get("normalized_text") == phrase_model_data.normalized_text
         assert result_data[0].get("scene_s3_key") == phrase_model_data.scene_s3_key
