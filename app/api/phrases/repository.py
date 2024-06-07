@@ -96,6 +96,19 @@ class PhrasesRepository:
 
             return phrases.all()
 
+    async def get_for_export(self, movie_id: uuid.UUID, has_issues: bool) -> Sequence[PhraseModel]:
+        async with self.session as session:
+            query = select(
+                PhraseModel,
+            ).where(
+                PhraseModel.movie_id == movie_id,
+                exists().where(PhraseModel.id == PhraseIssueModel.phrase_id) == has_issues,
+            )
+
+            phrases = await session.scalars(query)
+
+            return phrases.all()
+
     async def bulk_create(
         self,
         data: Sequence[PhraseCreateSchema],

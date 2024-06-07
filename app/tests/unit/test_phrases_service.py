@@ -281,21 +281,22 @@ class TestPhrasesService:
             [phrase_transfer_schema_data],
         )
 
+    @pytest.mark.parametrize("has_issues", [True, False])
     async def test_export_to_json(
         self,
         mock_phrases_repository: mock.AsyncMock,
         phrase_model_data: PhraseModel,
         phrases_service: PhrasesService,
         random_movie_id: uuid.UUID,
-        phrase_transfer_schema_data: PhraseTransferSchema,
+        has_issues: bool,
     ):
-        mock_phrases_repository.get_by_movie_id.return_value = [phrase_model_data]
+        mock_phrases_repository.get_for_export.return_value = [phrase_model_data]
 
-        result = await phrases_service.export_to_json(movie_id=random_movie_id)
+        result = await phrases_service.export_to_json(movie_id=random_movie_id, has_issues=has_issues)
 
         assert len(result) == 1
-        assert result == [phrase_transfer_schema_data]
-        mock_phrases_repository.get_by_movie_id.assert_awaited_once_with(random_movie_id)
+        assert result == [phrase_model_data]
+        mock_phrases_repository.get_for_export.assert_awaited_once_with(random_movie_id, has_issues)
 
     @pytest.mark.parametrize(
         ("issue_exists", "expected_result"),

@@ -197,9 +197,10 @@ async def create_phrases_from_movie_files(
 )
 async def export_phrases_to_json(
     movie_id: uuid.UUID,
+    has_issues: Annotated[bool, Query()] = False,
     phrases_service: PhrasesService = Depends(get_phrases_service),
-) -> Sequence[PhraseTransferSchema]:
-    return await phrases_service.export_to_json(movie_id)
+) -> Sequence[PhraseModel]:
+    return await phrases_service.export_to_json(movie_id, has_issues)
 
 
 @router.post(

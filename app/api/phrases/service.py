@@ -103,10 +103,8 @@ class PhrasesService:
 
         await self.s3_service.delete_folder(movie_s3_path)
 
-    async def export_to_json(self, movie_id: uuid.UUID) -> Sequence[PhraseTransferSchema]:
-        phrases = await self.repository.get_by_movie_id(movie_id)
-
-        return [PhraseTransferSchema(**phrase.__dict__) for phrase in phrases]
+    async def export_to_json(self, movie_id: uuid.UUID, has_issues: bool) -> Sequence[PhraseModel]:
+        return await self.repository.get_for_export(movie_id, has_issues)
 
     async def import_from_json(self, movie_id: uuid.UUID, data: Sequence[PhraseTransferSchema]) -> None:
         await self.repository.import_from_json(movie_id, data)

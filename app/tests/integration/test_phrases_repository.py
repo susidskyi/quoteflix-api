@@ -138,6 +138,45 @@ class TestPhrasesRepository:
         assert len(result) == 1
         assert phrase_fixture in result
 
+    @pytest.mark.parametrize(
+        ("has_issues", "expected_result_len"),
+        [
+            (False, 0),
+            (True, 1),
+        ],
+    )
+    async def test_get_for_export_has_issues(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
+        phrase_issue_fixture: PhraseIssueModel,
+        has_issues: bool,
+        expected_result_len: int,
+        random_movie_id: uuid.UUID,
+    ):
+        result = await phrases_repository.get_for_export(random_movie_id, has_issues)
+
+        assert len(result) == expected_result_len
+
+    @pytest.mark.parametrize(
+        ("has_issues", "expected_result_len"),
+        [
+            (False, 1),
+            (True, 0),
+        ],
+    )
+    async def test_get_for_export_has_no_issues(
+        self,
+        phrases_repository: PhrasesRepository,
+        phrase_fixture: PhraseModel,
+        has_issues: bool,
+        expected_result_len: int,
+        random_movie_id: uuid.UUID,
+    ):
+        result = await phrases_repository.get_for_export(random_movie_id, has_issues)
+
+        assert len(result) == expected_result_len
+
     async def test_bulk_create(
         self,
         phrases_repository: PhrasesRepository,

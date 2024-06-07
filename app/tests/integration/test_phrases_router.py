@@ -772,18 +772,18 @@ class TestCreatePhrasesFromMovieFiles:
 
 @pytest.mark.asyncio()
 class TestExportPhrasesToJSON:
-    async def test_export_phrases_to_json(
+    async def test_export_phrases_to_json_no_has_issues_provided(
         self,
         app_with_dependency_overrides: FastAPI,
         mock_phrases_service: mock.AsyncMock,
         async_client: AsyncClient,
         random_movie_id: uuid.UUID,
-        phrase_transfer_schema_data: PhraseTransferSchema,
+        phrase_model_data: PhraseModel,
         check_movie_exists: Callable[[bool], None],
     ):
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
         app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
-        mock_phrases_service.export_to_json.return_value = [phrase_transfer_schema_data]
+        mock_phrases_service.export_to_json.return_value = [phrase_model_data]
 
         result = await async_client.get(
             app_with_dependency_overrides.url_path_for(
@@ -793,15 +793,45 @@ class TestExportPhrasesToJSON:
         )
 
         result_data = result.json()
+        assert result.status_code == status.HTTP_200_OK
+        assert result_data[0].get("full_text") == phrase_model_data.full_text
+        assert result_data[0].get("normalized_text") == phrase_model_data.normalized_text
+        assert result_data[0].get("scene_s3_key") == phrase_model_data.scene_s3_key
 
-        assert json.dumps(result_data[0], sort_keys=True) == json.dumps(
-            phrase_transfer_schema_data.model_dump(mode="json"),
-            sort_keys=True,
+        mock_phrases_service.export_to_json.assert_awaited_once_with(random_movie_id, False)
+
+    @pytest.mark.parametrize("has_issues", [True, False])
+    async def test_export_phrases_to_json_have_issues(
+        self,
+        app_with_dependency_overrides: FastAPI,
+        mock_phrases_service: mock.AsyncMock,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrase_model_data: PhraseModel,
+        check_movie_exists: Callable[[bool], None],
+        has_issues: bool,
+    ):
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(True)
+        mock_phrases_service.export_to_json.return_value = [phrase_model_data]
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:export-phrases-to-json",
+                movie_id=random_movie_id,
+            ),
+            params={
+                "has_issues": has_issues,
+            },
         )
 
+        result_data = result.json()
         assert result.status_code == status.HTTP_200_OK
+        assert result_data[0].get("full_text") == phrase_model_data.full_text
+        assert result_data[0].get("normalized_text") == phrase_model_data.normalized_text
+        assert result_data[0].get("scene_s3_key") == phrase_model_data.scene_s3_key
 
-        mock_phrases_service.export_to_json.assert_called_once_with(random_movie_id)
+        mock_phrases_service.export_to_json.assert_awaited_once_with(random_movie_id, has_issues)
 
     async def test_export_phrases_to_json_movie_not_found(
         self,
