@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     max_subtitles_file_size: int = 10 * 1024**2  # 10 MB
     max_ffmpeg_workers: int = 5
 
+    # Admin
+    admin_panel_path: str
+
 
 @lru_cache
 def get_settings() -> Settings:

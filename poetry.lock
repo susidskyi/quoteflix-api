@@ -503,13 +503,13 @@ crt = ["awscrt (==0.20.9)"]
 
 [[package]]
 name = "botocore-stubs"
-version = "1.34.121"
+version = "1.34.122"
 description = "Type annotations and code completion for botocore"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "botocore_stubs-1.34.121-py3-none-any.whl", hash = "sha256:fc13e608fef519804c669d61afb5ffe4128b37093c91b916287e7f2d4bc58a1e"},
-    {file = "botocore_stubs-1.34.121.tar.gz", hash = "sha256:f0ebc573d400fc7c4ad6d85753e37da62f2865e9e54c7d35280b627d9ba84bde"},
+    {file = "botocore_stubs-1.34.122-py3-none-any.whl", hash = "sha256:dda8ea2edb1b5098e6b881a13b0197735c01a2d52ae2916f2abdda3045efbe0b"},
+    {file = "botocore_stubs-1.34.122.tar.gz", hash = "sha256:a17d4c5b5a3c10e8fab66dc17fbf2a1dbcc9da60b8e09d23a6cf851ccedbfaaf"},
 ]
 
 [package.dependencies]
@@ -606,13 +606,13 @@ files = [
 
 [[package]]
 name = "cfn-lint"
-version = "0.87.4"
+version = "0.87.5"
 description = "Checks CloudFormation templates for practices and behaviour that could potentially be improved"
 optional = false
 python-versions = "!=4.0,<=4.0,>=3.8"
 files = [
-    {file = "cfn_lint-0.87.4-py3-none-any.whl", hash = "sha256:a4e00f36b589a686efc59df5a25838b661c482ea51391c091553921db38fca50"},
-    {file = "cfn_lint-0.87.4.tar.gz", hash = "sha256:1bf635bfe252dd6160c2ed7a8c5b920381bc404cba67d316b454cd70ba678fd7"},
+    {file = "cfn_lint-0.87.5-py3-none-any.whl", hash = "sha256:46edd0ed2c46991a0b88df47ea668a602838bafec8993bb23ff5be8a42388b6e"},
+    {file = "cfn_lint-0.87.5.tar.gz", hash = "sha256:41e1195712c84d4de70c2ede1113fef0d62b9f2fb237d77e18da4328463c5660"},
 ]
 
 [package.dependencies]
@@ -1038,17 +1038,16 @@ standard = ["fastapi", "uvicorn[standard] (>=0.15.0)"]
 
 [[package]]
 name = "fastapi-pagination"
-version = "0.12.24"
+version = "0.12.25"
 description = "FastAPI pagination"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "fastapi_pagination-0.12.24-py3-none-any.whl", hash = "sha256:a639df7301a89414244c6763bb97cff043815cb839070b8a38c58c007cf75d48"},
-    {file = "fastapi_pagination-0.12.24.tar.gz", hash = "sha256:c9c6508e0182aab679a13b1de261d4923e3b530b410500dcb271638ff714fb14"},
+    {file = "fastapi_pagination-0.12.25-py3-none-any.whl", hash = "sha256:6c8fea240873724f8165d55205b598e0d2a405092dcb82a3ad427cf38ba8e241"},
+    {file = "fastapi_pagination-0.12.25.tar.gz", hash = "sha256:4559de2bbf7c480553e8ce574aa2fa6ed151aeab3db37de8d8b222ec6bde8c17"},
 ]
 
 [package.dependencies]
-fastapi = ">=0.93.0"
 pydantic = ">=1.9.1"
 typing-extensions = ">=4.8.0,<5.0.0"
 
@@ -3502,6 +3501,28 @@ files = [
 ]
 
 [[package]]
+name = "sqladmin"
+version = "0.17.0"
+description = "SQLAlchemy admin for FastAPI and Starlette"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "sqladmin-0.17.0-py3-none-any.whl", hash = "sha256:bc1cc8d6a07b815d900d730185cecd3053b745857c444ddee81dbfa15588b1b9"},
+    {file = "sqladmin-0.17.0.tar.gz", hash = "sha256:d23bfce1527495550084ed50f49af3c38fd988704643429c78b62d9f93f8677a"},
+]
+
+[package.dependencies]
+itsdangerous = {version = "*", optional = true, markers = "extra == \"full\""}
+jinja2 = "*"
+python-multipart = "*"
+sqlalchemy = ">=1.4"
+starlette = "*"
+wtforms = ">=3.1,<3.2"
+
+[package.extras]
+full = ["itsdangerous"]
+
+[[package]]
 name = "sqlalchemy"
 version = "2.0.30"
 description = "Database Abstraction Library"
@@ -5031,6 +5052,23 @@ files = [
 ]
 
 [[package]]
+name = "wtforms"
+version = "3.1.2"
+description = "Form validation and rendering for Python web development."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "wtforms-3.1.2-py3-none-any.whl", hash = "sha256:bf831c042829c8cdbad74c27575098d541d039b1faa74c771545ecac916f2c07"},
+    {file = "wtforms-3.1.2.tar.gz", hash = "sha256:f8d76180d7239c94c6322f7990ae1216dae3659b7aa1cee94b6318bdffb474b9"},
+]
+
+[package.dependencies]
+markupsafe = "*"
+
+[package.extras]
+email = ["email-validator"]
+
+[[package]]
 name = "xmltodict"
 version = "0.13.0"
 description = "Makes working with XML feel like you are working with JSON"
@@ -5162,4 +5200,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "c5c26ef191199f3ca8ff1a0d3d3a5cd65af80dd1593bf9705cdcbbc8587d2b9d"
+content-hash = "88e83d9d281b7903ac274f418f13f039da10d9c530dc2024002d8adf6f0a530b"

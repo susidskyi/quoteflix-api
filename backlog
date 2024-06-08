@@ -30,3 +30,12 @@ Add delay before phrase and after phrase when creating then (send values in requ
 Check phrases correctness: \n not more than 2-3 for example, not less than 1 second etc.
 Update PhraseSchema to return everything about phrase when get_all
 Investigate the problem why sometimes phrases are not created
+Create package for processing movie and subtitles, cut scenes
+Think about calling in celery the create movie task in router
+Export All phrases to json whether they have issues or not
+Update Schemas, structure them some way
+Move helpers to package and reuse it in scene upload service
+Refactor code and move utils, services somewhere
+Investigate CORS and Middlewares
+Configure backups
+Filter phrases by only active ones when search

@@ -10,11 +10,15 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_pagination import add_pagination
 from redis import asyncio as aioredis
+from sqladmin import Admin
 
 from app.api.analytics.router import router as analytics_router
+from app.api.movies import admin as movies_admin
 from app.api.movies.router import router as movies_router
+from app.api.phrases import admin as phrases_admin
 from app.api.phrases.router import router as phrases_router
 from app.api.users.router import router as users_router
+from app.core.admin_auth import AdminAuth
 from app.core.config import settings
 from app.core.database import sessionmanager
 
@@ -44,6 +48,19 @@ origins = ["http://localhost", "http://localhost:8080", "http://localhost:3000",
 
 app = FastAPI(lifespan=lifespan, docs_url=docs_url)
 
+authentication_backend = AdminAuth(secret_key=settings.secret)
+
+# Admin
+admin = Admin(
+    app,
+    engine=sessionmanager._engine,
+    base_url=settings.admin_panel_path,
+    authentication_backend=authentication_backend,
+)
+admin.add_view(phrases_admin.PhraseAdmin)
+admin.add_view(phrases_admin.PhraseIssueAdmin)
+admin.add_view(movies_admin.MovieAdmin)
+
 # Paginator
 add_pagination(app)
 
@@ -52,7 +69,6 @@ logfire.configure(token=settings.logfire_token, send_to_logfire=settings.environ
 logfire.instrument_fastapi(app)
 
 # CORS (Cross-Origin Resource Sharing)
-# TODO: investigate this
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

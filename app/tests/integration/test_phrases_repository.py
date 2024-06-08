@@ -290,6 +290,7 @@ class TestPhrasesRepository:
 
         assert len(result) == 1
         assert result[0].movie_id == random_movie_id
+        assert result[0].id == phrase_transfer_schema_data.id
         assert result[0].scene_s3_key == phrase_transfer_schema_data.scene_s3_key
         assert result[0].end_in_movie == phrase_transfer_schema_data.end_in_movie
         assert result[0].start_in_movie == phrase_transfer_schema_data.start_in_movie
