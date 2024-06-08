@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 
@@ -64,3 +65,23 @@ def get_matched_phrase(normalized_search_text: str, full_text: str) -> str:
         matched_phrase = re.search(pattern, full_text, re.IGNORECASE | re.DOTALL)
 
     return matched_phrase.group(1) if matched_phrase else ""
+
+
+def format_duration(duration: datetime.timedelta) -> str:
+    hours, remainder = divmod(duration.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    milliseconds = duration.microseconds // 1000
+
+    return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
+
+
+def parse_duration(duration_str: str) -> datetime.timedelta:
+    hours, minutes, seconds_milliseconds = duration_str.split(":")
+    seconds, milliseconds = seconds_milliseconds.split(".")
+
+    return datetime.timedelta(
+        hours=int(hours),
+        minutes=int(minutes),
+        seconds=int(seconds),
+        milliseconds=int(milliseconds),
+    )

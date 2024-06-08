@@ -5,33 +5,21 @@ from itertools import batched
 
 import click
 
+from app.api.phrases.utils import parse_duration
+
 
 @click.command()
-@click.option(
-    "--movie-path",
-    "-mp",
-    required=True,
-    type=click.Path(exists=True, dir_okay=False),
-)
-@click.option(
-    "--json-path",
-    "-jp",
-    required=True,
-    type=click.Path(exists=True, dir_okay=False),
-)
+@click.option("--movie-path", "-mp", required=True, type=click.Path(exists=True, dir_okay=False))
+@click.option("--json-path", "-jp", required=True, type=click.Path(exists=True, dir_okay=False))
 @click.option(
     "--output-dir",
     "-od",
     required=True,
     type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=pathlib.Path),
 )
-@click.option(
-    "--volume",
-    "-vol",
-    default=1,
-    type=float,
-)
-def create_scenes(movie_path: str, json_path: str, output_dir: str, volume: float) -> None:
+@click.option("--workers", "-w", default=10, type=click.IntRange(1, 128))
+@click.option("--volume", "-vol", default=1, type=float)
+def create_scenes(movie_path: str, json_path: str, output_dir: str, volume: float, workers: int) -> None:
     movie_extension = movie_path.split(".")[-1]
 
     with open(json_path) as f:
@@ -39,10 +27,11 @@ def create_scenes(movie_path: str, json_path: str, output_dir: str, volume: floa
     base_cmd = f"ffmpeg -i {movie_path}"
     output_str_groups = []
 
-    for phrases_group in batched(phrases, 10):
+    for phrases_group in batched(phrases, workers):
         output_group = []
         for phrase in phrases_group:
-            start, end = phrase["start_in_movie"], phrase["end_in_movie"]
+            start = parse_duration(phrase["start_in_movie"])
+            end = parse_duration(phrase["end_in_movie"])
             volume_filter = f'-filter:a "volume={volume}"'
             outputh_path = f"{output_dir}/{phrase['id']}.{movie_extension}"
 

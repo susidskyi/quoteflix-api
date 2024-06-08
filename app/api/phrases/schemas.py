@@ -4,9 +4,10 @@ import uuid
 from typing import Sequence
 
 from fastapi import UploadFile
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_serializer, field_validator, model_validator
 
 from app.api.movies.schemas import MovieInSearchByPhraseTextSchema
+from app.api.phrases.utils import format_duration
 from app.core.config import settings
 from app.core.constants import SUPPORTED_SUBTITLES_EXTENSIONS, SUPPORTED_VIDEO_EXTENSIONS
 from app.core.validators import FileValidator
@@ -23,6 +24,10 @@ class PhraseSchema(BaseModel):
     end_in_movie: datetime.timedelta
     scene_s3_key: str | None
 
+    @field_serializer("start_in_movie", "end_in_movie", when_used="json")
+    def serialize_duration(self, value: datetime.timedelta) -> str:
+        return format_duration(value)
+
 
 class PhraseBySearchTextSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -33,6 +38,10 @@ class PhraseBySearchTextSchema(BaseModel):
     matched_phrase: str
     start_in_movie: datetime.timedelta
     movie: MovieInSearchByPhraseTextSchema
+
+    @field_serializer("start_in_movie", when_used="json")
+    def serialize_duration(self, value: datetime.timedelta) -> str:
+        return format_duration(value)
 
 
 class PaginatedPhrasesBySearchTextSchema(BaseModel):
@@ -57,6 +66,10 @@ class PhraseCreateUpdateSchema(BaseModel, abc.ABC):
             raise ValueError("Start time must be less than end time")
 
         return self
+
+    @field_serializer("start_in_movie", "end_in_movie", when_used="json")
+    def serialize_duration(self, value: datetime.timedelta) -> str:
+        return format_duration(value)
 
 
 class PhraseCreateSchema(PhraseCreateUpdateSchema):
@@ -119,6 +132,10 @@ class PhraseTransferSchema(BaseModel):
     start_in_movie: datetime.timedelta
     end_in_movie: datetime.timedelta
     scene_s3_key: str
+
+    @field_serializer("start_in_movie", "end_in_movie", when_used="json")
+    def serialize_duration(self, value: datetime.timedelta) -> str:
+        return format_duration(value)
 
 
 class PhraseIssueSchema(BaseModel):

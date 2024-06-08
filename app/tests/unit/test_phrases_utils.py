@@ -4,7 +4,13 @@ import pathlib
 import pytest
 
 from app.api.phrases.models import PhraseModel
-from app.api.phrases.utils import ffmpeg_output_arg_from_phrase, get_matched_phrase, normalize_phrase_text
+from app.api.phrases.utils import (
+    ffmpeg_output_arg_from_phrase,
+    format_duration,
+    get_matched_phrase,
+    normalize_phrase_text,
+    parse_duration,
+)
 
 
 @pytest.mark.parametrize(
@@ -65,3 +71,33 @@ def test_get_matched_phrase(
     result = get_matched_phrase(normalize_phrase_text(search_text), full_phrase)
 
     assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    ("timedelta", "expected_str"),
+    [
+        (datetime.timedelta(seconds=5), "00:00:05.000"),
+        (datetime.timedelta(seconds=60), "00:01:00.000"),
+        (datetime.timedelta(seconds=3600), "01:00:00.000"),
+        (datetime.timedelta(milliseconds=500), "00:00:00.500"),
+    ],
+)
+def test_format_duration(timedelta: datetime.timedelta, expected_str: str):
+    result = format_duration(timedelta)
+
+    assert result == expected_str
+
+
+@pytest.mark.parametrize(
+    ("duration_str", "expected_timedelta"),
+    [
+        ("00:00:05.000", datetime.timedelta(seconds=5)),
+        ("00:01:00.000", datetime.timedelta(seconds=60)),
+        ("01:00:00.000", datetime.timedelta(seconds=3600)),
+        ("00:00:00.500", datetime.timedelta(milliseconds=500)),
+    ],
+)
+def test_parse_duration(duration_str: str, expected_timedelta: datetime.timedelta):
+    result = parse_duration(duration_str)
+
+    assert result == expected_timedelta
