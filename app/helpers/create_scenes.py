@@ -113,12 +113,13 @@ def create_scenes(
             start_arg = f"-ss {phrase.start}"
             end_arg = f"-to {phrase.end}"
             volume_arg = f'-filter:a "volume={volume}"'
-            output_path_arg = output_dir.joinpath(f"{phrase.output_name}.{movie_extension}")
+            output_path_arg = output_dir.joinpath(f"{phrase.output_name}{movie_extension}")
 
-            output_str_groups.append(f"{start_arg} {end_arg} {volume_arg} {output_path_arg}")
+            output_str_groups.append(f'{start_arg} {end_arg} {volume_arg} "{output_path_arg}"')
 
         output_str = " ".join(output_str_groups)
         cmd = f"{base_cmd} {output_str} -y"
+        print(cmd)
         subprocess.run(cmd, shell=True, check=True)  # noqa: S602
 
     if create_subtitles:

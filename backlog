@@ -39,3 +39,4 @@ Refactor code and move utils, services somewhere
 Investigate CORS and Middlewares
 Configure backups
 Filter phrases by only active ones when search
+Write README.md
