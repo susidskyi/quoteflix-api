@@ -10,7 +10,7 @@ from app.api.phrases.utils import parse_duration
 
 @click.command()
 @click.option("--movie-path", "-mp", required=True, type=click.Path(exists=True, dir_okay=False))
-@click.option("--json-path", "-jp", required=True, type=click.Path(exists=True, dir_okay=False))
+@click.option("--phrases-path", "-pp", required=True, type=click.Path(exists=True, dir_okay=False))
 @click.option(
     "--output-dir",
     "-od",
@@ -19,11 +19,12 @@ from app.api.phrases.utils import parse_duration
 )
 @click.option("--workers", "-w", default=10, type=click.IntRange(1, 128))
 @click.option("--volume", "-vol", default=1, type=float)
-def create_scenes(movie_path: str, json_path: str, output_dir: str, volume: float, workers: int) -> None:
+def create_scenes(movie_path: str, phrases_path: str, output_dir: str, volume: float, workers: int) -> None:
     movie_extension = movie_path.split(".")[-1]
 
-    with open(json_path) as f:
+    with open(phrases_path) as f:
         phrases = json.load(f)
+
     base_cmd = f"ffmpeg -i {movie_path}"
     output_str_groups = []
 
