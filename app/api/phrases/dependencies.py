@@ -3,15 +3,15 @@ import uuid
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_db_session
 from app.api.movies.dependencies import get_movies_service
 from app.api.movies.service import MoviesService
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.scenes_upload_service import ScenesUploadService
 from app.api.phrases.service import PhrasesService
-from app.core.dependencies import get_presigned_url_service, get_s3_service
-from app.core.presigned_url_service import PresignedURLService
-from app.core.s3_service import S3Service
+from app.core.dependencies import get_db_session
+from app.s3.dependencies import get_presigned_url_service, get_s3_service
+from app.s3.presigned_url_service import PresignedURLService
+from app.s3.s3_service import S3Service
 
 
 async def get_phrases_repository(

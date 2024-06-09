@@ -3,9 +3,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_users.jwt import decode_jwt, generate_jwt
 from sqladmin.authentication import AuthenticationBackend
 
-from app.api.dependencies import get_db_session
 from app.api.users.dependencies import get_user_db
 from app.api.users.manager import get_user_manager
+from app.core.dependencies import get_db_session
 
 
 class AdminAuth(AuthenticationBackend):

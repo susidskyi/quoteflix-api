@@ -1,5 +1,4 @@
 import hashlib
-import typing
 from typing import Callable, Optional
 from urllib.request import Request
 

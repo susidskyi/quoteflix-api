@@ -3,7 +3,7 @@ import io
 import aioboto3
 import pytest
 
-from app.core.s3_service import S3Service
+from app.s3.s3_service import S3Service
 
 
 @pytest.mark.asyncio()

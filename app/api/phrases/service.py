@@ -14,8 +14,8 @@ from app.api.phrases.schemas import (
 )
 from app.api.phrases.utils import get_matched_phrase, normalize_phrase_text
 from app.core.config import settings
-from app.core.presigned_url_service import PresignedURLService
-from app.core.s3_service import S3Service
+from app.s3.presigned_url_service import PresignedURLService
+from app.s3.s3_service import S3Service
 
 
 class PhrasesService:

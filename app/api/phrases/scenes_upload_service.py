@@ -24,7 +24,7 @@ from app.api.phrases.utils import ffmpeg_output_arg_from_phrase, normalize_phras
 from app.core.config import settings
 from app.core.constants import MovieStatus
 from app.core.exceptions import SceneUploadError
-from app.core.s3_service import S3Service
+from app.s3.s3_service import S3Service
 
 logger = logging.getLogger("multipart")
 logger.setLevel(logging.INFO)

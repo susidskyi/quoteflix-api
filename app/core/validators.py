@@ -14,8 +14,7 @@ class FileValidator:
         if file.size > max_size:
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail="File is too large. Max file size is: "
-                + humanize.naturalsize(max_size),
+                detail="File is too large. Max file size is: " + humanize.naturalsize(max_size),
             )
 
     @staticmethod
@@ -31,8 +30,7 @@ class FileValidator:
         if file_extension not in supported_extensions:
             raise HTTPException(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail="File type not supported. Supported types: "
-                + ", ".join(supported_extensions),
+                detail="File type not supported. Supported types: " + ", ".join(supported_extensions),
             )
 
     @staticmethod

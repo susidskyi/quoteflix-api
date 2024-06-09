@@ -1,26 +1,10 @@
-import aioboto3
-from fastapi import Depends
+from typing import AsyncIterator
 
-from app.core.config import settings
-from app.core.presigned_url_service import PresignedURLService
-from app.core.s3_service import S3Service
+from sqlalchemy.ext.asyncio import AsyncSession
 
-
-async def get_s3_session() -> aioboto3.Session:
-    return aioboto3.Session(
-        region_name=settings.s3_region_name,
-        aws_access_key_id=settings.s3_access_key,
-        aws_secret_access_key=settings.s3_secret_key,
-    )
+from app.core.database import sessionmanager
 
 
-async def get_s3_service(
-    s3_session: aioboto3.Session = Depends(get_s3_session),
-) -> S3Service:
-    return S3Service(s3_session=s3_session)
-
-
-async def get_presigned_url_service(
-    s3_service: S3Service = Depends(get_s3_service),
-) -> PresignedURLService:
-    return PresignedURLService(s3_service)
+async def get_db_session() -> AsyncIterator[AsyncSession]:
+    async with sessionmanager.session() as session:
+        yield session

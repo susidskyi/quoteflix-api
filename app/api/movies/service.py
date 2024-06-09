@@ -9,7 +9,7 @@ from app.api.movies.repository import MoviesRepository
 from app.api.movies.schemas import MovieCreateSchema, MovieUpdateSchema
 from app.core.config import settings
 from app.core.constants import MovieStatus
-from app.core.s3_service import S3Service
+from app.s3.s3_service import S3Service
 
 
 class MoviesService:

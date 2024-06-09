@@ -44,9 +44,9 @@ from app.api.users.models import UserModel
 from app.core.config import settings
 from app.core.constants import Languages, MovieStatus
 from app.core.models import CoreModel
-from app.core.presigned_url_service import PresignedURLService
-from app.core.s3_service import S3Service
 from app.main import app as main_app
+from app.s3.presigned_url_service import PresignedURLService
+from app.s3.s3_service import S3Service
 
 """
 ###############################################################################

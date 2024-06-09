@@ -3,7 +3,7 @@ from unittest import mock
 import pytest
 
 from app.api.phrases.models import PhraseModel
-from app.core.presigned_url_service import PresignedURLService
+from app.s3.presigned_url_service import PresignedURLService
 
 
 @pytest.mark.asyncio()
