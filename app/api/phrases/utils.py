@@ -1,6 +1,7 @@
 import datetime
 import os
 import re
+from pathlib import Path
 
 from app.api.phrases.models import PhraseModel
 
@@ -38,14 +39,14 @@ def normalize_phrase_text(phrase: str) -> str:
     return " " + phrase + " "
 
 
-def ffmpeg_output_arg_from_phrase(phrase: PhraseModel, output_dir: str, file_extension: str) -> str:
-    start_time = phrase.start_in_movie.total_seconds()
-    end_time = phrase.end_in_movie.total_seconds()
+def get_ffmpeg_trim_cmd_for_phrase(phrase: PhraseModel, movie_path: Path, output_dir: Path) -> str:
+    movie_ext = movie_path.suffix
+    start_arg = f"-ss {phrase.start_in_movie}"
+    end_arg = f"-to {phrase.end_in_movie}"
+    output_filename = f"{phrase.id}{movie_ext}"
+    output_path_arg = Path(output_dir, output_filename)
 
-    file_name = f"{phrase.id}{file_extension}"
-    file_path = os.path.join(output_dir, file_name)
-
-    return f'-ss {start_time} -filter:a "volume=1.5" -to {end_time} {file_path}'
+    return f"ffmpeg {start_arg} {end_arg} -i {movie_path} {output_path_arg}"
 
 
 def get_matched_phrase(normalized_search_text: str, full_text: str) -> str:
@@ -76,6 +77,9 @@ def format_duration(duration: datetime.timedelta) -> str:
 
 
 def parse_duration(duration_str: str) -> datetime.timedelta:
+    """
+    CURRENTLY NOT USED ANYWHERE
+    """
     hours, minutes, seconds_milliseconds = duration_str.split(":")
     seconds, milliseconds = seconds_milliseconds.split(".")
 

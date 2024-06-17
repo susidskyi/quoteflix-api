@@ -1,12 +1,12 @@
 import datetime
-import pathlib
+from pathlib import Path
 
 import pytest
 
 from app.api.phrases.models import PhraseModel
 from app.api.phrases.utils import (
-    ffmpeg_output_arg_from_phrase,
     format_duration,
+    get_ffmpeg_trim_cmd_for_phrase,
     get_matched_phrase,
     normalize_phrase_text,
     parse_duration,
@@ -41,16 +41,25 @@ def test_normalize_phrase_text(
     assert result == expected_output
 
 
-def test_ffmpeg_output_arg_from_phrase(phrase_model_data: PhraseModel, tmp_path: pathlib.Path):
-    phrase_model_data.start_in_movie = datetime.timedelta(seconds=5)
-    phrase_model_data.end_in_movie = datetime.timedelta(seconds=10)
+def test_get_ffmpeg_trim_cmd_for_phrase(phrase_model_data: PhraseModel, tmp_path: Path):
+    movie_path = Path(tmp_path, "movie.mp4")
 
-    expected_path = pathlib.PurePath(tmp_path, f"{phrase_model_data.id}.mp4")
-    expected_result = f'-ss 5.0 -filter:a "volume=1.5" -to 10.0 {expected_path}'
+    result = get_ffmpeg_trim_cmd_for_phrase(
+        phrase_model_data,
+        movie_path,
+        tmp_path,
+    )
 
-    result = ffmpeg_output_arg_from_phrase(phrase_model_data, tmp_path, ".mp4")
+    expected_data = {
+        "start": phrase_model_data.start_in_movie,
+        "end": phrase_model_data.end_in_movie,
+        "path": Path(tmp_path, f"{phrase_model_data.id}.mp4"),
+    }
 
-    assert result == expected_result
+    expected_cmd = (
+        f"ffmpeg -ss {expected_data['start']} -to {expected_data['end']} -i {movie_path} {expected_data['path']}"
+    )
+    assert result == expected_cmd
 
 
 @pytest.mark.parametrize(

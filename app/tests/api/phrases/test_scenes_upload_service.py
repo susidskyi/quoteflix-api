@@ -92,7 +92,6 @@ class TestScenesUploadService:
         subtitle_item: SubtitleItem,
         mock_phrases_service: mock.AsyncMock,
         phrase_model_data: PhraseModel,
-        phrase_create_schema_data: PhraseCreateSchema,
         scene_file_buffered_bytes: io.BytesIO,
         movie_file: UploadFile,
         mocker: pytest_mock.MockerFixture,
@@ -118,7 +117,7 @@ class TestScenesUploadService:
         )
 
         mock_create_phrases.assert_awaited_once_with(random_movie_id, [subtitle_item])
-        mock_create_scenes_files.assert_awaited_once_with(movie_file, "movie", phrases, tmp_output_dir, ".mp4")
+        mock_create_scenes_files.assert_awaited_once_with(movie_file, "movie.mp4", phrases, tmp_output_dir)
         assert mock_get_scene_file.await_count == len(phrases)
         assert mock_s3_service.upload_fileobj.await_count == len(phrases)
         assert mock_phrases_service.update.await_count == len(phrases)
