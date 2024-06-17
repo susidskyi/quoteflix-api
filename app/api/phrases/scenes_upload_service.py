@@ -117,7 +117,7 @@ class ScenesUploadService:
                 ),
             )
 
-        return subtitle_items[:10]
+        return subtitle_items
 
     async def _create_phrases(
         self,
