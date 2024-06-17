@@ -82,7 +82,6 @@ def handle_create_subtitles(phrases: list[Phrase], output_dir: Path) -> None:
     required=True,
     type=click.Path(exists=True, dir_okay=True, file_okay=False, path_type=Path),
 )
-@click.option("--workers", "-w", default=10, type=click.IntRange(min=1))
 @click.option("--volume", "-v", default=1.5, type=click.FloatRange(min=0.0))
 @click.option("--create-subtitles", "-s", default=False, is_flag=True)
 @click.option("--limit", "-l", default=99999, type=click.IntRange(min=1))
@@ -91,7 +90,6 @@ def create_scenes(
     phrases_path: Path,
     output_dir: Path,
     volume: float,
-    workers: int,
     create_subtitles: bool,
     limit: int,
 ) -> None:
@@ -104,22 +102,13 @@ def create_scenes(
     phrases_parser = PHRASES_FILE_PARSERS_MAPPING[phrases_extension]
     phrases = phrases_parser(phrases_path)[:limit]
 
-    base_cmd = f"ffmpeg -i {movie_path}"
+    for phrase in phrases:
+        volume_arg = f'-filter:a "volume={volume}"'
+        start_arg = f"-ss {phrase.start}"
+        end_arg = f"-to {phrase.end}"
+        output_path_arg = output_dir.joinpath(f"{phrase.output_name}{movie_extension}")
 
-    for phrases_group in batched(phrases, workers):
-        output_str_groups = []
-
-        for phrase in phrases_group:
-            start_arg = f"-ss {phrase.start}"
-            end_arg = f"-to {phrase.end}"
-            volume_arg = f'-filter:a "volume={volume}"'
-            output_path_arg = output_dir.joinpath(f"{phrase.output_name}{movie_extension}")
-
-            output_str_groups.append(f'{start_arg} {end_arg} {volume_arg} "{output_path_arg}"')
-
-        output_str = " ".join(output_str_groups)
-        cmd = f"{base_cmd} {output_str} -y"
-        print(cmd)
+        cmd = f"ffmpeg {start_arg} {end_arg} -i {movie_path} {volume_arg} {output_path_arg} -y"
         subprocess.run(cmd, shell=True, check=True)  # noqa: S602
 
     if create_subtitles:
