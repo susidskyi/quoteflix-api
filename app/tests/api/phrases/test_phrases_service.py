@@ -386,3 +386,18 @@ class TestPhrasesService:
 
         assert result is None
         mock_phrases_repository.delete_issues_by_phrase_id.assert_awaited_once_with(random_phrase_issue_id)
+
+    async def test_generate_srt(
+        self,
+        phrases_service: PhrasesService,
+        mock_phrases_repository: mock.AsyncMock,
+        random_movie_id: uuid.UUID,
+        phrase_model_data: PhraseModel,
+        phrases_srt_file_content: str,
+    ):
+        mock_phrases_repository.get_by_movie_id.return_value = [phrase_model_data]
+
+        result = await phrases_service.generate_srt(random_movie_id)
+
+        mock_phrases_repository.get_by_movie_id.assert_awaited_once_with(random_movie_id)
+        assert result == phrases_srt_file_content

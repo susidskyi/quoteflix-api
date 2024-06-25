@@ -2,6 +2,7 @@ import uuid
 from typing import Sequence
 
 from fastapi import BackgroundTasks, Depends, Form, Query, Request, status
+from fastapi.responses import Response
 from fastapi.routing import APIRouter
 from fastapi_cache.decorator import cache
 from typing_extensions import Annotated
@@ -279,3 +280,21 @@ async def delete_phrase_issues(
     phrases_service: PhrasesService = Depends(get_phrases_service),
 ) -> None:
     background_tasks.add_task(phrases_service.delete_issues_by_phrase_id, phrase_id)
+
+
+@router.get(
+    "/export-to-srt/{movie_id}",
+    name="phrases:export-to-srt",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(movie_exists), Depends(current_superuser)],
+)
+async def export_to_srt(
+    movie_id: uuid.UUID,
+    phrases_service: PhrasesService = Depends(get_phrases_service),
+) -> Response:
+    srt_content = await phrases_service.generate_srt(movie_id)
+
+    response = Response(content=srt_content, media_type="application/x-subrip")
+    response.headers["Content-Disposition"] = "attachment; filename=subtitles.srt"
+
+    return response

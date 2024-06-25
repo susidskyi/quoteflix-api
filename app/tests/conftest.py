@@ -8,6 +8,7 @@ from unittest import mock
 import aioboto3
 import pytest
 import pytest_asyncio
+import srt
 from fastapi import FastAPI, HTTPException, UploadFile, status
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
@@ -305,12 +306,12 @@ def movie_in_search_by_phrase_model_data(movie_model_data: MovieModel) -> MovieM
 
 """
 ###############################################################################
-[END] Movie-app fixtures
+[END] Movie fixtures
 """
 
 """
 ###############################################################################
-[START] Phrases-app fixtures
+[START] Phrases fixtures
 ###############################################################################
 """
 
@@ -546,6 +547,20 @@ def check_phrase_issue_exists() -> Callable[[bool], None]:
 def phrase_issue_schema_data(phrase_issue_model_read_data: PhraseIssueModel):
     return PhraseIssueSchema(
         **phrase_issue_model_read_data.__dict__,
+    )
+
+
+@pytest.fixture()
+def phrases_srt_file_content(phrase_model_data: PhraseModel) -> str:
+    return srt.compose(
+        [
+            srt.Subtitle(
+                index=1,
+                start=phrase_model_data.start_in_movie,
+                end=phrase_model_data.end_in_movie,
+                content=phrase_model_data.full_text,
+            ),
+        ],
     )
 
 

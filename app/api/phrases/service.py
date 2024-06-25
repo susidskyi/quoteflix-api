@@ -2,6 +2,8 @@ import os
 import uuid
 from typing import Sequence
 
+import srt
+
 from app.api.phrases.models import PhraseIssueModel, PhraseModel
 from app.api.phrases.repository import PhrasesRepository
 from app.api.phrases.schemas import (
@@ -126,3 +128,20 @@ class PhrasesService:
 
     async def delete_issues_by_phrase_id(self, phrase_id: uuid.UUID) -> None:
         await self.repository.delete_issues_by_phrase_id(phrase_id)
+
+    async def generate_srt(self, movie_id: uuid.UUID) -> str:
+        phrases = await self.repository.get_by_movie_id(movie_id)
+
+        subtitles = [
+            srt.Subtitle(
+                start=phrase.start_in_movie,
+                end=phrase.end_in_movie,
+                content=phrase.full_text,
+                index=index,
+            )
+            for index, phrase in enumerate(phrases, 1)
+        ]
+
+        srt_content: str = srt.compose(subtitles)
+
+        return srt_content

@@ -1347,12 +1347,91 @@ class TestDeleteIssuesByPhraseID:
         app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
             user_fixture_value,
         )
-        app_with_dependency_overrides.dependency_overrides[phrase_exists] = lambda: True
 
         result = await async_client.delete(
             app_with_dependency_overrides.url_path_for(
                 "phrases:delete-issues-by-phrase-id",
                 phrase_id=random_phrase_id,
+            ),
+        )
+
+        assert result.status_code == expected_status_code
+
+
+@pytest.mark.asyncio()
+class TestExportToSrt:
+    async def test_ok(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrases_srt_file_content: str,
+    ):
+        mock_phrases_service.generate_srt.return_value = phrases_srt_file_content
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: True
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:export-to-srt",
+                movie_id=random_movie_id,
+            ),
+        )
+
+        mock_phrases_service.generate_srt.assert_awaited_once_with(random_movie_id)
+        assert result.status_code == status.HTTP_200_OK
+        assert result.content == phrases_srt_file_content.encode()
+
+    async def test_movie_does_not_exist(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        check_movie_exists: Callable[[bool], None],
+    ):
+        app_with_dependency_overrides.dependency_overrides[movie_exists] = lambda: check_movie_exists(False)
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:export-to-srt",
+                movie_id=random_movie_id,
+            ),
+        )
+
+        assert result.status_code == status.HTTP_404_NOT_FOUND
+        mock_phrases_service.generate_srt.assert_not_awaited()
+
+    @pytest.mark.parametrize(
+        ("user", "expected_status_code"),
+        [
+            ("anonymous_user", status.HTTP_401_UNAUTHORIZED),
+            ("common_user", status.HTTP_403_FORBIDDEN),
+            ("admin_user", status.HTTP_200_OK),
+        ],
+    )
+    async def test_permissions(
+        self,
+        mock_phrases_service: mock.AsyncMock,
+        app_with_dependency_overrides: FastAPI,
+        async_client: AsyncClient,
+        random_movie_id: uuid.UUID,
+        phrases_srt_file_content: str,
+        request: pytest.FixtureRequest,
+        user: str,
+        expected_status_code: int,
+        check_is_superuser: Callable[[UserModel | None], UserModel],
+    ):
+        user_fixture = request.getfixturevalue(user)
+        app_with_dependency_overrides.dependency_overrides[current_superuser] = lambda: check_is_superuser(
+            user_fixture,
+        )
+        mock_phrases_service.generate_srt.return_value = phrases_srt_file_content
+
+        result = await async_client.get(
+            app_with_dependency_overrides.url_path_for(
+                "phrases:export-to-srt",
+                movie_id=random_movie_id,
             ),
         )
 
