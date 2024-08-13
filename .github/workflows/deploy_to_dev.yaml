@@ -104,4 +104,4 @@ jobs:
             docker stop quoteflix-api quoteflix-traefik quoteflix-redis || true
             docker rm quoteflix-api quoteflix-traefik quoteflix-redis || true
             docker network create traefik-public || true
-            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up
+            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
