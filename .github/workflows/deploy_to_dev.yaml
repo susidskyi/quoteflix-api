@@ -47,6 +47,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
           script: |
             export EC2_PROJECT_PATH="/home/ubuntu/quoteflix-api"
             export DEBUG_LOGS=true
