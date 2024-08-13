@@ -1,42 +1,43 @@
-name: deploy-to-dev
-run-name: Deploy to development
+name: Deploy to Dev
+
 on:
+  push:
+    branches:
+      - test-deploy
   workflow_dispatch:
-    
+
+permissions:
+  id-token: write
+  contents: read
+
 
 jobs:
-  deploy_to_dev:
-    name: Deploy to development server
+  deploy:
+    name: Deploy
     runs-on: ubuntu-latest
+    environment: dev
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build and run
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          SHA: ${{ github.sha }}
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
         with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USERNAME }}
-          key: ${{ secrets.DEV_KEY }}
-          port: ${{ secrets.DEV_PORT }}
-          envs: SHA
-          script_stop: true
-          script: |
-            cd /var/www/flickphrase-api/
-            echo "$SHA"
-            eval `ssh-agent -s`
-            ssh-add ~/.ssh/pet
-            git fetch
-            git reset --hard $SHA
-            export USERNAME='${{ secrets.TRAEFIK_USERNAME }}'
-            export PASSWORD='${{ secrets.TRAEFIK_PASSWORD }}'
-            export HASHED_PASSWORD=$(openssl passwd -apr1 ${PASSWORD})
-            cp /var/www/environment/.env.backend /var/www/flickphrase-api/.env
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            docker system prune --force
-            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml down --rmi all
-            docker network inspect traefik-public  >/dev/null 2>&1 || docker network create traefik-public
-            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml pull
-            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up  -d --build --force-recreate
+          role-to-assume: arn:aws:iam::305439215774:role/quoteflix-deploy
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@62f4f872db3836360b72999f4b87f1ff13310f3a
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
