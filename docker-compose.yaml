@@ -1,6 +1,7 @@
 services:
   api:
     restart: unless-stopped
+    container_name: quoteflix-api
     env_file:
       - .env
     labels:
