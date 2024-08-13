@@ -103,4 +103,5 @@ jobs:
             docker pull "305439215774.dkr.ecr.eu-central-1.amazonaws.com/quoteflix-api:9fda0afeb75faa95a0f7d2e5b390927be597e62a"
             docker stop quoteflix-api quoteflix-traefik quoteflix-redis || true
             docker rm quoteflix-api quoteflix-traefik quoteflix-redis || true
+            docker network create traefik-public || true
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up
