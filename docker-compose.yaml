@@ -2,8 +2,6 @@ services:
   api:
     restart: unless-stopped
     container_name: quoteflix-api
-    env_file:
-      - .env
     labels:
       - traefik.enable=true
       - traefik.constraint-label=traefik-public
