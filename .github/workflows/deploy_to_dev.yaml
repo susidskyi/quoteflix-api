@@ -30,16 +30,16 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@62f4f872db3836360b72999f4b87f1ff13310f3a
 
-      # - name: Build, tag, and push image to Amazon ECR
-      #   id: build-image
-      #   env:
-      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-      #     IMAGE_TAG: ${{ github.sha }}
-      #     ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-      #   run: |
-      #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      #     echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -55,7 +55,7 @@ jobs:
             export MOVIES_S3_PATH="movies/"
             export INSTALL_DEV=false
             export DOMAIN="phraseqwe.space"
-            export IMAGE_NAME=305439215774.dkr.ecr.eu-central-1.amazonaws.com/quoteflix-api:5c05f559a68a417ae9a2f072d8a4f7923baf5af2
+            export IMAGE_NAME="${{ steps.build-image.outputs.image }}"
             export MAX_FFMPEG_WORKERS=20
             export SCENES_TMP_PATH="/tmp/scenes"
             export PHRASES_PAGE_SIZE=3
@@ -99,7 +99,7 @@ jobs:
             cd ${EC2_PROJECT_PATH}
             git fetch origin test-deploy
             git reset --hard origin/test-deploy
-            docker pull 305439215774.dkr.ecr.eu-central-1.amazonaws.com/quoteflix-api:5c05f559a68a417ae9a2f072d8a4f7923baf5af2
+            docker pull "${{ steps.build-image.outputs.image }}"
             docker stop quoteflix-api quoteflix-traefik quoteflix-redis || true
             docker rm quoteflix-api quoteflix-traefik quoteflix-redis || true
             docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up
