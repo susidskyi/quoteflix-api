@@ -43,72 +43,59 @@ jobs:
 
       - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v0.1.3
-        env:
-          EC2_PROJECT_PATH: /home/ubuntu/quoteflix-api
-          DEBUG_LOGS: true
-          ENVIRONMENT: dev
-          SECRET: 1Dv6+GCuYU:zW,W2{SlS<u*0[~grCo
-          MOVIES_S3_PATH: movies/
-          INSTALL_DEV: false
-          DOMAIN: phraseqwe.space
-          IMAGE_NAME: ${{ steps.build-image.outputs.image }}
-          MAX_FFMPEG_WORKERS: 20
-          SCENES_TMP_PATH: /tmp/scenes
-          PHRASES_PAGE_SIZE: 3
-
-          # S3
-          S3_ENDPOINT_URL: http://minio:9000
-          S3_BUCKET: flickphrase
-          S3_ACCESS_KEY: Hh9JgfDCZEdJoASoSnJV
-          S3_SECRET_KEY: SWrW6Y0XDWm50dbSO5AB20DuKhAl3bQ7K3XmalNH
-          S3_REGION_NAME: weur
-
-          # Minio
-          MINIO_ROOT_USER: flickphrase
-          MINIO_ROOT_PASSWORD: flickphrase
-          MINIO_ACCESS_KEY: Hh9JgfDCZEdJoASoSnJV
-          MINIO_SECRET_KEY: SWrW6Y0XDWm50dbSO5AB20DuKhAl3bQ7K3XmalNH
-
-          # CloudFlare
-          CLOUDFLARE_ACCESS_KEY_ID: fb096ddebd3a697e95afcb402e96fe7f
-          CLOUDFLARE_SECRET_ACCESS_KEY: d8c0fa6d7c435af25a2797a96e200c7d2196dde17048d15cbf9eba9c31678f67
-          CLOUDFLARE_REGION_NAME: weur
-          CLOUDFLARE_ENDPOINT_URL: https://8b115f64708dd24de84a777fd4dc24d4.r2.cloudflarestorage.com
-
-          # Database
-          DATABASE_URL: postgresql+asyncpg://flickphrase:flickphrase@host.docker.internal:5432/flickphrase
-          POSTGRES_PASSWORD: flickphrase
-          POSTGRES_USER: flickphrase
-          POSTGRES_DB: flickphrase
-
-          # Database test
-          TEST_DATABASE_URL: postgresql+asyncpg://flickphrase-test:flickphrase@test-db:5432/flickphrase-test
-          TEST_POSTGRES_PASSWORD: flickphrase
-          TEST_POSTGRES_USER: flickphrase-test
-          TEST_POSTGRES_DB: flickphrase-test
-
-          # Traefik
-          USERNAME: admin
-          PASSWORD: CfP!N+xqzEH\6\S30V[9
-          EMAIL: susidskyi@gmail.com
-          STACK_NAME: local-flickphrase-com
-          ROBOTS_HEADER: noindex, nofollow
-
-          # Logfire
-          LOGFIRE_TOKEN: SzStbjKx7QSQDvXYRXHHKHssXXLwWTbMgHS4mxcSWjwg
-
-          # Redis
-          REDIS_PASSWORD: ghpS9irRXK27ML5
-          REDIS_API_CACHE_URL: redis://:ghpS9irRXK27ML5@redis:6379
-
-          # Admin
-          ADMIN_PANEL_PATH: /api/admin-dl94t1rt572w6ijqsbsu/
-
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            export EC2_PROJECT_PATH="/home/ubuntu/quoteflix-api"
+            export DEBUG_LOGS=true
+            export ENVIRONMENT=dev
+            export SECRET="1Dv6+GCuYU:zW,W2{SlS<u*0[~grCo"
+            export MOVIES_S3_PATH="movies/"
+            export INSTALL_DEV=false
+            export DOMAIN="phraseqwe.space"
+            export IMAGE_NAME="${{ steps.build-image.outputs.image }}"
+            export MAX_FFMPEG_WORKERS=20
+            export SCENES_TMP_PATH="/tmp/scenes"
+            export PHRASES_PAGE_SIZE=3
+
+            # S3
+            export S3_ENDPOINT_URL="http://minio:9000"
+            export S3_BUCKET="flickphrase"
+            export S3_ACCESS_KEY="${{ secrets.S3_ACCESS_KEY }}"
+            export S3_SECRET_KEY="${{ secrets.S3_SECRET_KEY }}"
+            export S3_REGION_NAME="weur"
+
+            # Database
+            export DATABASE_URL="postgresql+asyncpg://flickphrase:flickphrase@host.docker.internal:5432/flickphrase"
+            export POSTGRES_PASSWORD="flickphrase"
+            export POSTGRES_USER="flickphrase"
+            export POSTGRES_DB="flickphrase"
+
+            # Database test
+            export TEST_DATABASE_URL="postgresql+asyncpg://flickphrase-test:flickphrase@test-db:5432/flickphrase-test"
+            export TEST_POSTGRES_PASSWORD="flickphrase"
+            export TEST_POSTGRES_USER="flickphrase-test"
+            export TEST_POSTGRES_DB="flickphrase-test"
+
+            # Traefik
+            export USERNAME="admin"
+            export PASSWORD="CfP!N+xqzEH\\6\\S30V[9"
+            export EMAIL="susidskyi@gmail.com"
+            export STACK_NAME="local-flickphrase-com"
+            export ROBOTS_HEADER="noindex, nofollow"
+
+            # Logfire
+            export LOGFIRE_TOKEN="${{ secrets.LOGFIRE_TOKEN }}"
+
+            # Redis
+            export REDIS_PASSWORD="ghpS9irRXK27ML5"
+            export REDIS_API_CACHE_URL="redis://:ghpS9irRXK27ML5@redis:6379"
+
+            # Admin
+            export ADMIN_PANEL_PATH="/api/admin-dl94t1rt572w6ijqsbsu/"
+
             cd ${EC2_PROJECT_PATH}
             git fetch origin test-deploy
             git reset --hard origin/test-deploy
