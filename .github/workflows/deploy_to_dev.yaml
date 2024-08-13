@@ -85,7 +85,7 @@ jobs:
             export EMAIL="susidskyi@gmail.com"
             export STACK_NAME="local-flickphrase-com"
             export ROBOTS_HEADER="noindex, nofollow"
-
+            export HASHED_PASSWORD="qweqwe"
             # Logfire
             export LOGFIRE_TOKEN="${{ secrets.LOGFIRE_TOKEN }}"
 
