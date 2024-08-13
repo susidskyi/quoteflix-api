@@ -55,7 +55,7 @@ jobs:
             export MOVIES_S3_PATH="movies/"
             export INSTALL_DEV=false
             export DOMAIN="phraseqwe.space"
-            export IMAGE_NAME="${{ steps.build-image.outputs.image }}"
+            export IMAGE_NAME=305439215774.dkr.ecr.eu-central-1.amazonaws.com/quoteflix-api:5c05f559a68a417ae9a2f072d8a4f7923baf5af2
             export MAX_FFMPEG_WORKERS=20
             export SCENES_TMP_PATH="/tmp/scenes"
             export PHRASES_PAGE_SIZE=3
